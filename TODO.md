@@ -1,12 +1,9 @@
 To Do file for package
 ================
-2023-03-29
+2023-03-30
 
 ## Short term to do
 
-- Decide Gitlab vs Github (it is possible to make a Gitlab repo public,
-  just not by us)
-- Push to repo
 - Decide which emails we prefer to use (Dario prefers gmail for R
   pacakges)
 - UML like high-level description of the functions needed to implement
