@@ -7,8 +7,10 @@ To Do file for package
 - Decide Gitlab vs Github (it is possible to make a Gitlab repo public,
   just not by us)
 - Push to repo
-- Decide which emaile we prefer to use (Dario prefers gmail for R
+- Decide which emails we prefer to use (Dario prefers gmail for R
   pacakges)
+- UML like high-level description of the functions needed to implement
+  BUIS.
 
 ## Long term to do
 
