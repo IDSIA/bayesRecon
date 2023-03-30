@@ -1,0 +1,26 @@
+Package: BayesReco
+Type: Package
+Title: Probabilistic Reconciliation Via Conditioning
+Version: 0.1.0
+Authors@R: c(person(given = "Nicolo",
+             family = "Rubattu",
+             role = c("aut"),
+             email = "nicolo.rubattu@supsi.ch"),
+      person(given = "Dario",
+             family = "Azzimonti",
+             role = c("aut","cre"),
+             email = "dario.azzimonti@gmail.com",
+             comment = c(ORCID = "0000-0001-5080-3061")),
+      person(given = "Lorenzo",
+             family = "Zambon",
+             role = c("aut"),
+             email = "lorenzo.zambon@idsia.ch"),
+      person(given = "Giorgio",
+             family = "Corani",
+             role = c("aut"),
+             email = "giorgio.corani@idsia.ch"))
+Maintainer: Dario Azzimonti <dario.azzimonti@gmail.com>
+Description: Implementation of reconciliation methods of probabilistic forecast of time series. 
+License: LGPL (>= 3)
+Encoding: UTF-8
+LazyData: true
