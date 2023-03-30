@@ -1,16 +1,16 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# BayesReco
+# bayesReco
 
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of BayesReco is to …
+The goal of bayesReco is to …
 
 ## Installation
 
-You can install the development version of BayesReco like so:
+You can install the development version of bayesReco like so:
 
 ``` r
 # FILL THIS IN! HOW CAN PEOPLE INSTALL YOUR DEV PACKAGE?
@@ -22,7 +22,7 @@ You can install the development version of BayesReco like so:
 This is a basic example which shows you how to solve a common problem:
 
 ``` r
-library(BayesReco)
+library(bayesReco)
 ## basic example code
 ```
 
