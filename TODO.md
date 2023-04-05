@@ -16,3 +16,5 @@ To Do file for package
   projects)
 - In case it is needed expand package to use Rcpp
   (`usethis::use_rcpp_armadillo()`)
+- Control on effective sample size to check for weights collapse
+- Extension to batch-BUIS?
