@@ -1,6 +1,4 @@
-dir_path <- dirname(rstudioapi::getSourceEditorContext()$path)
-funct_path <- paste0(dir_path, "/get_hierarchy_matrix.R")
-source(funct_path)
+source("hierarchy.R")
 
 
 #-------------------------------------------------------------------------------
@@ -15,11 +13,11 @@ a4 <- c(1,1,1,1)
 A <- rbind(a1, a2, a3, a4)
 
 ind <- get_hier_rows(A)  #indices of the "hierarchy rows" of A
-print(ind)  
+print(ind)
 
 
 #-------------------------------------------------------------------------------
-# Example 2 (monthly) 
+# Example 2 (monthly)
 
 Am <- gen_monthly()
 
@@ -29,7 +27,7 @@ View(Am[as.logical(ind_monthly),])  #corresponds to H, but unsorted!
 
 
 #-------------------------------------------------------------------------------
-# Example 3 (weekly) 
+# Example 3 (weekly)
 
 
 Aw <- gen_weekly()
@@ -47,7 +45,7 @@ v_g <- l[[4]]
 
 
 
-#Try again, but first shuffle rows of Aw 
+#Try again, but first shuffle rows of Aw
 
 rand <- sample(k)
 Aw2 <- Aw[rand,]
