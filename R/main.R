@@ -55,7 +55,7 @@ system.time({
     S=S,
     base_forecasts = base_forecasts_samples,
     in_type = "samples",
-    distr = "poisson"
+    distr = "discrete"
   )
 })
 

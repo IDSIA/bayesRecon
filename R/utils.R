@@ -1,3 +1,6 @@
+DISTR_SET = c("gaussian", "poisson", "nbinom")
+DISTR_SET2 = c("continuous", "discrete")
+
 # Input checks ################################################################
 check_input <- function(S, base_forecasts, in_type, distr) {
 
@@ -9,9 +12,12 @@ check_input <- function(S, base_forecasts, in_type, distr) {
     stop("Input error: in_type must be a 'samples' or 'params'")
   }
 
-  if (is.character(distr) & length(distr)==1) {
-    if (!(distr %in% c("gaussian", "poisson", "nbinom"))) {
-      stop("Input error: distr must be {'gaussian', 'poisson', 'nbinom'}")
+  if (is.character(distr) & length(distr)==1) { # if distr is a string...
+    if (in_type=="params" & !(distr %in% DISTR_SET)) {
+      stop(paste("Input error: if in_type='params', distr must be {", paste(DISTR_SET, collapse = ', '), "}"))
+    }
+    if (in_type=="samples" & !(distr %in% DISTR_SET2)) {
+      stop(paste("Input error: if in_type='samples', distr must be {", paste(DISTR_SET2, collapse = ', '), "}"))
     }
   }
 
@@ -26,6 +32,7 @@ check_input <- function(S, base_forecasts, in_type, distr) {
   # - gaussian: 2 parameters, (mu, sd)
   # - poisson:  1 parameter,  (lambda)
   # - nbinom:   2 parameters, (n, p)
+  # TODO if distr is a list, check that entries are coherent
 }
 
 # Split bottoms, uppers #######################################################

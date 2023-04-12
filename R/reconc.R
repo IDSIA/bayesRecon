@@ -18,18 +18,20 @@ emp_pmf <- function(l, density_samples) {
 
 compute_weights <- function(b, u, in_type_, distr_) {
   if (in_type_ == "samples") {
-    if (distr_ %in% c("poisson","negbin")) {
+    if (distr_ == "discrete") {
       # Discrete samples
       w = emp_pmf(b, u)
-    } else if (distr_ == "gaussian") {
-      # TODO w = kde(...)
+    } else if (distr_ == "continuous") {
+      # KDE
+      d = density(u, bw="SJ", n=2**16)
+      df = approxfun(d)
+      w = df(b)
     }
   } else if (in_type_ == "params") {
     switch(distr_,
            "gaussian" = {w = stats::dpois(x=b, mean=u[[1]], sd=u[[2]])},
            "poisson"  = {w = stats::dpois(x=b, lambda=u[[1]])},
-           "negbin"   = {w = stats::dnbinom(x=b, size=u[[1]], prob=u[[2]], mu=u[[3]])}
-           )
+           "negbin"   = {w = stats::dnbinom(x=b, size=u[[1]], prob=u[[2]])})
   }
   return(w)
 }
@@ -61,11 +63,11 @@ reconc <- function(
   bottom_base_forecasts = split_hierarchy.res$bottom
 
   # H, G ######################################################################
-  get_H.res = get_H(A, upper_base_forecasts, distr[split_hierarchy.res$upper_idxs])
-  H = get_H.res$H
-  upper_base_forecasts_H = get_H.res$Hv
-  G = get_H.res$G
-  upper_base_forecasts_G = get_H.res$Gv
+  get_HG.res = get_HG(A, upper_base_forecasts, distr[split_hierarchy.res$upper_idxs])
+  H = get_HG.res$H
+  upper_base_forecasts_H = get_HG.res$Hv
+  G = get_HG.res$G
+  upper_base_forecasts_G = get_HG.res$Gv
 
   # Reconciliation using BUIS #################################################
   n_upper = nrow(A)
@@ -82,23 +84,32 @@ reconc <- function(
         num_samples)
     }
   }
-  B = do.call("cbind", B)
+  B = do.call("cbind", B) # B is a matrix (num_samples x n_bottom)
 
   # Bottom-Up IS on the hierarchical part #####################################
   for (hi in 1:nrow(H)) {
     c = H[hi,]
     b_mask = (c != 0)
     weights = compute_weights(
-      b = (B %*% c),
+      b = (B %*% c), # (num_samples x 1)
       u = unlist(upper_base_forecasts_H[[hi]]),
       in_type_ = in_type,
-      distr_ = get_H.res$Hdistr[[hi]])
+      distr_ = get_HG.res$Hdistr[[hi]])
     B[,b_mask] = resample(B[,b_mask], weights)
   }
 
   if (!is.null(G)) {
     # Plain IS on the additional constraints ##################################
-    # TODO
+    weights = matrix(1, nrow=nrow(B))
+    for (gi in 1:nrow(G)) {
+      c = G[gi,]
+      weights = weights * compute_weights(
+        b = (B %*% c),
+        u = unlist(upper_base_forecasts_G[[gi]]),
+        in_type_ = in_type,
+        distr_ = get_HG.res$Gdistr[[gi]])
+    }
+    B = resample(B, weights)
   }
 
   U = B %*% t(A)

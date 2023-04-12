@@ -89,7 +89,7 @@ get_hier_rows <- function(A) {
 # correct order (i.e. bottom-up)
 # Also sorts accordingly the vector v (e.g. of parameters)
 
-get_H <- function(A, v, d) {
+get_HG <- function(A, v, d) {
 
   #get the indices of the "hierarchy rows" of A
   indices_sol <- get_hier_rows(A)
