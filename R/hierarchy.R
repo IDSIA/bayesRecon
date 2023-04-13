@@ -1,12 +1,8 @@
-library(lpSolve)
-
-
 #-------------------------------------------------------------------------------
 # FUNCTION TO FIND THE ROWS OF A
 # Returns a vector with length equal to the number of rows of A
 # Each entry is 1 if the corresponding row has to be picked, and 0 otherwise
-
-get_hier_rows <- function(A) {
+.get_hier_rows <- function(A) {
 
   k <- nrow(A)
   m <- ncol(A)
@@ -77,22 +73,18 @@ get_hier_rows <- function(A) {
   # Solve the LP problem
 
   # Variables final values
-  indices_sol <- lp("max", f.obj, f.con, f.dir, f.rhs, all.bin = TRUE)$solution[1:k]
+  indices_sol <- lpSolve::lp("max", f.obj, f.con, f.dir, f.rhs, all.bin = TRUE)$solution[1:k]
 
   return(indices_sol)
 }
 
-
-#-------------------------------------------------------------------------------
-
 # Function that extract the "hierarchy rows" from A, and sorts them in the
 # correct order (i.e. bottom-up)
 # Also sorts accordingly the vector v (e.g. of parameters)
-
-get_HG <- function(A, v, d) {
+.get_HG <- function(A, v, d) {
 
   #get the indices of the "hierarchy rows" of A
-  indices_sol <- get_hier_rows(A)
+  indices_sol <- .get_hier_rows(A)
 
   #extract rows from A
   ind_h <- as.logical(indices_sol)
@@ -123,13 +115,9 @@ get_HG <- function(A, v, d) {
 
 }
 
-
 #-------------------------------------------------------------------------------
-
 # Functions to generate the monthly and weekly A matrices
-
-
-gen_monthly <- function() {
+.gen_monthly <- function() {
 
   H <- matrix(0, nrow=10, ncol=12)
   for (j in 1:6) {
@@ -152,8 +140,7 @@ gen_monthly <- function() {
 
 }
 
-
-gen_weekly <- function() {
+.gen_weekly <- function() {
 
   H <- matrix(0, nrow=40, ncol=52)
   for (j in 1:26) {
@@ -175,7 +162,3 @@ gen_weekly <- function() {
   return(rbind(H,G))
 
 }
-
-
-
-

@@ -2,7 +2,7 @@ Package: bayesReco
 Type: Package
 Title: Probabilistic Reconciliation Via Conditioning
 Version: 0.1.0
-Authors@R: c(person(given = "Nicolo",
+Authors@R: c(person(given = "Nicolo'",
              family = "Rubattu",
              role = c("aut"),
              email = "nicolo.rubattu@supsi.ch"),
@@ -22,5 +22,8 @@ Authors@R: c(person(given = "Nicolo",
 Maintainer: Dario Azzimonti <dario.azzimonti@gmail.com>
 Description: Implementation of reconciliation methods for probabilistic hierarchical forecasts of time series. 
 License: LGPL (>= 3)
+Depends: R (>= 4.1.0)
+Imports: lpSolve (>= 5.6.18)
 Encoding: UTF-8
 LazyData: true
+RoxygenNote: 7.2.3
