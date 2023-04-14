@@ -60,6 +60,14 @@
   return( w )
 }
 
+.fix_weights <- function(w) {
+  w[is.na(w)] = 0
+  if (sum(w)==0) {
+    w = w + 1
+  }
+  return( w )
+}
+
 .compute_weights <- function(b, u, in_type_, distr_) {
   if (in_type_ == "samples") {
     if (distr_ == "discrete") {
@@ -77,14 +85,15 @@
            "poisson"  = {w = stats::dpois(x=b, lambda=u[[1]])},
            "negbin"   = {w = stats::dnbinom(x=b, size=u[[1]], prob=u[[2]])})
   }
+  w = .fix_weights(w)
   return(w)
 }
 
-.resample <- function(S, weights, num_samples=NA) {
+.resample <- function(S_, weights, num_samples=NA) {
   if (is.na(num_samples)) {
     num_samples = length(weights)
   }
-  return( S[sample(x=1:num_samples, num_samples, replace=TRUE, prob=weights),] )
+  return( S_[sample(x=1:num_samples, num_samples, replace=TRUE, prob=weights),] )
 }
 
 # Misc ########################################################################
