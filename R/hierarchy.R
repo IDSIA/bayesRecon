@@ -33,7 +33,7 @@
 
   coeff <- c(rep(0, k), as.vector(C)) #first constraint
 
-  M1 <- matrix(0, k^2, k + k^2)
+  M1 <- matrix(0, k^2, k + k^2)     #z_{ij} <= x_i
   for (i in 1:k) {
     temp <- matrix(0, k, k)
     temp[i,] <- rep(-1, k)
@@ -41,7 +41,7 @@
   }
   M1[, (k+1):(k+k^2)] <- diag(1, k^2)
 
-  M2 <- matrix(0, k^2, k + k^2)
+  M2 <- matrix(0, k^2, k + k^2)     #z_{ij} <= x_j
   for (i in 1:k) {
     temp <- matrix(0, k, k)
     temp[,i] <- rep(-1, k)
@@ -49,18 +49,14 @@
   }
   M2[, (k+1):(k+k^2)] <- diag(1, k^2)
 
-  M3 <- matrix(0, k^2, k + k^2)
-  for (i in 1:k) {
-    temp <- matrix(0, k, k)
-    temp[,i] <- rep(-1, k)
-    M3[((i-1)*k + 1) : (i*k),] <- temp - diag(1, k)
-  }
+  M3 <- matrix(0, k^2, k + k^2)     #z_{ij} >= x_i + x_j - 1
+  M3[1:k^2, 1:k] <- M1[1:k^2, 1:k] + M2[1:k^2, 1:k]
   M3[, (k+1):(k+k^2)] <- diag(1, k^2)
 
   f.con <- rbind(coeff, M1, M2, M3)
 
 
-  # Set unequality/equality signs
+  # Set inequality/equality signs
   f.dir <- c("=", rep("<=", k^2), rep("<=", k^2), rep(">=", k^2))
 
 
