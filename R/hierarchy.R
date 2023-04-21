@@ -27,7 +27,7 @@
   
   
   # Set coefficients of the objective function
-  f.obj <- c(rep(-1, k), rep(0, k^2), rep(0, m), 1)
+  f.obj <- c(rep(-1, k), rep(0, k^2), rep(0, m), 1-1/(2*k))
   
   
   # Set matrix corresponding to coefficients of constraints by rows
