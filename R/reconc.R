@@ -88,66 +88,63 @@ reconc <- function(
 
   out = list(bottom_reconciled_samples=B,
              upper_reconciled_samples=U,
-             reconciled_forecasts=Y_reconc)
+             reconciled_samples=Y_reconc)
   return(out)
 }
 
 
 #-------------------------------------------------------------------------------
-
-
 #' Reconciliation in closed form for Gaussian base forecasts
 #'
 #' This function bla bla bla...
 #'
-#' @param mu base forecasts means
-#' @param Sigma base forecasts covariance matrix
-#' @param A Aggregating matrix
+#' @param base_forecasts.mu base forecasts means vector
+#' @param base_forecasts.Sigma base forecasts covariance matrix
+#' @param S Summing matrix
 #'
 #' @return Reconciled mean and covariance matrix of the bottom and upper forecasts
 #' @export
 reconc_gaussian <- function(
-    mu,
-    Sigma,
-    A) {
+    base_forecasts.mu,
+    base_forecasts.Sigma,
+    S) {
 
-  k <- nrow(A)    #number of upper TS
-  m <- ncol(A)    #number of bottom TS
-  n <- length(mu) #total number of TS
+  hier = .getAfromS(S)
+  A = hier$A
+  k = nrow(A)    #number of upper TS
+  m = ncol(A)    #number of bottom TS
+  n = length(base_forecasts.mu) #total number of TS
 
   # Ensure that data inputs are valid
-  if (!(nrow(Sigma) == ncol(Sigma))) {
+  if (!(nrow(base_forecasts.Sigma) == ncol(base_forecasts.Sigma))) {
     stop("Input error: Sigma is not square")
   }
-  if (!(nrow(Sigma) == n)) {
-    stop("Input error: nrow(Sigma) != length(mu)")
+  if (!(nrow(base_forecasts.Sigma) == n)) {
+    stop("Input error: nrow(base_forecasts.Sigma) != length(base_forecasts.mu)")
   }
   if (!(k+m == n)) {
     stop("Input error: the shape of A is not correct")
   }
 
-  S_u <- S[1:k, 1:k]
-  S_u <- S[(k+1):n, (k+1):n]
-  S_ub <- S[1:k, (k+1):n]
+  Sigma_u = base_forecasts.Sigma[hier$upper_idxs, hier$upper_idxs]
+  Sigma_b = base_forecasts.Sigma[hier$bottom_idxs, hier$bottom_idxs]
+  Sigma_ub = base_forecasts.Sigma[hier$upper_idxs, hier$bottom_idxs]
+  mu_u = base_forecasts.mu[hier$upper_idxs]
+  mu_b = base_forecasts.mu[hier$bottom_idxs]
 
-  mu_u <- mu[1:k]
-  mu_b <- mu[(k+1):n]
+  # Formulation from:
+  # Zambon, Lorenzo, et al. "Properties of the reconciled distributions for
+  # Gaussian and count forecasts." (2023)
+  Q = Sigma_u - Sigma_ub %*% t(A) - A %*% t(Sigma_ub) + A %*% Sigma_b %*% t(A)
+  invQ = solve(Q)
+  mu_b_tilde = mu_b + (t(Sigma_ub) - Sigma_b %*% t(A)) %*% invQ %*% (A %*% mu_b - mu_u)
+  mu_u_tilde = mu_u + (Sigma_u - Sigma_ub %*% t(A)) %*% invQ %*% (A %*% mu_b - mu_u)
+  Sigma_b_tilde = Sigma_b - (t(Sigma_ub) - Sigma_b %*% t(A)) %*% invQ %*% t(t(Sigma_ub) - Sigma_b %*% t(A))
+  Sigma_u_tilde = Sigma_u - (Sigma_u - Sigma_ub %*% t(A)) %*% invQ %*% t(Sigma_u - Sigma_ub %*% t(A))
 
-  Q <- S_u + A %*% S_b %*% t(A) - S_ub %*% t(A) - A %*% t(S_ub)
-  Q_inv <- solve(Q)
-
-  inc <- A %*% mu_b - mu_u
-  temp <- t(S_ub) - S_b %*% t(A)
-
-  mutil_b <- mu_b + temp %*% Q_inv %*% inc
-  Stil_b <- S_b - temp %*% Q_inv %*% t(temp)
-
-  mutil_u <- A %*% mutil_b
-  Stil_u <- A %*% Stil_b %*% t(A)
-
-  out = list(bottom_reconciled_mean=mutil_b,
-             bottom_reconciled_covariance=Stil_b,
-             upper_reconciled_mean=mutil_u,
-             upper_reconciled_covariance=Stil_u)
+  out = list(bottom_reconciled_mean=mu_b_tilde,
+             bottom_reconciled_covariance=Sigma_b_tilde,
+             upper_reconciled_mean=mu_u_tilde,
+             upper_reconciled_covariance=Sigma_u_tilde)
   return(out)
 }
