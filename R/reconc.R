@@ -7,6 +7,7 @@
 #' @param in_type A string 'samples'/'params'
 #' @param distr A string 'continuous'/'discrete' or 'gaussian'/'poisson'/'nbinom'
 #' @param num_samples number of samples
+#' @param seed seed for randomness reproducibility
 #'
 #' @return Reconciled forecasts
 #' @export
@@ -15,7 +16,10 @@ reconc <- function(
     base_forecasts,
     in_type,
     distr,
-    num_samples = 2e4) {
+    num_samples = 2e4,
+    seed = 42) {
+
+  set.seed(seed)
 
   # Ensure that data inputs are valid
   .check_input(S, base_forecasts, in_type, distr)
