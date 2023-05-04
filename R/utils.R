@@ -81,7 +81,7 @@
     }
   } else if (in_type_ == "params") {
     switch(distr_,
-           "gaussian" = {w = stats::dpois(x=b, mean=u[[1]], sd=u[[2]])},
+           "gaussian" = {w = stats::dnorm(x=b, mean=u[[1]], sd=u[[2]])},
            "poisson"  = {w = stats::dpois(x=b, lambda=u[[1]])},
            "negbin"   = {w = stats::dnbinom(x=b, size=u[[1]], prob=u[[2]])})
   }
