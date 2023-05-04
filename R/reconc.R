@@ -91,3 +91,63 @@ reconc <- function(
              reconciled_forecasts=Y_reconc)
   return(out)
 }
+
+
+#-------------------------------------------------------------------------------
+
+
+#' Reconciliation in closed form for Gaussian base forecasts
+#'
+#' This function bla bla bla...
+#'
+#' @param mu base forecasts means
+#' @param Sigma base forecasts covariance matrix
+#' @param A Aggregating matrix
+#'
+#' @return Reconciled mean and covariance matrix of the bottom and upper forecasts
+#' @export
+reconc_gaussian <- function(
+    mu,
+    Sigma,
+    A) {
+
+  k <- nrow(A)    #number of upper TS
+  m <- ncol(A)    #number of bottom TS
+  n <- length(mu) #total number of TS
+
+  # Ensure that data inputs are valid
+  if (!(nrow(Sigma) == ncol(Sigma))) {
+    stop("Input error: Sigma is not square")
+  }
+  if (!(nrow(Sigma) == n)) {
+    stop("Input error: nrow(Sigma) != length(mu)")
+  }
+  if (!(k+m == n)) {
+    stop("Input error: the shape of A is not correct")
+  }
+
+  S_u <- S[1:k, 1:k]
+  S_u <- S[(k+1):n, (k+1):n]
+  S_ub <- S[1:k, (k+1):n]
+
+  mu_u <- mu[1:k]
+  mu_b <- mu[(k+1):n]
+
+  Q <- S_u + A %*% S_b %*% t(A) - S_ub %*% t(A) - A %*% t(S_ub)
+  Q_inv <- solve(Q)
+
+  inc <- A %*% mu_b - mu_u
+  temp <- t(S_ub) - S_b %*% t(A)
+
+  mutil_b <- mu_b + temp %*% Q_inv %*% inc
+  Stil_b <- S_b - temp %*% Q_inv %*% t(temp)
+
+  mutil_u <- A %*% mutil_b
+  Stil_u <- A %*% Stil_b %*% t(A)
+
+  out = list(bottom_reconciled_mean=mutil_b,
+             bottom_reconciled_covariance=Stil_b,
+             upper_reconciled_mean=mutil_u,
+             upper_reconciled_covariance=Stil_u)
+  return(out)
+}
