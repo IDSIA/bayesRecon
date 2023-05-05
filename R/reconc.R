@@ -11,14 +11,12 @@
 #'
 #' @return Reconciled forecasts
 #' @export
-reconc <- function(
-    S,
-    base_forecasts,
-    in_type,
-    distr,
-    num_samples = 2e4,
-    seed = 42) {
-
+reconc <- function(S,
+                   base_forecasts,
+                   in_type,
+                   distr,
+                   num_samples = 2e4,
+                   seed = 42) {
   set.seed(seed)
 
   # Ensure that data inputs are valid
@@ -49,36 +47,38 @@ reconc <- function(
     if (in_type == "samples") {
       B[[bi]] = unlist(bottom_base_forecasts[[bi]])
     } else if (in_type == "params") {
-      B[[bi]] = .distr_sample(
-        bottom_base_forecasts[[bi]],
-        distr[split_hierarchy.res$bottom_idxs][[bi]],
-        num_samples)
+      B[[bi]] = .distr_sample(bottom_base_forecasts[[bi]],
+                              distr[split_hierarchy.res$bottom_idxs][[bi]],
+                              num_samples)
     }
   }
   B = do.call("cbind", B) # B is a matrix (num_samples x n_bottom)
 
   # Bottom-Up IS on the hierarchical part
   for (hi in 1:nrow(H)) {
-    c = H[hi,]
+    c = H[hi, ]
     b_mask = (c != 0)
     weights = .compute_weights(
-      b = (B %*% c), # (num_samples x 1)
+      b = (B %*% c),
+      # (num_samples x 1)
       u = unlist(upper_base_forecasts_H[[hi]]),
       in_type_ = in_type,
-      distr_ = get_HG.res$Hdistr[[hi]])
-    B[,b_mask] = .resample(B[,b_mask], weights)
+      distr_ = get_HG.res$Hdistr[[hi]]
+    )
+    B[, b_mask] = .resample(B[, b_mask], weights)
   }
 
   if (!is.null(G)) {
     # Plain IS on the additional constraints
-    weights = matrix(1, nrow=nrow(B))
+    weights = matrix(1, nrow = nrow(B))
     for (gi in 1:nrow(G)) {
-      c = G[gi,]
+      c = G[gi, ]
       weights = weights * .compute_weights(
         b = (B %*% c),
         u = unlist(upper_base_forecasts_G[[gi]]),
         in_type_ = in_type,
-        distr_ = get_HG.res$Gdistr[[gi]])
+        distr_ = get_HG.res$Gdistr[[gi]]
+      )
     }
     B = .resample(B, weights)
   }
@@ -86,9 +86,11 @@ reconc <- function(
   U = B %*% t(A)
   Y_reconc = cbind(U, B)
 
-  out = list(bottom_reconciled_samples=B,
-             upper_reconciled_samples=U,
-             reconciled_samples=Y_reconc)
+  out = list(
+    bottom_reconciled_samples = B,
+    upper_reconciled_samples = U,
+    reconciled_samples = Y_reconc
+  )
   return(out)
 }
 
@@ -104,11 +106,9 @@ reconc <- function(
 #'
 #' @return Reconciled mean and covariance matrix of the bottom and upper forecasts
 #' @export
-reconc_gaussian <- function(
-    base_forecasts.mu,
-    base_forecasts.Sigma,
-    S) {
-
+reconc_gaussian <- function(base_forecasts.mu,
+                            base_forecasts.Sigma,
+                            S) {
   hier = .getAfromS(S)
   A = hier$A
   k = nrow(A)    #number of upper TS
@@ -122,7 +122,7 @@ reconc_gaussian <- function(
   if (!(nrow(base_forecasts.Sigma) == n)) {
     stop("Input error: nrow(base_forecasts.Sigma) != length(base_forecasts.mu)")
   }
-  if (!(k+m == n)) {
+  if (!(k + m == n)) {
     stop("Input error: the shape of A is not correct")
   }
 
@@ -142,9 +142,11 @@ reconc_gaussian <- function(
   Sigma_b_tilde = Sigma_b - (t(Sigma_ub) - Sigma_b %*% t(A)) %*% invQ %*% t(t(Sigma_ub) - Sigma_b %*% t(A))
   Sigma_u_tilde = Sigma_u - (Sigma_u - Sigma_ub %*% t(A)) %*% invQ %*% t(Sigma_u - Sigma_ub %*% t(A))
 
-  out = list(bottom_reconciled_mean=mu_b_tilde,
-             bottom_reconciled_covariance=Sigma_b_tilde,
-             upper_reconciled_mean=mu_u_tilde,
-             upper_reconciled_covariance=Sigma_u_tilde)
+  out = list(
+    bottom_reconciled_mean = mu_b_tilde,
+    bottom_reconciled_covariance = Sigma_b_tilde,
+    upper_reconciled_mean = mu_u_tilde,
+    upper_reconciled_covariance = Sigma_u_tilde
+  )
   return(out)
 }

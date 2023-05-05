@@ -4,7 +4,7 @@
 \alias{reconc}
 \title{Reconciliation}
 \usage{
-reconc(S, base_forecasts, in_type, distr, num_samples = 20000)
+reconc(S, base_forecasts, in_type, distr, num_samples = 20000, seed = 42)
 }
 \arguments{
 \item{S}{Summing matrix}
@@ -16,6 +16,8 @@ reconc(S, base_forecasts, in_type, distr, num_samples = 20000)
 \item{distr}{A string 'continuous'/'discrete' or 'gaussian'/'poisson'/'nbinom'}
 
 \item{num_samples}{number of samples}
+
+\item{seed}{seed for randomness reproducibility}
 }
 \value{
 Reconciled forecasts
