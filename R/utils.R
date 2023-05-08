@@ -44,6 +44,46 @@
   # TODO if distr is a list, check that entries are coherent
 }
 
+
+# Non-overlapping temporal aggregation of a time series #######################
+#' Time series temporal aggregation
+#'
+#' This function bla bla bla...
+#'
+#' @param y Univariate time series of class ts.
+#' @param aggf User-selected list of aggregates to consider.
+#'
+#' @return A list of aggregates time series.
+#' @export
+temporal_aggregation <- function(y, aggf=NULL) {
+  f = stats::frequency(y)
+  L = length(y)
+  s = stats::time(y)[1]
+  if (is.null(aggf)) {
+    aggf = c()
+    for (i in 1:f) {
+      if (f %% i == 0 && L >= i) {
+        aggf = c(aggf, i)
+      }
+    }
+  } else {
+    aggf = aggf[aggf <= L]
+  }
+  out = list()
+  for (i in 1:length(aggf)) {
+    k = aggf[i]
+    num_aggs = floor(L / k)
+    y_trunc = y[(L - num_aggs*k + 1):L]
+    y_matrix = matrix(y_trunc, nrow = k, ncol = num_aggs)
+    y_start = s + (L - num_aggs * k) / f
+    y_f = f / k
+    y_agg = stats::ts(data = apply(y_matrix, 2, sum), frequency = y_f, start = y_start)
+    out[[i]] = y_agg
+  }
+  names(out) <- paste0("f=", f / aggf)
+  out = rev(out)
+  return(out)
+}
 # Get A from S ################################################################
 .getAfromS <- function(S) {
   bottom_idxs = which(rowSums(S) == 1)
@@ -54,6 +94,7 @@
              bottom_idxs = bottom_idxs)
   return(out)
 }
+
 
 # Split bottoms, uppers #######################################################
 .split_hierarchy <- function(S, Y) {
@@ -70,7 +111,44 @@
   return(out)
 }
 
-# Reconc utils ################################################################
+
+# Build A / S matrices ########################################################
+#' A/S matrices building
+#'
+#' This function bla bla bla...
+#'
+#' @param aggf User-selected list of aggregates to consider.
+#' @param bottom.f Integer seasonal period of the bottom time series.
+#' @param bottom.H Bottom time series forecasting steps.
+#'
+#' @return A, S matrices
+#' @export
+reconc_matrices <- function(aggf, bottom.f, bottom.H) {
+  A = list()
+  for (i in 1:length(aggf)) {
+    k = aggf[i]
+    if (k==1) {
+      next
+    }
+    k.r = bottom.H / k
+    k.A = matrix(data = 0, nrow = k.r, ncol = bottom.H)
+    coli = 1
+    for (r in 1:k.r) {
+      k.A[r,coli:(coli+k-1)] = 1
+      coli = coli + k
+    }
+    A[[i]] = k.A
+
+  }
+  A = do.call(rbind, rev(A))
+  S = rbind(A, diag(bottom.H))
+  out = list(A=A, S=S)
+  return(out)
+}
+
+
+
+# IS utils ####################################################################
 .distr_sample <- function(params, distr_, n) {
   switch(
     distr_,
@@ -149,6 +227,8 @@
     prob = weights
   ), ])
 }
+
+
 
 # Misc ########################################################################
 .shape <- function(m) {

@@ -2,7 +2,6 @@
 # Function to find the best hierarchy contained in A
 # Returns a vector with length equal to the number of rows of A
 # Each entry is 1 if the corresponding row has to be picked, and 0 otherwise
-
 .get_hier_rows <- function(A) {
   k <- nrow(A)
   m <- ncol(A)
@@ -96,10 +95,7 @@
 
   return(indices_sol)
 }
-
-
 #-------------------------------------------------------------------------------
-
 # Function that extract the "best hierarchy rows" from A, and sorts them in the
 # correct order (i.e. bottom-up)
 # Also sorts accordingly the vector v (e.g. of parameters)
@@ -142,7 +138,6 @@
   return(out)
 
 }
-
 #-------------------------------------------------------------------------------
 # Functions to generate the monthly and weekly A matrices
 .gen_monthly <- function() {
@@ -166,7 +161,6 @@
   return(rbind(H, G))
 
 }
-
 .gen_weekly <- function() {
   H <- matrix(0, nrow = 40, ncol = 52)
   for (j in 1:26) {
@@ -187,85 +181,4 @@
 
   return(rbind(H, G))
 
-}
-
-
-#-------------------------------------------------------------------------------
-# Function to find the maximal hierarchy contained in A
-# Returns a vector with length equal to the number of rows of A
-# Each entry is 1 if the corresponding row has to be picked, and 0 otherwise
-
-# THIS IS THE OLD FUNCTION. IT IS NOT USED ANYMORE BY THE reconc FUNCTION!
-# SEE .get_hier_rows instead.
-
-.get_max_hier_rows <- function(A) {
-  k <- nrow(A)
-  m <- ncol(A)
-
-  # matrix C of the coefficients of the non-linear problem
-  # (k variables, 1 constraint)
-
-  C <- A %*% t(A)
-
-  for (i in 1:k) {
-    for (j in 1:k) {
-      C[i, j] <- C[i, j] * sum((A[i, ] - A[j, ]) * (A[i, ] - A[j, ] - 1)) *
-        sum((A[j, ] - A[i, ]) * (A[j, ] - A[i, ] - 1))
-    }
-  }
-
-  #-------------------
-  # LINEARIZED PROBLEM
-  # Number of variables: k + k^2
-  # Number of constraints: 1 + N^2 + N^2 + N^2
-
-
-  # Set coefficients of the objective function
-  f.obj <- c(rep(1, k), rep(0, k ^ 2))
-
-
-  # Set matrix corresponding to coefficients of constraints by rows
-
-  coeff <- c(rep(0, k), as.vector(C)) #first constraint
-
-  M1 <- matrix(0, k ^ 2, k + k ^ 2)     #z_{ij} <= x_i
-  for (i in 1:k) {
-    temp <- matrix(0, k, k)
-    temp[i, ] <- rep(-1, k)
-    M1[, i] <- as.vector(temp)
-  }
-  M1[, (k + 1):(k + k ^ 2)] <- diag(1, k ^ 2)
-
-  M2 <- matrix(0, k ^ 2, k + k ^ 2)     #z_{ij} <= x_j
-  for (i in 1:k) {
-    temp <- matrix(0, k, k)
-    temp[, i] <- rep(-1, k)
-    M2[, i] <- as.vector(temp)
-  }
-  M2[, (k + 1):(k + k ^ 2)] <- diag(1, k ^ 2)
-
-  M3 <- matrix(0, k ^ 2, k + k ^ 2)     #z_{ij} >= x_i + x_j - 1
-  M3[1:k ^ 2, 1:k] <- M1[1:k ^ 2, 1:k] + M2[1:k ^ 2, 1:k]
-  M3[, (k + 1):(k + k ^ 2)] <- diag(1, k ^ 2)
-
-  f.con <- rbind(coeff, M1, M2, M3)
-
-
-  # Set inequality/equality signs
-  f.dir <- c("=", rep("<=", k ^ 2), rep("<=", k ^ 2), rep(">=", k ^ 2))
-
-
-  # Set right hand side coefficients
-  f.rhs <- c(rep(0, 1 + 2 * k ^ 2), rep(-1, k ^ 2))
-
-
-
-  #---------------------
-  # Solve the LP problem
-
-  # Variables final values
-  indices_sol <-
-    lpSolve::lp("max", f.obj, f.con, f.dir, f.rhs, all.bin = TRUE)$solution[1:k]
-
-  return(indices_sol)
 }

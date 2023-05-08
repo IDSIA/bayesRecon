@@ -11,7 +11,7 @@
 #'
 #' @return Reconciled forecasts
 #' @export
-reconc <- function(S,
+reconc_IS <- function(S,
                    base_forecasts,
                    in_type,
                    distr,

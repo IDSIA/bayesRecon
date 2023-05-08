@@ -23,7 +23,8 @@ Maintainer: Dario Azzimonti <dario.azzimonti@gmail.com>
 Description: Implementation of reconciliation methods for probabilistic hierarchical forecasts of time series. 
 License: LGPL (>= 3)
 Depends: R (>= 4.1.0)
-Imports: 
+Imports:
+    stats,
     data.table (>= 1.14.2),
     lpSolve (>= 5.6.18)
 Encoding: UTF-8
