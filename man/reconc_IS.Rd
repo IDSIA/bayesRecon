@@ -2,7 +2,7 @@
 % Please edit documentation in R/reconc.R
 \name{reconc_IS}
 \alias{reconc_IS}
-\title{Reconciliation}
+\title{This function bla bla bla...}
 \usage{
 reconc_IS(S, base_forecasts, in_type, distr, num_samples = 20000, seed = 42)
 }

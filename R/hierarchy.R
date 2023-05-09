@@ -1,4 +1,3 @@
-#-------------------------------------------------------------------------------
 # Function to find the best hierarchy contained in A
 # Returns a vector with length equal to the number of rows of A
 # Each entry is 1 if the corresponding row has to be picked, and 0 otherwise
@@ -23,10 +22,8 @@
   # Number of variables: k + k^2 + m + 1
   # Number of constraints: 1 + k^2 + k^2 + k^2 + m + m
 
-
   # Set coefficients of the objective function
   f.obj <- c(rep(-1, k), rep(0, k ^ 2), rep(0, m), 1 - 1 / (2 * k))
-
 
   # Set matrix corresponding to coefficients of constraints by rows
 
@@ -63,7 +60,6 @@
 
   f.con <- rbind(coeff, M1, M2, M3, M4, M5)
 
-
   # Set inequality/equality signs
   f.dir <- c("=",
              rep("<=", k ^ 2),
@@ -72,11 +68,9 @@
              rep("<=", m),
              rep("=", m))
 
-
   # Set right hand side coefficients
   f.rhs <- c(0, rep(0, k ^ 2), rep(0, k ^ 2), rep(-1, k ^ 2),
              rep(0, m), rep(0, m))
-
 
   #---------------------
   # Solve the LP problem
@@ -95,9 +89,9 @@
 
   return(indices_sol)
 }
-#-------------------------------------------------------------------------------
-# Function that extract the "best hierarchy rows" from A, and sorts them in the
-# correct order (i.e. bottom-up)
+
+# Function that extract the "best hierarchy rows" from A, and sorts them in
+# the correct order (i.e. bottom-up)
 # Also sorts accordingly the vector v (e.g. of parameters)
 .get_HG <- function(A, v, d) {
   #get the indices of the "hierarchy rows" of A
@@ -138,7 +132,7 @@
   return(out)
 
 }
-#-------------------------------------------------------------------------------
+
 # Functions to generate the monthly and weekly A matrices
 .gen_monthly <- function() {
   H <- matrix(0, nrow = 10, ncol = 12)
@@ -181,4 +175,102 @@
 
   return(rbind(H, G))
 
+}
+
+#' Non-overlapping temporal aggregation of a time series
+#'
+#' This function bla bla bla...
+#'
+#' @param y Univariate time series of class ts.
+#' @param aggf User-selected list of aggregates to consider.
+#'
+#' @return A list of aggregates time series.
+#' @export
+temporal_aggregation <- function(y, aggf=NULL) {
+  f = stats::frequency(y)
+  L = length(y)
+  s = stats::time(y)[1]
+  if (is.null(aggf)) {
+    aggf = c()
+    for (i in 1:f) {
+      if (f %% i == 0 && L >= i) {
+        aggf = c(aggf, i)
+      }
+    }
+  } else {
+    aggf = aggf[aggf <= L]
+  }
+  out = list()
+  for (i in 1:length(aggf)) {
+    k = aggf[i]
+    num_aggs = floor(L / k)
+    y_trunc = y[(L - num_aggs*k + 1):L]
+    y_matrix = matrix(y_trunc, nrow = k, ncol = num_aggs)
+    y_start = s + (L - num_aggs * k) / f
+    y_f = f / k
+    y_agg = stats::ts(data = apply(y_matrix, 2, sum), frequency = y_f, start = y_start)
+    out[[i]] = y_agg
+  }
+  names(out) <- paste0("f=", f / aggf)
+  out = rev(out)
+  return(out)
+}
+
+#' Build A / S
+#'
+#' This function bla bla bla...
+#'
+#' @param aggf User-selected list of aggregates to consider.
+#' @param bottom.f Integer seasonal period of the bottom time series.
+#' @param bottom.H Bottom time series forecasting steps.
+#'
+#' @return A, S matrices
+#' @export
+get_reconc_matrices <- function(aggf, bottom.f, bottom.H) {
+  A = list()
+  for (i in 1:length(aggf)) {
+    k = aggf[i]
+    if (k==1) {
+      next
+    }
+    k.r = bottom.H / k
+    k.A = matrix(data = 0, nrow = k.r, ncol = bottom.H)
+    coli = 1
+    for (r in 1:k.r) {
+      k.A[r,coli:(coli+k-1)] = 1
+      coli = coli + k
+    }
+    A[[i]] = k.A
+
+  }
+  A = do.call(rbind, rev(A))
+  S = rbind(A, diag(bottom.H))
+  out = list(A=A, S=S)
+  return(out)
+}
+
+# Get A from S
+.get_A_from_S <- function(S) {
+  bottom_idxs = which(rowSums(S) == 1)
+  upper_idxs = setdiff(1:nrow(S), bottom_idxs)
+  A = S[upper_idxs, ]
+  out = list(A = A,
+             upper_idxs = upper_idxs,
+             bottom_idxs = bottom_idxs)
+  return(out)
+}
+
+# Split bottoms, uppers
+.split_hierarchy <- function(S, Y) {
+  getAfromS.res = .get_A_from_S(S)
+  upper = Y[getAfromS.res$upper_idxs]
+  bottom = Y[getAfromS.res$bottom_idxs]
+  out = list(
+    A = getAfromS.res$A,
+    upper = upper,
+    bottom = bottom,
+    upper_idxs = getAfromS.res$upper_idxs,
+    bottom_idxs = getAfromS.res$bottom_idxs
+  )
+  return(out)
 }

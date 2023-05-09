@@ -1,5 +1,64 @@
-#' Reconciliation
-#'
+###############################################################################
+# Reconciliation with Bottom-Up Importance Sampling (BUIS)
+
+.distr_sample <- function(params, distr_, n) {
+  switch(
+    distr_,
+    "gaussian" = {
+      samples = stats::rnorm(n=n, mean = params[[1]], sd = params[[2]]) },
+    "poisson"  = {
+      samples = stats::rpois(n=n, lambda = params[[1]]) },
+    "negbin"   = {
+      samples = stats::rnbinom(n=n, size = params[[1]], prob = params[[2]]) },
+  )
+  return(samples)
+}
+.emp_pmf <- function(l, density_samples) {
+  empirical_pmf = sapply(0:max(density_samples), function(i)
+    sum(density_samples == i) / length(density_samples))
+  w = sapply(l, function(i) empirical_pmf[i + 1])
+  return(w)
+}
+.fix_weights <- function(w) {
+  w[is.na(w)] = 0
+  if (sum(w) == 0) {
+    w = w + 1
+  }
+  return(w)
+}
+.compute_weights <- function(b, u, in_type_, distr_) {
+  if (in_type_ == "samples") {
+    if (distr_ == "discrete") {
+      # Discrete samples
+      w = .emp_pmf(b, u)
+    } else if (distr_ == "continuous") {
+      # KDE
+      d = stats::density(u, bw = "SJ", n = 2 ** 16)
+      df = stats::approxfun(d)
+      w = df(b)
+    }
+  } else if (in_type_ == "params") {
+    switch(
+      distr_,
+      "gaussian" = {
+        w = stats::dnorm(x = b, mean = u[[1]], sd = u[[2]]) },
+      "poisson"  = {
+        w = stats::dpois(x = b, lambda = u[[1]]) },
+      "negbin"   = {
+        w = stats::dnbinom(x = b, size = u[[1]], prob = u[[2]]) }
+    )
+  }
+  w = .fix_weights(w)
+  return(w)
+}
+.resample <- function(S_, weights, num_samples = NA) {
+  if (is.na(num_samples)) {
+    num_samples = length(weights)
+  }
+  tmp_idx = sample(x = 1:num_samples, num_samples, replace = TRUE, prob = weights)
+  return(S_[tmp_idx, ])
+}
+
 #' This function bla bla bla...
 #'
 #' @param S Summing matrix
@@ -94,8 +153,7 @@ reconc_IS <- function(S,
   return(out)
 }
 
-
-#-------------------------------------------------------------------------------
+###############################################################################
 #' Reconciliation in closed form for Gaussian base forecasts
 #'
 #' This function bla bla bla...
@@ -109,7 +167,7 @@ reconc_IS <- function(S,
 reconc_gaussian <- function(base_forecasts.mu,
                             base_forecasts.Sigma,
                             S) {
-  hier = .getAfromS(S)
+  hier = .get_A_from_S(S)
   A = hier$A
   k = nrow(A)    #number of upper TS
   m = ncol(A)    #number of bottom TS
