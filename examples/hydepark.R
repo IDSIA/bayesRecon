@@ -49,10 +49,7 @@ for (l in seq_along(train.aggregate)) {
     link = "log"
   )
   H <- if (f.level == 1) 2 else f.level
-  preds_obj <- predict(model,
-                       n.ahead = H,
-                       level = 0.9,
-                       B = 20000)
+  preds_obj <- predict(model, n.ahead = H, level = 0.9, B = 20000)
   preds_samples <- preds_obj$samples
   for (h in seq(1:f.level)) {
     fc.samples[[fc.count]] <- preds_samples[h,]
@@ -61,7 +58,7 @@ for (l in seq_along(train.aggregate)) {
 }
 
 ### Reconciliation
-tmp = bayesReco::reconc_matrices(aggf, bottom.f = frequency(train), bottom.H = 12)
+tmp = bayesReco::get_reconc_matrices(aggf, bottom.f = frequency(train), bottom.H = 12)
 S = tmp$S
 A = tmp$A
 reconc.res = bayesReco::reconc_IS(S, base_forecasts = fc.samples, in_type = "samples", distr = "discrete")
@@ -95,18 +92,15 @@ for (h in 1:length(test)) {
   y.hat.lo90[[h]] = quantile(fc.samples[[nrow(A)+h]], (1 - 0.9) / 2)[[1]]
   y.hat.hi90[[h]] = quantile(fc.samples[[nrow(A)+h]], 1 - (1 - 0.9) / 2)[[1]]
   y.reconc[[h]] = y.reconc_
-  y.reconc.lo90[[h]] = quantile(reconc.res$bottom_reconciled_samples[, h], (1 -
-                                                                              0.9) / 2)[[1]]
-  y.reconc.hi90[[h]] = quantile(reconc.res$bottom_reconciled_samples[, h], 1 -
-                                  (1 - 0.9) / 2)[[1]]
+  y.reconc.lo90[[h]] = quantile(reconc.res$bottom_reconciled_samples[, h], (1 - 0.9) / 2)[[1]]
+  y.reconc.hi90[[h]] = quantile(reconc.res$bottom_reconciled_samples[, h], 1 - (1 - 0.9) / 2)[[1]]
 }
 
 mape.fc = mean(unlist(ape.fc))
 mape.reconc = mean(unlist(ape.reconc))
 crps.fc = mean(unlist(crps.fc))
 crps.reconc = mean(unlist(crps.reconc))
-metrics = data.frame(row.names = c("MAPE", "CRPS"), base = c(mape.fc, crps.fc), reconc = c(mape.reconc, crps.reconc)
-)
+metrics = data.frame(row.names = c("MAPE", "CRPS"), base = c(mape.fc, crps.fc), reconc = c(mape.reconc, crps.reconc))
 metrics
 
 xtrain = seq(as.Date("1969-01-01"), as.Date("1973-12-01"), by = "months")
