@@ -63,10 +63,11 @@
 #' @title Importance Sampling Reconciliation of Time Series Forecasts
 #' @description
 #'
-#' This function computes the reconciled forecasts for a hierarchy of time series.
+#' Computation of reconciled forecasts for a hierarchy of time series with importance sampling.
 #'
 #'
 #' @details
+#'
 #' The parameter `base_forecast` is a list containing n elements that depend on
 #' the options `in_type` and `distr`.
 #'
@@ -78,6 +79,7 @@
 #' * lambda for the Poisson base forecast, see \link[stats]{Poisson}, if `distr`='poisson';
 #' * size and probability of success for the negative binomial base forecast, see \link[stats]{NegBinomial}, if `distr`='nbinom'.
 #'
+#' The order of the `base_forecast` list is given by the order of the time series in the summing matrix.
 #'
 #' @param S Summing matrix (n x n_bottom)
 #' @param base_forecasts a list containing the base_forecasts, see details.
@@ -100,6 +102,7 @@
 #' * `upper_reconciled_samples`: a matrix (`num_samples` x n_upper) containing reconciled samples for the upper time series
 #' * `reconciled_samples`: a matrix (`num_samples` x n) containing the reconciled samples for all time series
 #'
+#' @seealso [reconc_gaussian()]
 #' @export
 reconc_IS <- function(S,
                    base_forecasts,
@@ -185,15 +188,28 @@ reconc_IS <- function(S,
 }
 
 ###############################################################################
-#' Reconciliation in closed form for Gaussian base forecasts
+#' @title Reconciliation in closed form for Gaussian base forecasts
 #'
-#' This function bla bla bla...
+#' @description
+#' Computation of the reconciled forecasts for a hierarchy of time series with Gaussian base forecasts. This function exploits analytical formulae.
 #'
-#' @param base_forecasts.mu base forecasts means vector
-#' @param base_forecasts.Sigma base forecasts covariance matrix
-#' @param S Summing matrix
+#' @param base_forecasts.mu A vector containing the base forecasts means
+#' @param base_forecasts.Sigma A matrix containing the base forecasts covariance matrix
+#' @param S Summing matrix (n x n_bottom)
 #'
-#' @return Reconciled mean and covariance matrix of the bottom and upper forecasts
+#' @details
+#' The order of the base forecast means and covariance is given by the order of the time series in the summing matrix.
+#'
+#'
+#' @return A list containing the reconciled forecasts. The list has the following named elements:
+#'
+#' * `bottom_reconciled_mean`: reconciled mean for the bottom forecasts
+#' * `bottom_reconciled_covariance`: reconciled covariance for the bottom forecasts
+#' * `upper_reconciled_mean`: reconciled mean for the upper forecasts
+#' * `upper_reconciled_covariance`: reconciled covariance for the upper forecasts
+#'
+#' @seealso [reconc_IS()]
+#'
 #' @export
 reconc_gaussian <- function(base_forecasts.mu,
                             base_forecasts.Sigma,

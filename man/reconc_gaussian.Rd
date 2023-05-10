@@ -7,15 +7,27 @@
 reconc_gaussian(base_forecasts.mu, base_forecasts.Sigma, S)
 }
 \arguments{
-\item{base_forecasts.mu}{base forecasts means vector}
+\item{base_forecasts.mu}{A vector containing the base forecasts means}
 
-\item{base_forecasts.Sigma}{base forecasts covariance matrix}
+\item{base_forecasts.Sigma}{A matrix containing the base forecasts covariance matrix}
 
-\item{S}{Summing matrix}
+\item{S}{Summing matrix (n x n_bottom)}
 }
 \value{
-Reconciled mean and covariance matrix of the bottom and upper forecasts
+A list containing the reconciled forecasts. The list has the following named elements:
+\itemize{
+\item \code{bottom_reconciled_mean}: reconciled mean for the bottom forecasts
+\item \code{bottom_reconciled_covariance}: reconciled covariance for the bottom forecasts
+\item \code{upper_reconciled_mean}: reconciled mean for the upper forecasts
+\item \code{upper_reconciled_covariance}: reconciled covariance for the upper forecasts
+}
 }
 \description{
-This function bla bla bla...
+Computation of the reconciled forecasts for a hierarchy of time series with Gaussian base forecasts. This function exploits analytical formulae.
+}
+\details{
+The order of the base forecast means and covariance is given by the order of the time series in the summing matrix.
+}
+\seealso{
+\code{\link[=reconc_IS]{reconc_IS()}}
 }

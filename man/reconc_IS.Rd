@@ -36,7 +36,7 @@ A list containing the reconciled forecasts. The list has the following named ele
 }
 }
 \description{
-This function computes the reconciled forecasts for a hierarchy of time series.
+Computation of reconciled forecasts for a hierarchy of time series with importance sampling.
 }
 \details{
 The parameter \code{base_forecast} is a list containing n elements that depend on
@@ -50,4 +50,9 @@ If \code{in_type}='params', each element of \code{base_forecast} is a vector con
 \item lambda for the Poisson base forecast, see \link[stats]{Poisson}, if \code{distr}='poisson';
 \item size and probability of success for the negative binomial base forecast, see \link[stats]{NegBinomial}, if \code{distr}='nbinom'.
 }
+
+The order of the \code{base_forecast} list is given by the order of the time series in the summing matrix.
+}
+\seealso{
+\code{\link[=reconc_gaussian]{reconc_gaussian()}}
 }
