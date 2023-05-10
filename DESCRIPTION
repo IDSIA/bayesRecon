@@ -5,7 +5,8 @@ Version: 0.1.0
 Authors@R: c(person(given = "Nicolo'",
              family = "Rubattu",
              role = c("aut"),
-             email = "nicolo.rubattu@supsi.ch"),
+             email = "nicolo.rubattu@supsi.ch",
+             comment = c(ORCID = "0000-0002-2703-1005")),
       person(given = "Dario",
              family = "Azzimonti",
              role = c("aut","cre"),
@@ -18,7 +19,8 @@ Authors@R: c(person(given = "Nicolo'",
       person(given = "Giorgio",
              family = "Corani",
              role = c("aut"),
-             email = "giorgio.corani@idsia.ch"))
+             email = "giorgio.corani@idsia.ch",
+             comment = c(ORCID = "0000-0002-1541-8384")))
 Maintainer: Dario Azzimonti <dario.azzimonti@gmail.com>
 Description: Implementation of reconciliation methods for probabilistic hierarchical forecasts of time series. 
 License: LGPL (>= 3)
@@ -29,6 +31,7 @@ Imports:
     lpSolve (>= 5.6.18)
 Encoding: UTF-8
 LazyData: true
+Roxygen: list(markdown=TRUE)
 RoxygenNote: 7.2.3
 Suggests: 
     testthat (>= 3.0.0)

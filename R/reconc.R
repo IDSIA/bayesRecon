@@ -59,16 +59,47 @@
   return(S_[tmp_idx, ])
 }
 
-#' This function bla bla bla...
+# n totali, m bottom, k upper, n= m+k
+#' @title Importance Sampling Reconciliation of Time Series Forecasts
+#' @description
 #'
-#' @param S Summing matrix
-#' @param base_forecasts base_forecasts
-#' @param in_type A string 'samples'/'params'
-#' @param distr A string 'continuous'/'discrete' or 'gaussian'/'poisson'/'nbinom'
-#' @param num_samples number of samples
-#' @param seed seed for randomness reproducibility
+#' This function computes the reconciled forecasts for a hierarchy of time series.
 #'
-#' @return Reconciled forecasts
+#'
+#' @details
+#' The parameter `base_forecast` is a list containing n elements that depend on
+#' the options `in_type` and `distr`.
+#'
+#' If `in_type`='samples', each element of `base_forecast` is a vector containing samples from the base forecast distribution
+#'
+#' If `in_type`='params', each element of `base_forecast` is a vector containing the estimated
+#'
+#' * mean and sd for the Gaussian base forecast, see \link[stats]{Normal}, if `distr`='gaussian';
+#' * lambda for the Poisson base forecast, see \link[stats]{Poisson}, if `distr`='poisson';
+#' * size and probability of success for the negative binomial base forecast, see \link[stats]{NegBinomial}, if `distr`='nbinom'.
+#'
+#'
+#' @param S Summing matrix (n x n_bottom)
+#' @param base_forecasts a list containing the base_forecasts, see details.
+#' @param in_type A string with two possible values:
+#'
+#' * 'samples': base forecasts in the form of samples from the predictive distribution;
+#' * 'params' : base forecasts in the form of estimated parameters of a parametric predictive distribution.
+#'
+#' @param distr A string describing the type of predictive distribution
+#'
+#' * 'continuous' or 'discrete' if `in_type`='samples'
+#' * 'gaussian', 'poisson' or 'nbinom' if `in_type`='params'
+#'
+#' @param num_samples Number of samples
+#' @param seed Seed for randomness reproducibility
+#'
+#' @return A list containing the reconciled forecasts. The list has the following named elements:
+#'
+#' * `bottom_reconciled_samples`: a matrix (`num_samples` x n_bottom) containing reconciled samples for the bottom time series
+#' * `upper_reconciled_samples`: a matrix (`num_samples` x n_upper) containing reconciled samples for the upper time series
+#' * `reconciled_samples`: a matrix (`num_samples` x n) containing the reconciled samples for all time series
+#'
 #' @export
 reconc_IS <- function(S,
                    base_forecasts,

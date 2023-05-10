@@ -2,26 +2,52 @@
 % Please edit documentation in R/reconc.R
 \name{reconc_IS}
 \alias{reconc_IS}
-\title{This function bla bla bla...}
+\title{Importance Sampling Reconciliation of Time Series Forecasts}
 \usage{
 reconc_IS(S, base_forecasts, in_type, distr, num_samples = 20000, seed = 42)
 }
 \arguments{
-\item{S}{Summing matrix}
+\item{S}{Summing matrix (n x n_bottom)}
 
-\item{base_forecasts}{base_forecasts}
+\item{base_forecasts}{a list containing the base_forecasts, see details.}
 
-\item{in_type}{A string 'samples'/'params'}
+\item{in_type}{A string with two possible values:
+\itemize{
+\item 'samples': base forecasts in the form of samples from the predictive distribution;
+\item 'params' : base forecasts in the form of estimated parameters of a parametric predictive distribution.
+}}
 
-\item{distr}{A string 'continuous'/'discrete' or 'gaussian'/'poisson'/'nbinom'}
+\item{distr}{A string describing the type of predictive distribution
+\itemize{
+\item 'continuous' or 'discrete' if \code{in_type}='samples'
+\item 'gaussian', 'poisson' or 'nbinom' if \code{in_type}='params'
+}}
 
-\item{num_samples}{number of samples}
+\item{num_samples}{Number of samples}
 
-\item{seed}{seed for randomness reproducibility}
+\item{seed}{Seed for randomness reproducibility}
 }
 \value{
-Reconciled forecasts
+A list containing the reconciled forecasts. The list has the following named elements:
+\itemize{
+\item \code{bottom_reconciled_samples}: a matrix (\code{num_samples} x n_bottom) containing reconciled samples for the bottom time series
+\item \code{upper_reconciled_samples}: a matrix (\code{num_samples} x n_upper) containing reconciled samples for the upper time series
+\item \code{reconciled_samples}: a matrix (\code{num_samples} x n) containing the reconciled samples for all time series
+}
 }
 \description{
-This function bla bla bla...
+This function computes the reconciled forecasts for a hierarchy of time series.
+}
+\details{
+The parameter \code{base_forecast} is a list containing n elements that depend on
+the options \code{in_type} and \code{distr}.
+
+If \code{in_type}='samples', each element of \code{base_forecast} is a vector containing samples from the base forecast distribution
+
+If \code{in_type}='params', each element of \code{base_forecast} is a vector containing the estimated
+\itemize{
+\item mean and sd for the Gaussian base forecast, see \link[stats]{Normal}, if \code{distr}='gaussian';
+\item lambda for the Poisson base forecast, see \link[stats]{Poisson}, if \code{distr}='poisson';
+\item size and probability of success for the negative binomial base forecast, see \link[stats]{NegBinomial}, if \code{distr}='nbinom'.
+}
 }

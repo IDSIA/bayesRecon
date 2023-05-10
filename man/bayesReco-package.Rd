@@ -13,9 +13,9 @@ Implementation of reconciliation methods for probabilistic hierarchical forecast
 
 Authors:
 \itemize{
-  \item Nicolo' Rubattu \email{nicolo.rubattu@supsi.ch}
+  \item Nicolo' Rubattu \email{nicolo.rubattu@supsi.ch} (\href{https://orcid.org/0000-0002-2703-1005}{ORCID})
   \item Lorenzo Zambon \email{lorenzo.zambon@idsia.ch}
-  \item Giorgio Corani \email{giorgio.corani@idsia.ch}
+  \item Giorgio Corani \email{giorgio.corani@idsia.ch} (\href{https://orcid.org/0000-0002-1541-8384}{ORCID})
 }
 
 }
