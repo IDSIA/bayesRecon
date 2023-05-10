@@ -2,7 +2,7 @@
 % Please edit documentation in R/hierarchy.R
 \name{get_reconc_matrices}
 \alias{get_reconc_matrices}
-\title{Build A / S}
+\title{Build matrices for a hierarchy}
 \usage{
 get_reconc_matrices(aggf, bottom.f, bottom.H)
 }
@@ -14,8 +14,15 @@ get_reconc_matrices(aggf, bottom.f, bottom.H)
 \item{bottom.H}{Bottom time series forecasting steps.}
 }
 \value{
-A, S matrices
+A list containing the named elements
+\itemize{
+\item \code{A} the aggregation matrix;
+\item \code{S} the summing matrix.
+}
 }
 \description{
-This function bla bla bla...
+Creates the aggregation and summing matrices for a temporal hierarchy of time series from user-selected list of aggregations to consider.
+}
+\seealso{
+\code{\link[=temporal_aggregation]{temporal_aggregation()}}
 }
