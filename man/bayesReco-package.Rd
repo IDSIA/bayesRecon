@@ -8,6 +8,16 @@
 \description{
 Implementation of reconciliation methods for probabilistic hierarchical forecasts of time series.
 }
+\section{Main functions}{
+
+
+The package implements reconciliation via conditioning for probabilistic forecasts of hierarchical time series. The main functions are
+\itemize{
+\item \link{reconc_IS}: a generic tool for reconciliation of any probabilistic time series forecast via importance sampling;
+\item \link{reconc_gaussian}: implements analytic formulae for the reconciliation of Gaussian base forecasts.
+}
+}
+
 \author{
 \strong{Maintainer}: Dario Azzimonti \email{dario.azzimonti@gmail.com} (\href{https://orcid.org/0000-0001-5080-3061}{ORCID})
 
