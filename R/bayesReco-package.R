@@ -10,5 +10,11 @@
 
 ## usethis namespace: start
 #' @importFrom data.table fread
+#' @import methods
+#' @importFrom rstan sampling
+#' @importFrom utils head
+#' @import RcppParallel
+#' @import rstantools
+#' @useDynLib bayesReco, .registration=TRUE
 ## usethis namespace: end
 NULL
