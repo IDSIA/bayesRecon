@@ -24,7 +24,7 @@ The package implements reconciliation via conditioning for probabilistic forecas
 Authors:
 \itemize{
   \item Nicolo' Rubattu \email{nicolo.rubattu@supsi.ch} (\href{https://orcid.org/0000-0002-2703-1005}{ORCID})
-  \item Lorenzo Zambon \email{lorenzo.zambon@idsia.ch}
+  \item Lorenzo Zambon \email{lorenzo.zambon@idsia.ch} (\href{https://orcid.org/0000-0002-8939-993X}{ORCID})
   \item Giorgio Corani \email{giorgio.corani@idsia.ch} (\href{https://orcid.org/0000-0002-1541-8384}{ORCID})
 }
 

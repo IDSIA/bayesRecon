@@ -4,7 +4,7 @@
 \alias{reconc_IS}
 \title{Importance Sampling Reconciliation of Time Series Forecasts}
 \usage{
-reconc_IS(S, base_forecasts, in_type, distr, num_samples = 20000, seed = 42)
+reconc_IS(S, base_forecasts, in_type, distr, num_samples = 20000, seed = NULL)
 }
 \arguments{
 \item{S}{Summing matrix (n x n_bottom)}

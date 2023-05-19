@@ -8,7 +8,7 @@ test_that("Monthly, in_type=='params', distr='gaussian'",{
     base_forecasts[[i]] = list(as.numeric(base_forecasts_in[i,]))[[1]]
   }
   res.is = reconc_IS(S, base_forecasts,
-               in_type = "params", distr = "gaussian", num_samples = 100000)
+               in_type = "params", distr = "gaussian", num_samples = 100000, seed=42)
   # Run Gauss Reconc
   res.gauss = reconc_gaussian(base_forecasts_in[[1]], diag(base_forecasts_in[[2]]^2), S)
   # Test
@@ -26,7 +26,7 @@ test_that("Weekly, in_type=='params', distr='gaussian'",{
     base_forecasts[[i]] = list(as.numeric(base_forecasts_in[i,]))[[1]]
   }
   res.is = reconc_IS(S, base_forecasts,
-                  in_type = "params", distr = "gaussian", num_samples = 100000)
+                  in_type = "params", distr = "gaussian", num_samples = 100000, seed=42)
   # Run Gauss Reconc
   res.gauss = reconc_gaussian(base_forecasts_in[[1]], diag(base_forecasts_in[[2]]^2), S)
   # Test
@@ -43,7 +43,7 @@ test_that("Monthly, in_type=='params', distr='poisson'",{
     base_forecasts[[i]] = list(as.numeric(base_forecasts_in[i,]))[[1]]
   }
   res.is = reconc_IS(S, base_forecasts,
-                  in_type = "params", distr = "poisson", num_samples = 100000)
+                  in_type = "params", distr = "poisson", num_samples = 100000, seed=42)
   expect_no_error(res.is)
 })
 
@@ -56,14 +56,14 @@ test_that("Monthly, in_type=='samples', distr='continuous'",{
   for (i in 1:nrow(base_forecasts_in)) {
     base_forecasts[[i]] = list(as.numeric(base_forecasts_in[i,]))[[1]]
   }
-  res.is_samples = reconc_IS(S, base_forecasts, in_type = "samples", distr = "continuous")
+  res.is_samples = reconc_IS(S, base_forecasts, in_type = "samples", distr = "continuous", seed=42)
   # Run IS Reconc
   base_forecasts_in = data.table::fread(file = "dataForTests/Monthly-Gaussian_basef.csv", header = FALSE)
   base_forecasts = list()
   for (i in 1:nrow(base_forecasts_in)) {
     base_forecasts[[i]] = list(as.numeric(base_forecasts_in[i,]))[[1]]
   }
-  res.is = reconc_IS(S, base_forecasts, in_type = "params", distr = "gaussian", num_samples = 100000)
+  res.is = reconc_IS(S, base_forecasts, in_type = "params", distr = "gaussian", num_samples = 100000, seed=42)
   m = mean(colMeans(res.is$reconciled_samples) - colMeans(res.is_samples$reconciled_samples))
   expect_equal(abs(m) < 0.5, TRUE) # Suspicious...
 })
@@ -77,14 +77,14 @@ test_that("Monthly, in_type=='samples', distr='discrete'",{
   for (i in 1:nrow(base_forecasts_in)) {
     base_forecasts[[i]] = list(as.numeric(base_forecasts_in[i,]))[[1]]
   }
-  res.is_samples = reconc_IS(S, base_forecasts, in_type = "samples", distr = "discrete")
+  res.is_samples = reconc_IS(S, base_forecasts, in_type = "samples", distr = "discrete", seed=42)
   # Run IS Reconc
   base_forecasts_in = data.table::fread(file = "dataForTests/Monthly-Poisson_basef.csv", header = FALSE)
   base_forecasts = list()
   for (i in 1:nrow(base_forecasts_in)) {
     base_forecasts[[i]] = list(as.numeric(base_forecasts_in[i,]))[[1]]
   }
-  res.is = reconc_IS(S, base_forecasts, in_type = "params", distr = "poisson", num_samples = 100000)
+  res.is = reconc_IS(S, base_forecasts, in_type = "params", distr = "poisson", num_samples = 100000, seed=42)
   m = mean(colMeans(res.is$reconciled_samples) - colMeans(res.is_samples$reconciled_samples))
   expect_equal(abs(m) < 1e-2, TRUE)
 })

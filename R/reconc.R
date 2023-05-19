@@ -24,6 +24,7 @@
   if (sum(w) == 0) {
     w = w + 1
   }
+  warning("WARNING: all IS weights are zero, increase sample size or check your forecasts.")
   return(w)
 }
 .compute_weights <- function(b, u, in_type_, distr_) {
@@ -109,7 +110,7 @@ reconc_IS <- function(S,
                    in_type,
                    distr,
                    num_samples = 2e4,
-                   seed = 42) {
+                   seed = NULL) {
   set.seed(seed)
 
   # Ensure that data inputs are valid

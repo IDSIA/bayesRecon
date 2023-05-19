@@ -2,6 +2,8 @@
 
 export(get_reconc_matrices)
 export(reconc_IS)
+export(reconc_MCMC)
 export(reconc_gaussian)
 export(temporal_aggregation)
 importFrom(data.table,fread)
+importFrom(stats,runif)
