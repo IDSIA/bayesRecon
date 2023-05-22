@@ -6,9 +6,9 @@
 \usage{
 reconc_MCMC(
   S,
+  base_forecasts,
   distr,
-  params,
-  N_samples = 10000,
+  num_samples = 10000,
   tuning_int = 100,
   init_scale = 1,
   burn_in = 1000,
@@ -18,11 +18,11 @@ reconc_MCMC(
 \arguments{
 \item{S}{aggregating matrix}
 
-\item{distr}{list of strings specifying the distribution of each variable}
+\item{base_forecasts}{list of the parameters of the base forecast distributions}
 
-\item{params}{list of the parameters of the distributions}
+\item{distr}{string or list of strings specifying the distribution of each variable}
 
-\item{N_samples}{number of samples to draw using MCMC}
+\item{num_samples}{number of samples to draw using MCMC}
 
 \item{tuning_int}{number of iterations between scale updates of the proposal}
 
@@ -33,7 +33,12 @@ reconc_MCMC(
 \item{seed}{Seed for randomness reproducibility}
 }
 \value{
-samples from the reconciled distribution
+A list containing the reconciled forecasts. The list has the following named elements:
+\itemize{
+\item \code{bottom_reconciled_samples}: a matrix (n_bottom x \code{num_samples}) containing reconciled samples for the bottom time series
+\item \code{upper_reconciled_samples}: a matrix (n_upper x \code{num_samples}) containing reconciled samples for the upper time series
+\item \code{reconciled_samples}: a matrix (n x \code{num_samples}) containing the reconciled samples for all time series
+}
 }
 \description{
 Probabilistic reconciliation with MCMC

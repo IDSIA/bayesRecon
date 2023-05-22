@@ -29,5 +29,5 @@ Computation of the reconciled forecasts for a hierarchy of time series with Gaus
 The order of the base forecast means and covariance is given by the order of the time series in the summing matrix.
 }
 \seealso{
-\code{\link[=reconc_IS]{reconc_IS()}}
+\code{\link[=reconc_BUIS]{reconc_BUIS()}}
 }

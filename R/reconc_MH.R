@@ -1,25 +1,26 @@
 #-------------------------------------------------------------------------------
-# # Minimal example
-# S <- rbind(matrix(1, 1, 2), diag(1,2))
-# distr <- rep(list("poisson"), 3)
-# params <- list(c(8), c(3), c(4))
-# out <- reconc_MCMC(S, distr, params)
-#-------------------------------------------------------------------------------
 #' @title Probabilistic reconciliation with MCMC
+#'
 #' @param S aggregating matrix
-#' @param distr list of strings specifying the distribution of each variable
-#' @param params list of the parameters of the distributions
-#' @param N_samples number of samples to draw using MCMC
+#' @param base_forecasts list of the parameters of the base forecast distributions
+#' @param distr string or list of strings specifying the distribution of each variable
+#' @param num_samples number of samples to draw using MCMC
 #' @param tuning_int number of iterations between scale updates of the proposal
 #' @param init_scale initial scale of the proposal
 #' @param burn_in number of initial samples to be discarded
 #' @param seed Seed for randomness reproducibility
-#' @return samples from the reconciled distribution
+#'
+#' @return A list containing the reconciled forecasts. The list has the following named elements:
+#'
+#' * `bottom_reconciled_samples`: a matrix (n_bottom x `num_samples`) containing reconciled samples for the bottom time series
+#' * `upper_reconciled_samples`: a matrix (n_upper x `num_samples`) containing reconciled samples for the upper time series
+#' * `reconciled_samples`: a matrix (n x `num_samples`) containing the reconciled samples for all time series
+#'
 #' @export
 reconc_MCMC <- function(S,
+                        base_forecasts,
                         distr,
-                        params,
-                        N_samples = 10000,
+                        num_samples = 10000,
                         tuning_int = 100,
                         init_scale = 1,
                         burn_in = 1000,
@@ -27,16 +28,23 @@ reconc_MCMC <- function(S,
 
   set.seed(seed)
 
-  # Check input
-  # TODO: use function to check input
-  # .check_input of the package?
-  # ok only if Poisson or NegBin?
+  # Ensure that data inputs are valid
+  if (distr == "gaussian") {
+    stop("MCMC for Gaussian distributions is not implemented")
+  }
+  .check_input(S, base_forecasts, in_type = "params", distr = distr)
+  if (!is.list(distr)) {
+    distr = rep(list(distr), nrow(S))
+  }
 
-  m <- ncol(S)
-  n <- nrow(S)
+  n_bottom <- ncol(S)
+  n_ts <- nrow(S)
+
+  # the first burn_in samples will be removed
+  num_samples <- num_samples + burn_in
 
   # Set the covariance matrix of the proposal (identity matrix)
-  cov_mat_prop <- diag(rep(1,m))
+  cov_mat_prop <- diag(rep(1,n_bottom))
 
   #Set the counter for tuning
   c_tuning <- tuning_int
@@ -45,13 +53,16 @@ reconc_MCMC <- function(S,
   accept_count <- 0
 
   # Create empty matrix for the samples from MCMC
-  b <- matrix(nrow = N_samples, ncol = m)
+  b <- matrix(nrow = num_samples, ncol = n_bottom)
+
+  # Get matrix A and bottom base forecasts
+  split_hierarchy.res <- .split_hierarchy(S, base_forecasts)
+  A <- split_hierarchy.res$A
+  bottom_base_forecasts <- split_hierarchy.res$bottom
+  bottom_distr <- distr[split_hierarchy.res$bottom_idxs]
 
   # Initialize first sample (draw from base distribution)
-  #TODO: use function to get distr_b, params_b
-  distr_b <- distr[(n-m+1):n]
-  params_b <- params[(n-m+1):n]
-  b[1,] <- .initialize_b(distr_b, params_b)
+  b[1,] <- .initialize_b(bottom_base_forecasts, bottom_distr)
 
   # Initialize prop list
   old_prop <- list(
@@ -60,7 +71,7 @@ reconc_MCMC <- function(S,
   )
 
   # Run the chain
-  for (i in 2:N_samples) {
+  for (i in 2:num_samples) {
 
     if (c_tuning == 0) {
       old_prop$acc_rate <- accept_count / tuning_int  #set acc_rate
@@ -70,7 +81,7 @@ reconc_MCMC <- function(S,
 
     prop <- .proposal(old_prop, cov_mat_prop)
     b_prop <- prop$b
-    alpha <- .accept_prob(b_prop, b[i-1,], S, distr, params)
+    alpha <- .accept_prob(b_prop, b[i-1,], S, distr, base_forecasts)
 
     if (stats::runif(1) < alpha) {
       b[i,] <- b_prop
@@ -88,15 +99,13 @@ reconc_MCMC <- function(S,
 
   }
 
-  burn_in <- min(burn_in, N_samples/2)  # keep at least half of the samples
-
-  b_samples <- b[(burn_in+1) : N_samples, ]
-  # u<-samples <- b_samples %*% t(A)
-  y_samples <- b_samples %*% t(S)
+  b_samples <- t(b[(burn_in+1) : num_samples, ]) #output shape: n_bottom x num_samples
+  u_samples <- A %*% b_samples
+  y_samples <- S %*% b_samples
 
   out = list(
     bottom_reconciled_samples = b_samples,
-    # upper_reconciled_samples = u_samples,
+    upper_reconciled_samples = u_samples,
     reconciled_samples = y_samples
   )
 
@@ -107,13 +116,11 @@ reconc_MCMC <- function(S,
 
 #-------------------------------------------------------------------------------
 ##################################
-.initialize_b <- function(distr_b, params_b) {
-
-  m <- length(distr_b)
+.initialize_b <- function(bottom_base_forecasts, bottom_distr) {
 
   b <- c()
-  for (i in 1:m) {
-    b[i] <- .distr_sample(params_b[[i]], distr_b[[i]], 1)
+  for (i in 1:length(bottom_distr)) {
+    b[i] <- .distr_sample(bottom_base_forecasts[[i]], bottom_distr[[i]], 1)
   }
 
   return(b)
@@ -143,39 +150,17 @@ reconc_MCMC <- function(S,
 ##################################
 .target_pmf <- function(b, S, distr, params) {
 
-  m <- ncol(S)
-  n <- nrow(S)
-  k <- n-m
-
-  if (length(distr)!=n | length(params)!= n){
-    print("Dimensions are wrong")
-  }
-  if (length(b)!=m) {
-    print("Matrix S does not match with b")
-  }
+  n_ts <- nrow(S)
 
   y <- S %*% b
 
   pmf <- 1
-  for (j in 1:n) {
-    pmf <- pmf * .distr_pmf(y[[j]], distr[[j]], params[[j]])
+  for (j in 1:n_ts) {
+    pmf <- pmf * .distr_pmf(y[[j]], params[[j]], distr[[j]])
   }
 
   return(pmf)
 
-}
-
-
-##################################
-.distr_pmf <- function(x, distr_, par) {
-  switch(
-    distr_,
-    "poisson"  = {
-      pmf = stats::dpois(x=x, lambda = par[[1]]) },
-    "negbin"   = {
-      pmf = stats::dnbinom(x=x, size = par[[1]], prob = par[[2]]) },
-  )
-  return(pmf)
 }
 
 

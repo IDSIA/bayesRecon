@@ -13,6 +13,18 @@
   )
   return(samples)
 }
+.distr_pmf <- function(x, params, distr_) {
+  switch(
+    distr_,
+    "gaussian" = {
+      pmf = stats::dnorm(x=x, mean = params[[1]], sd = params[[2]]) },
+    "poisson"  = {
+      pmf = stats::dpois(x=x, lambda = params[[1]]) },
+    "negbin"   = {
+      pmf = stats::dnbinom(x=x, size = params[[1]], prob = params[[2]]) },
+  )
+  return(pmf)
+}
 .emp_pmf <- function(l, density_samples) {
   empirical_pmf = sapply(0:max(density_samples), function(i)
     sum(density_samples == i) / length(density_samples))
@@ -23,8 +35,8 @@
   w[is.na(w)] = 0
   if (sum(w) == 0) {
     w = w + 1
+    warning("WARNING: all IS weights are zero, increase sample size or check your forecasts.")
   }
-  warning("WARNING: all IS weights are zero, increase sample size or check your forecasts.")
   return(w)
 }
 .compute_weights <- function(b, u, in_type_, distr_) {
@@ -39,15 +51,7 @@
       w = df(b)
     }
   } else if (in_type_ == "params") {
-    switch(
-      distr_,
-      "gaussian" = {
-        w = stats::dnorm(x = b, mean = u[[1]], sd = u[[2]]) },
-      "poisson"  = {
-        w = stats::dpois(x = b, lambda = u[[1]]) },
-      "negbin"   = {
-        w = stats::dnbinom(x = b, size = u[[1]], prob = u[[2]]) }
-    )
+    w = .distr_pmf(b, u, distr_)
   }
   w = .fix_weights(w)
   return(w)
@@ -99,13 +103,13 @@
 #'
 #' @return A list containing the reconciled forecasts. The list has the following named elements:
 #'
-#' * `bottom_reconciled_samples`: a matrix (`num_samples` x n_bottom) containing reconciled samples for the bottom time series
-#' * `upper_reconciled_samples`: a matrix (`num_samples` x n_upper) containing reconciled samples for the upper time series
-#' * `reconciled_samples`: a matrix (`num_samples` x n) containing the reconciled samples for all time series
+#' * `bottom_reconciled_samples`: a matrix (n_bottom x `num_samples`) containing reconciled samples for the bottom time series
+#' * `upper_reconciled_samples`: a matrix (n_upper x `num_samples`) containing reconciled samples for the upper time series
+#' * `reconciled_samples`: a matrix (n x `num_samples`) containing the reconciled samples for all time series
 #'
 #' @seealso [reconc_gaussian()]
 #' @export
-reconc_IS <- function(S,
+reconc_BUIS <- function(S,
                    base_forecasts,
                    in_type,
                    distr,
@@ -177,8 +181,9 @@ reconc_IS <- function(S,
     B = .resample(B, weights)
   }
 
-  U = B %*% t(A)
-  Y_reconc = cbind(U, B)
+  B = t(B)
+  U = A %*% B
+  Y_reconc = rbind(U, B)
 
   out = list(
     bottom_reconciled_samples = B,
@@ -209,7 +214,7 @@ reconc_IS <- function(S,
 #' * `upper_reconciled_mean`: reconciled mean for the upper forecasts
 #' * `upper_reconciled_covariance`: reconciled covariance for the upper forecasts
 #'
-#' @seealso [reconc_IS()]
+#' @seealso [reconc_BUIS()]
 #'
 #' @export
 reconc_gaussian <- function(base_forecasts.mu,

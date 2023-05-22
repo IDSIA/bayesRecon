@@ -8,19 +8,7 @@ date: "2023-03-30"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## MCMC
-
-* line 51 reconc_MH: use function to get distr_b, params_b
-
-* line 31 reconc_MH: use function to check input
-
-* line 94 reconc_MH: add u_samples
-
-* uniform parameters with reconc_IS (create list of distr from a string, check rest)
-
 ## General
-
-* decide format for samples output (n_samples x n) vs (n x n_samples)
 
 * Create a test for the case where .fix_weights returns a warning.
 
@@ -44,4 +32,4 @@ knitr::opts_chunk$set(echo = TRUE)
 
 * Extension to batch-BUIS?
 
-* check use of parallel computation on local cores for batch IS.
+* check use of parallel computation on local cores for batch BUIS.
