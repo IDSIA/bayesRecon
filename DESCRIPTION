@@ -28,7 +28,7 @@ License: LGPL (>= 3)
 Depends: R (>= 4.1.0)
 Imports:
     stats,
-    data.table (>= 1.14.2),
+    utils,
     lpSolve (>= 5.6.18)
 Encoding: UTF-8
 LazyData: true

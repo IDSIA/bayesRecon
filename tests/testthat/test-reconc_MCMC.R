@@ -1,7 +1,7 @@
 test_that("MCMC Monthly, in_type=='params', distr='poisson'", {
-  S = data.table::fread(file = "dataForTests/Monthly-Poisson_S.csv", header = FALSE)
+  S = read.csv(file = "dataForTests/Monthly-Poisson_S.csv", header = FALSE)
   S = as.matrix(S)
-  base_forecasts_in = data.table::fread(file = "dataForTests/Monthly-Poisson_basef.csv", header = FALSE)
+  base_forecasts_in = read.csv(file = "dataForTests/Monthly-Poisson_basef.csv", header = FALSE)
   base_forecasts = list()
   for (i in 1:nrow(base_forecasts_in)) {
     base_forecasts[[i]] = list(as.numeric(base_forecasts_in[i,]))[[1]]

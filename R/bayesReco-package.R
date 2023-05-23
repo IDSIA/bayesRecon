@@ -9,8 +9,4 @@
 #' @keywords internal
 "_PACKAGE"
 
-## usethis namespace: start
-#' @importFrom data.table fread
-#' @importFrom stats runif
-## usethis namespace: end
 NULL

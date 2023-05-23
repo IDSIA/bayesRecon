@@ -48,3 +48,24 @@
 .shape <- function(m) {
   print(paste0("(", nrow(m), ",", ncol(m), ")"))
 }
+
+# Functions for tests
+.gen_gaussian <- function(params_file) {
+  set.seed(0)
+  params = utils::read.csv(file = params_file, header = FALSE)
+  out = list()
+  for (i in 1:nrow(params)) {
+    out[[i]] = stats::rnorm(n=1e6, mean=params[[1]][i], sd=params[[2]][i])
+  }
+  return(out)
+}
+
+.gen_poisson <- function(params_file) {
+  set.seed(0)
+  params = utils::read.csv(file = params_file, header = FALSE)
+  out = list()
+  for (i in 1:nrow(params)) {
+    out[[i]] = stats::rpois(n=1e6, lambda=params[[1]][i])
+  }
+  return(out)
+}
