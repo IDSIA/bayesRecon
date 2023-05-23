@@ -107,6 +107,11 @@
 #' * `upper_reconciled_samples`: a matrix (n_upper x `num_samples`) containing reconciled samples for the upper time series
 #' * `reconciled_samples`: a matrix (n x `num_samples`) containing the reconciled samples for all time series
 #'
+#' @examples
+#' # Add poisson synthetic example
+#'
+#' @references BUIS paper
+#'
 #' @seealso [reconc_gaussian()]
 #' @export
 reconc_BUIS <- function(S,
@@ -199,9 +204,9 @@ reconc_BUIS <- function(S,
 #' @description
 #' Computation of the reconciled forecasts for a hierarchy of time series with Gaussian base forecasts. This function exploits analytical formulae.
 #'
+#' @param S Summing matrix (n x n_bottom)
 #' @param base_forecasts.mu A vector containing the base forecasts means
 #' @param base_forecasts.Sigma A matrix containing the base forecasts covariance matrix
-#' @param S Summing matrix (n x n_bottom)
 #'
 #' @details
 #' The order of the base forecast means and covariance is given by the order of the time series in the summing matrix.
@@ -217,9 +222,8 @@ reconc_BUIS <- function(S,
 #' @seealso [reconc_BUIS()]
 #'
 #' @export
-reconc_gaussian <- function(base_forecasts.mu,
-                            base_forecasts.Sigma,
-                            S) {
+reconc_gaussian <- function(S, base_forecasts.mu,
+                            base_forecasts.Sigma) {
   hier = .get_A_from_S(S)
   A = hier$A
   k = nrow(A)    #number of upper TS

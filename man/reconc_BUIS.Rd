@@ -60,6 +60,13 @@ If \code{in_type}='params', each element of \code{base_forecast} is a vector con
 
 The order of the \code{base_forecast} list is given by the order of the time series in the summing matrix.
 }
+\examples{
+# Add poisson synthetic example
+
+}
+\references{
+BUIS paper
+}
 \seealso{
 \code{\link[=reconc_gaussian]{reconc_gaussian()}}
 }

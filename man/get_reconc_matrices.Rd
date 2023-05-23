@@ -4,14 +4,14 @@
 \alias{get_reconc_matrices}
 \title{Build matrices for a hierarchy}
 \usage{
-get_reconc_matrices(aggf, bottom.f, bottom.H)
+get_reconc_matrices(aggf, bottom.f, bottom.h)
 }
 \arguments{
 \item{aggf}{User-selected list of aggregates to consider.}
 
 \item{bottom.f}{Integer seasonal period of the bottom time series.}
 
-\item{bottom.H}{Bottom time series forecasting steps.}
+\item{bottom.h}{Bottom time series forecasting steps.}
 }
 \value{
 A list containing the named elements

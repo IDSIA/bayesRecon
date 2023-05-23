@@ -22,6 +22,10 @@ You can install the development version of bayesReco like so:
 This is a basic example which shows you how to solve a common problem:
 
 ``` r
+# Insert code here, option+command+I
+```
+
+``` r
 library(bayesReco)
 ## basic example code
 ```

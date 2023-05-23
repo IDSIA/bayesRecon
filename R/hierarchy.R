@@ -99,13 +99,13 @@
 
   #extract rows from A
   ind_h <- as.logical(indices_sol)
-  H <- A[ind_h, ]
+  H <- matrix(A[ind_h, ],ncol=ncol(A))
   v_h <- v[ind_h]
   d_h <- d[ind_h]
 
   #sort bottom-up
   ord <- order(rowSums(H))
-  H <- H[ord, ]
+  H <- matrix(H[ord, ],ncol=ncol(A))
   v_h <- v_h[ord]
   d_h <- d_h[ord]
 
@@ -116,7 +116,7 @@
     v_g <- NULL
     d_g <- NULL
   } else {
-    G <- A[ind_g, ]
+    G <- matrix(A[ind_g, ],ncol=ncol(A))
     v_g <- v[ind_g]
     d_g <- d[ind_g]
   }
@@ -230,7 +230,7 @@ temporal_aggregation <- function(y, aggf=NULL) {
 #'
 #' @param aggf User-selected list of aggregates to consider.
 #' @param bottom.f Integer seasonal period of the bottom time series.
-#' @param bottom.H Bottom time series forecasting steps.
+#' @param bottom.h Bottom time series forecasting steps.
 #'
 #' @return A list containing the named elements
 #'
@@ -240,15 +240,15 @@ temporal_aggregation <- function(y, aggf=NULL) {
 #' @seealso [temporal_aggregation()]
 #'
 #' @export
-get_reconc_matrices <- function(aggf, bottom.f, bottom.H) {
+get_reconc_matrices <- function(aggf, bottom.f, bottom.h) {
   A = list()
   for (i in 1:length(aggf)) {
     k = aggf[i]
     if (k==1) {
       next
     }
-    k.r = bottom.H / k
-    k.A = matrix(data = 0, nrow = k.r, ncol = bottom.H)
+    k.r = bottom.h / k
+    k.A = matrix(data = 0, nrow = k.r, ncol = bottom.h)
     coli = 1
     for (r in 1:k.r) {
       k.A[r,coli:(coli+k-1)] = 1
@@ -258,7 +258,7 @@ get_reconc_matrices <- function(aggf, bottom.f, bottom.H) {
 
   }
   A = do.call(rbind, rev(A))
-  S = rbind(A, diag(bottom.H))
+  S = rbind(A, diag(bottom.h))
   out = list(A=A, S=S)
   return(out)
 }
@@ -276,11 +276,16 @@ get_reconc_matrices <- function(aggf, bottom.f, bottom.H) {
 
 # Split bottoms, uppers
 .split_hierarchy <- function(S, Y) {
+
+  if(nrow(S)!=length(Y)){
+    stop(sprintf("Error: summing matrix rows (%d) != length base forecasts (%d)",nrow(S),length(Y)))
+  }
+
   getAfromS.res = .get_A_from_S(S)
   upper = Y[getAfromS.res$upper_idxs]
   bottom = Y[getAfromS.res$bottom_idxs]
   out = list(
-    A = getAfromS.res$A,
+    A = matrix(getAfromS.res$A,ncol=ncol(S)),
     upper = upper,
     bottom = bottom,
     upper_idxs = getAfromS.res$upper_idxs,

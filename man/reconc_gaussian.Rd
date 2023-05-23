@@ -4,14 +4,14 @@
 \alias{reconc_gaussian}
 \title{Reconciliation in closed form for Gaussian base forecasts}
 \usage{
-reconc_gaussian(base_forecasts.mu, base_forecasts.Sigma, S)
+reconc_gaussian(S, base_forecasts.mu, base_forecasts.Sigma)
 }
 \arguments{
+\item{S}{Summing matrix (n x n_bottom)}
+
 \item{base_forecasts.mu}{A vector containing the base forecasts means}
 
 \item{base_forecasts.Sigma}{A matrix containing the base forecasts covariance matrix}
-
-\item{S}{Summing matrix (n x n_bottom)}
 }
 \value{
 A list containing the reconciled forecasts. The list has the following named elements:

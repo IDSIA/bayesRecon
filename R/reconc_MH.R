@@ -131,13 +131,13 @@ reconc_MCMC <- function(S,
 
 #-------------------------------------------------------------------------------
 ##################################
-#' @title Compute acceptance probability
-#' @param b proposal state
-#' @param b0 current state
-#' @param S aggregating matrix
-#' @param distr list of strings specifying the distribution of each variable
-#' @param params list of the parameters of the distributions
-#' @return the acceptance probability alpha
+# @title Compute acceptance probability
+# @param b proposal state
+# @param b0 current state
+# @param S aggregating matrix
+# @param distr list of strings specifying the distribution of each variable
+# @param params list of the parameters of the distributions
+# @return the acceptance probability alpha
 .accept_prob <- function(b, b0, S, distr, params) {
 
   alpha <- .target_pmf(b, S, distr, params) / .target_pmf(b0, S, distr, params)
@@ -166,10 +166,10 @@ reconc_MCMC <- function(S,
 
 #-------------------------------------------------------------------------------
 ##################################
-#' @title Generate a proposal for MCMC step
-#' @param prev_prop a list containing b, scale, acc_rate
-#' @param cov_mat_prop the covariance matrix (ncol(cov_mat_prop)=length(b)) for the normal proposal
-#' @return a list containing the new b, scale, acc_rate
+# @title Generate a proposal for MCMC step
+# @param prev_prop a list containing b, scale, acc_rate
+# @param cov_mat_prop the covariance matrix (ncol(cov_mat_prop)=length(b)) for the normal proposal
+# @return a list containing the new b, scale, acc_rate
 .proposal <- function(prev_prop, cov_mat_prop){
 
   # extract previous proposal
