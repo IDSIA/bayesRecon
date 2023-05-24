@@ -2,16 +2,14 @@
 % Please edit documentation in R/hierarchy.R
 \name{get_reconc_matrices}
 \alias{get_reconc_matrices}
-\title{Build matrices for a hierarchy}
+\title{Build hierarchy matrices}
 \usage{
-get_reconc_matrices(aggf, bottom.f, bottom.h)
+get_reconc_matrices(aggf, h)
 }
 \arguments{
-\item{aggf}{User-selected list of aggregates to consider.}
+\item{aggf}{User-selected list of aggregation levels.}
 
-\item{bottom.f}{Integer seasonal period of the bottom time series.}
-
-\item{bottom.h}{Bottom time series forecasting steps.}
+\item{h}{Number of steps ahead for the bottom level forecasts.}
 }
 \value{
 A list containing the named elements
@@ -21,7 +19,20 @@ A list containing the named elements
 }
 }
 \description{
-Creates the aggregation and summing matrices for a temporal hierarchy of time series from user-selected list of aggregations to consider.
+Creates the aggregation and summing matrices for a temporal hierarchy of time series
+from user-selected list of aggregation levels.
+}
+\examples{
+
+library(bayesReco)
+
+#Create monthly hierarchy
+aggf <- c(1,2,3,4,6,12)
+h <- 12
+rec_mat <- get_reconc_matrices(aggf, h)
+S <- rec_mat$S
+A <- rec_mat$A
+
 }
 \seealso{
 \code{\link[=temporal_aggregation]{temporal_aggregation()}}

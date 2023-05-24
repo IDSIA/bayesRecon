@@ -2,7 +2,7 @@
 % Please edit documentation in R/reconc.R
 \name{reconc_BUIS}
 \alias{reconc_BUIS}
-\title{Importance Sampling Reconciliation of Time Series Forecasts}
+\title{BUIS for Probabilistic Reconciliation of forecasts via conditioning}
 \usage{
 reconc_BUIS(
   S,
@@ -30,7 +30,7 @@ reconc_BUIS(
 \item 'gaussian', 'poisson' or 'nbinom' if \code{in_type}='params'
 }}
 
-\item{num_samples}{Number of samples}
+\item{num_samples}{Number of samples drawn from the reconciled distribution}
 
 \item{seed}{Seed for randomness reproducibility}
 }
@@ -43,7 +43,8 @@ A list containing the reconciled forecasts. The list has the following named ele
 }
 }
 \description{
-Computation of reconciled forecasts for a hierarchy of time series with importance sampling.
+Uses the Bottom-Up Importance Sampling algorithm to draw samples from the reconciled
+forecast distribution, which is obtained via conditioning.
 }
 \details{
 The parameter \code{base_forecast} is a list containing n elements that depend on
@@ -61,7 +62,71 @@ If \code{in_type}='params', each element of \code{base_forecast} is a vector con
 The order of the \code{base_forecast} list is given by the order of the time series in the summing matrix.
 }
 \examples{
-# Add poisson synthetic example
+
+library(bayesReco)
+
+# Create a minimal hierarchy with 2 bottom and 1 upper variable
+rec_mat <- get_reconc_matrices(aggf=c(1,2), h=2)
+S <- rec_mat$S
+
+
+#1) Gaussian base forecasts
+
+#Set the parameters of the Gaussian base forecast distributions
+
+mu1 <- 2
+mu2 <- 4
+muY <- 9
+mus <- c(muY,mu1,mu2)
+
+sigma1 <- 2
+sigma2 <- 2
+sigmaY <- 3
+sigmas <- c(sigmaY,sigma1,sigma2)
+
+base_forecasts = list()
+for (i in 1:nrow(S)) {
+base_forecasts[[i]] = c(mus[[i]], sigmas[[i]])
+}
+
+
+#Sample from the reconciled forecast distribution using the BUIS algorithm
+buis <- reconc_BUIS(S, base_forecasts, in_type="params",
+                 distr="gaussian", num_samples=100000, seed=42)
+
+samples_buis <- buis$reconciled_samples
+
+#In the Gaussian case, the reconciled distribution is still Gaussian and can be
+#computed in closed form
+Sigma <- diag(sigmas^2)  #transform into covariance matrix
+analytic_rec <- reconc_gaussian(S, base_forecasts.mu = mus,
+                                base_forecasts.Sigma = Sigma)
+
+#Compare the reconciled means obtained analytically and via BUIS
+print(c(analytic_rec$upper_reconciled_mean, analytic_rec$bottom_reconciled_mean))
+print(rowMeans(samples_buis))
+
+
+#2) Poisson base forecasts
+
+#Set the parameters of the Poisson base forecast distributions
+lambda1 <- 2
+lambda2 <- 4
+lambdaY <- 9
+lambdas <- c(lambdaY,lambda1,lambda2)
+
+base_forecasts <- list()
+for (i in 1:nrow(S)) {
+ base_forecasts[[i]] = lambdas[i]
+}
+
+#Sample from the reconciled forecast distribution using the BUIS algorithm
+buis <- reconc_BUIS(S, base_forecasts, in_type="params",
+                          distr="poisson", num_samples=100000, seed=42)
+samples_buis <- buis$reconciled_samples
+
+#Print the reconciled means
+print(rowMeans(samples_buis$reconciled_samples))
 
 }
 \references{
@@ -69,4 +134,5 @@ BUIS paper
 }
 \seealso{
 \code{\link[=reconc_gaussian]{reconc_gaussian()}}
+\code{\link[=reconc_mcmc]{reconc_mcmc()}}
 }

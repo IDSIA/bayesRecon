@@ -64,12 +64,12 @@
   return(S_[tmp_idx, ])
 }
 
-# n totali, m bottom, k upper, n= m+k
-#' @title Importance Sampling Reconciliation of Time Series Forecasts
+#' @title BUIS for Probabilistic Reconciliation of forecasts via conditioning
+#'
 #' @description
 #'
-#' Computation of reconciled forecasts for a hierarchy of time series with importance sampling.
-#'
+#' Uses the Bottom-Up Importance Sampling algorithm to draw samples from the reconciled
+#' forecast distribution, which is obtained via conditioning.
 #'
 #' @details
 #'
@@ -98,7 +98,7 @@
 #' * 'continuous' or 'discrete' if `in_type`='samples'
 #' * 'gaussian', 'poisson' or 'nbinom' if `in_type`='params'
 #'
-#' @param num_samples Number of samples
+#' @param num_samples Number of samples drawn from the reconciled distribution
 #' @param seed Seed for randomness reproducibility
 #'
 #' @return A list containing the reconciled forecasts. The list has the following named elements:
@@ -108,11 +108,78 @@
 #' * `reconciled_samples`: a matrix (n x `num_samples`) containing the reconciled samples for all time series
 #'
 #' @examples
-#' # Add poisson synthetic example
+#'
+#'library(bayesReco)
+#'
+#'# Create a minimal hierarchy with 2 bottom and 1 upper variable
+#'rec_mat <- get_reconc_matrices(aggf=c(1,2), h=2)
+#'S <- rec_mat$S
+#'
+#'
+#'#1) Gaussian base forecasts
+#'
+#'#Set the parameters of the Gaussian base forecast distributions
+#'
+#'mu1 <- 2
+#'mu2 <- 4
+#'muY <- 9
+#'mus <- c(muY,mu1,mu2)
+#'
+#'sigma1 <- 2
+#'sigma2 <- 2
+#'sigmaY <- 3
+#'sigmas <- c(sigmaY,sigma1,sigma2)
+#'
+#'base_forecasts = list()
+#'for (i in 1:nrow(S)) {
+#' base_forecasts[[i]] = c(mus[[i]], sigmas[[i]])
+#'}
+#'
+#'
+#'#Sample from the reconciled forecast distribution using the BUIS algorithm
+#'buis <- reconc_BUIS(S, base_forecasts, in_type="params",
+#'                  distr="gaussian", num_samples=100000, seed=42)
+#'
+#'samples_buis <- buis$reconciled_samples
+#'
+#'#In the Gaussian case, the reconciled distribution is still Gaussian and can be
+#'#computed in closed form
+#'Sigma <- diag(sigmas^2)  #transform into covariance matrix
+#'analytic_rec <- reconc_gaussian(S, base_forecasts.mu = mus,
+#'                                 base_forecasts.Sigma = Sigma)
+#'
+#'#Compare the reconciled means obtained analytically and via BUIS
+#'print(c(analytic_rec$upper_reconciled_mean, analytic_rec$bottom_reconciled_mean))
+#'print(rowMeans(samples_buis))
+#'
+#'
+#'#2) Poisson base forecasts
+#'
+#'#Set the parameters of the Poisson base forecast distributions
+#'lambda1 <- 2
+#'lambda2 <- 4
+#'lambdaY <- 9
+#'lambdas <- c(lambdaY,lambda1,lambda2)
+#'
+#'base_forecasts <- list()
+#'for (i in 1:nrow(S)) {
+#'  base_forecasts[[i]] = lambdas[i]
+#'}
+#'
+#'#Sample from the reconciled forecast distribution using the BUIS algorithm
+#'buis <- reconc_BUIS(S, base_forecasts, in_type="params",
+#'                           distr="poisson", num_samples=100000, seed=42)
+#'samples_buis <- buis$reconciled_samples
+#'
+#'#Print the reconciled means
+#'print(rowMeans(samples_buis$reconciled_samples))
 #'
 #' @references BUIS paper
 #'
-#' @seealso [reconc_gaussian()]
+#' @seealso
+#' [reconc_gaussian()]
+#' [reconc_mcmc()]
+#'
 #' @export
 reconc_BUIS <- function(S,
                    base_forecasts,
@@ -202,7 +269,7 @@ reconc_BUIS <- function(S,
 #' @title Reconciliation in closed form for Gaussian base forecasts
 #'
 #' @description
-#' Computation of the reconciled forecasts for a hierarchy of time series with Gaussian base forecasts. This function exploits analytical formulae.
+#' Analytical computation of the reconciled forecasts in case of Gaussian base forecasts.
 #'
 #' @param S Summing matrix (n x n_bottom)
 #' @param base_forecasts.mu A vector containing the base forecasts means
@@ -218,6 +285,36 @@ reconc_BUIS <- function(S,
 #' * `bottom_reconciled_covariance`: reconciled covariance for the bottom forecasts
 #' * `upper_reconciled_mean`: reconciled mean for the upper forecasts
 #' * `upper_reconciled_covariance`: reconciled covariance for the upper forecasts
+#'
+#' @examples
+#'
+#'library(bayesReco)
+#'
+#'# Create a minimal hierarchy with 2 bottom and 1 upper variable
+#'rec_mat <- get_reconc_matrices(aggf=c(1,2), h=2)
+#'S <- rec_mat$S
+#'
+#'#Set the parameters of the Gaussian base forecast distributions
+#'
+#'mu1 <- 2
+#'mu2 <- 4
+#'muY <- 9
+#'mus <- c(muY,mu1,mu2)
+#'
+#'sigma1 <- 2
+#'sigma2 <- 2
+#'sigmaY <- 3
+#'sigmas <- c(sigmaY,sigma1,sigma2)
+#'
+#'Sigma <- diag(sigmas^2)  #need to transform into covariance matrix
+#'analytic_rec <- reconc_gaussian(S, base_forecasts.mu = mus,
+#'                                base_forecasts.Sigma = Sigma)
+#'
+#'bottom_means <- analytic_rec$bottom_reconciled_mean
+#'upper_means  <- analytic_rec$upper_reconciled_mean
+#'bottom_cov   <- analytic_rec$bottom_reconciled_covariance
+#'upper_cov    <- analytic_rec$upper_reconciled_covariance
+#'
 #'
 #' @seealso [reconc_BUIS()]
 #'
@@ -243,7 +340,8 @@ reconc_gaussian <- function(S, base_forecasts.mu,
 
   Sigma_u = base_forecasts.Sigma[hier$upper_idxs, hier$upper_idxs]
   Sigma_b = base_forecasts.Sigma[hier$bottom_idxs, hier$bottom_idxs]
-  Sigma_ub = base_forecasts.Sigma[hier$upper_idxs, hier$bottom_idxs]
+  Sigma_ub = matrix(base_forecasts.Sigma[hier$upper_idxs, hier$bottom_idxs],
+                    nrow = length(hier$upper_idxs))
   mu_u = base_forecasts.mu[hier$upper_idxs]
   mu_b = base_forecasts.mu[hier$bottom_idxs]
 

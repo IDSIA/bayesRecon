@@ -28,8 +28,16 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Long term to do
 
+* Change documentation of reconc_buis and reconc_mcmc: distr can be a list of strings (also in_type?)
+
+* Check on list of distributions (if a bottom is continuous, then all the upper must be continuous)
+
 * Control on effective sample size to check for weights collapse
 
 * Extension to batch-BUIS?
 
 * check use of parallel computation on local cores for batch BUIS.
+
+* Add zero-inflation
+
+* Add "fixed forecast" (i.e. Dirac delta)

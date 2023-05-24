@@ -23,10 +23,41 @@ A list containing the reconciled forecasts. The list has the following named ele
 }
 }
 \description{
-Computation of the reconciled forecasts for a hierarchy of time series with Gaussian base forecasts. This function exploits analytical formulae.
+Analytical computation of the reconciled forecasts in case of Gaussian base forecasts.
 }
 \details{
 The order of the base forecast means and covariance is given by the order of the time series in the summing matrix.
+}
+\examples{
+
+library(bayesReco)
+
+# Create a minimal hierarchy with 2 bottom and 1 upper variable
+rec_mat <- get_reconc_matrices(aggf=c(1,2), h=2)
+S <- rec_mat$S
+
+#Set the parameters of the Gaussian base forecast distributions
+
+mu1 <- 2
+mu2 <- 4
+muY <- 9
+mus <- c(muY,mu1,mu2)
+
+sigma1 <- 2
+sigma2 <- 2
+sigmaY <- 3
+sigmas <- c(sigmaY,sigma1,sigma2)
+
+Sigma <- diag(sigmas^2)  #need to transform into covariance matrix
+analytic_rec <- reconc_gaussian(S, base_forecasts.mu = mus,
+                               base_forecasts.Sigma = Sigma)
+
+bottom_means <- analytic_rec$bottom_reconciled_mean
+upper_means  <- analytic_rec$upper_reconciled_mean
+bottom_cov   <- analytic_rec$bottom_reconciled_covariance
+upper_cov    <- analytic_rec$upper_reconciled_covariance
+
+
 }
 \seealso{
 \code{\link[=reconc_BUIS]{reconc_BUIS()}}

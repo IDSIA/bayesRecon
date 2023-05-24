@@ -2,7 +2,7 @@
 % Please edit documentation in R/reconc_MH.R
 \name{reconc_MCMC}
 \alias{reconc_MCMC}
-\title{Probabilistic reconciliation with MCMC}
+\title{MCMC for Probabilistic Reconciliation of forecasts via conditioning}
 \usage{
 reconc_MCMC(
   S,
@@ -16,11 +16,11 @@ reconc_MCMC(
 )
 }
 \arguments{
-\item{S}{aggregating matrix}
+\item{S}{Summing matrix (n x n_bottom)}
 
-\item{base_forecasts}{list of the parameters of the base forecast distributions}
+\item{base_forecasts}{list of the parameters of the base forecast distributions, see details}
 
-\item{distr}{string or list of strings specifying the distribution of each variable}
+\item{distr}{A string describing the type of predictive distribution}
 
 \item{num_samples}{number of samples to draw using MCMC}
 
@@ -41,5 +41,63 @@ A list containing the reconciled forecasts. The list has the following named ele
 }
 }
 \description{
-Probabilistic reconciliation with MCMC
+Uses Markov Chain Monte Carlo algorithm to draw samples from the reconciled
+forecast distribution, which is obtained via conditioning.
+It only works with Poisson or Negative Binomial base forecasts.
+
+We strongly recommend to use the function 'reconc_buis', which implements
+the Bottom-Up Importance Sampling algorithm instead of MCMC.
+If you use this function, we suggest the usage of tools to check the convergence...
+#TODO: quali?
+}
+\details{
+The parameter \code{base_forecast} is a list containing n elements.
+Each element is a vector containing the estimated
+\itemize{
+\item mean and sd for the Gaussian base forecast, see \link[stats]{Normal}, if \code{distr}='gaussian';
+\item lambda for the Poisson base forecast, see \link[stats]{Poisson}, if \code{distr}='poisson';
+\item size and probability of success for the negative binomial base forecast, see \link[stats]{NegBinomial}, if \code{distr}='nbinom'.
+}
+
+The order of the \code{base_forecast} list is given by the order of the time series in the summing matrix.
+}
+\examples{
+
+library(bayesReco)
+
+# Create a minimal hierarchy with 2 bottom and 1 upper variable
+rec_mat <- get_reconc_matrices(aggf=c(1,2), h=2)
+S <- rec_mat$S
+
+#Set the parameters of the Poisson base forecast distributions
+lambda1 <- 2
+lambda2 <- 4
+lambdaY <- 9
+lambdas <- c(lambdaY,lambda1,lambda2)
+
+base_forecasts = list()
+for (i in 1:nrow(S)) {
+ base_forecasts[[i]] = lambdas[i]
+}
+
+#Sample from the reconciled forecast distribution using MCMC
+mcmc = reconc_MCMC(S,base_forecasts=lambdas,distr="poisson",
+                  num_samples=30000, seed=42)
+samples_mcmc <- mcmc$reconciled_samples#'
+
+#Compare the reconciled means with those obtained via BUIS
+buis = reconc_BUIS(S, base_forecasts, in_type="params",
+                   distr="poisson", num_samples=100000, seed=42)
+samples_buis <- buis$reconciled_samples
+
+print(rowMeans(samples_mcmc))
+print(rowMeans(samples_buis))
+
+}
+\references{
+BUIS paper
+}
+\seealso{
+\code{\link[=reconc_gaussian]{reconc_gaussian()}}
+\code{\link[=reconc_mcmc]{reconc_mcmc()}}
 }

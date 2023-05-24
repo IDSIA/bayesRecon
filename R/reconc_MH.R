@@ -1,20 +1,80 @@
 #-------------------------------------------------------------------------------
-#' @title Probabilistic reconciliation with MCMC
+#' @title MCMC for Probabilistic Reconciliation of forecasts via conditioning
 #'
-#' @param S aggregating matrix
-#' @param base_forecasts list of the parameters of the base forecast distributions
-#' @param distr string or list of strings specifying the distribution of each variable
+#' @description
+#'
+#' Uses Markov Chain Monte Carlo algorithm to draw samples from the reconciled
+#' forecast distribution, which is obtained via conditioning.
+#' It only works with Poisson or Negative Binomial base forecasts.
+#'
+#' We strongly recommend to use the function 'reconc_buis', which implements
+#' the Bottom-Up Importance Sampling algorithm instead of MCMC.
+#' If you use this function, we suggest the usage of tools to check the convergence...
+#' #TODO: quali?
+#'
+#' @param S Summing matrix (n x n_bottom)
+#' @param base_forecasts list of the parameters of the base forecast distributions, see details
+#' @param distr A string describing the type of predictive distribution
 #' @param num_samples number of samples to draw using MCMC
 #' @param tuning_int number of iterations between scale updates of the proposal
 #' @param init_scale initial scale of the proposal
 #' @param burn_in number of initial samples to be discarded
 #' @param seed Seed for randomness reproducibility
 #'
+#' @details
+#'
+#' The parameter `base_forecast` is a list containing n elements.
+#' Each element is a vector containing the estimated
+#'
+#' * mean and sd for the Gaussian base forecast, see \link[stats]{Normal}, if `distr`='gaussian';
+#' * lambda for the Poisson base forecast, see \link[stats]{Poisson}, if `distr`='poisson';
+#' * size and probability of success for the negative binomial base forecast, see \link[stats]{NegBinomial}, if `distr`='nbinom'.
+#'
+#' The order of the `base_forecast` list is given by the order of the time series in the summing matrix.
+#'
 #' @return A list containing the reconciled forecasts. The list has the following named elements:
 #'
 #' * `bottom_reconciled_samples`: a matrix (n_bottom x `num_samples`) containing reconciled samples for the bottom time series
 #' * `upper_reconciled_samples`: a matrix (n_upper x `num_samples`) containing reconciled samples for the upper time series
 #' * `reconciled_samples`: a matrix (n x `num_samples`) containing the reconciled samples for all time series
+#'
+#' @examples
+#'
+#'library(bayesReco)
+#'
+#'# Create a minimal hierarchy with 2 bottom and 1 upper variable
+#'rec_mat <- get_reconc_matrices(aggf=c(1,2), h=2)
+#'S <- rec_mat$S
+#'
+#'#Set the parameters of the Poisson base forecast distributions
+#'lambda1 <- 2
+#'lambda2 <- 4
+#'lambdaY <- 9
+#'lambdas <- c(lambdaY,lambda1,lambda2)
+#'
+#'base_forecasts = list()
+#'for (i in 1:nrow(S)) {
+#'  base_forecasts[[i]] = lambdas[i]
+#'}
+#'
+#'#Sample from the reconciled forecast distribution using MCMC
+#'mcmc = reconc_MCMC(S,base_forecasts=lambdas,distr="poisson",
+#'                   num_samples=30000, seed=42)
+#'samples_mcmc <- mcmc$reconciled_samples#'
+#'
+#'#Compare the reconciled means with those obtained via BUIS
+#'buis = reconc_BUIS(S, base_forecasts, in_type="params",
+#'                    distr="poisson", num_samples=100000, seed=42)
+#'samples_buis <- buis$reconciled_samples
+#'
+#'print(rowMeans(samples_mcmc))
+#'print(rowMeans(samples_buis))
+#'
+#' @references BUIS paper
+#'
+#' @seealso
+#' [reconc_gaussian()]
+#' [reconc_mcmc()]
 #'
 #' @export
 reconc_MCMC <- function(S,
