@@ -7,8 +7,9 @@
 #'    this is the recommended option for non-Gaussian base forecasts.
 #' * [reconc_MCMC]: a generic tool for the reconciliation of probabilistic count time series forecasts via Markov Chain Monte Carlo.
 
-#'
 #' @keywords internal
 "_PACKAGE"
 
+## usethis namespace: start
+## usethis namespace: end
 NULL

@@ -1,4 +1,4 @@
-# This script runs an example for the 'bayesReco' package.
+# This script runs an example for the 'bayesRecon' package.
 # A monthly count time series is aggregated and forecasted at different time
 # scales. Reconciliation is performed given discrete samples.
 # The script uses the following external packages:
@@ -10,7 +10,7 @@
 library(ggplot2)
 library(ggfortify)
 library(tscount)
-library(bayesReco)
+library(bayesRecon)
 library(scoringRules)
 
 set.seed(42)
@@ -32,7 +32,7 @@ test = window(HydePark.ts, start = c(1974))
 
 ### Build hierarchy
 aggf = c(1,2,3,4,6,12)
-train.aggregate = bayesReco::temporal_aggregation(train, aggf)
+train.aggregate = bayesRecon::temporal_aggregation(train, aggf)
 levels <- attributes(train.aggregate)$names
 
 ### Hierarchical forecasting
@@ -58,10 +58,10 @@ for (l in seq_along(train.aggregate)) {
 }
 
 ### Reconciliation
-tmp = bayesReco::get_reconc_matrices(aggf, bottom.f = frequency(train), bottom.H = 12)
+tmp = bayesRecon::get_reconc_matrices(aggf, bottom.f = frequency(train), bottom.H = 12)
 S = tmp$S
 A = tmp$A
-reconc.res = bayesReco::reconc_IS(S, base_forecasts = fc.samples, in_type = "samples", distr = "discrete")
+reconc.res = bayesRecon::reconc_IS(S, base_forecasts = fc.samples, in_type = "samples", distr = "discrete")
 
 ### Evaluate bottom time series
 # - MAPE for point forecasts

@@ -24,7 +24,7 @@ from user-selected list of aggregation levels.
 }
 \examples{
 
-library(bayesReco)
+library(bayesRecon)
 
 #Create monthly hierarchy
 aggf <- c(1,2,3,4,6,12)

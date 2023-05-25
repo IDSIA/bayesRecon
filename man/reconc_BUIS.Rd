@@ -63,7 +63,7 @@ The order of the \code{base_forecast} list is given by the order of the time ser
 }
 \examples{
 
-library(bayesReco)
+library(bayesRecon)
 
 # Create a minimal hierarchy with 2 bottom and 1 upper variable
 rec_mat <- get_reconc_matrices(aggf=c(1,2), h=2)

@@ -238,7 +238,7 @@ temporal_aggregation <- function(y, aggf=NULL) {
 #'
 #'@examples
 #'
-#'library(bayesReco)
+#'library(bayesRecon)
 #'
 #'#Create monthly hierarchy
 #'aggf <- c(1,2,3,4,6,12)

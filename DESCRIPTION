@@ -1,4 +1,4 @@
-Package: bayesReco
+Package: bayesRecon
 Type: Package
 Title: Probabilistic Reconciliation Via Conditioning
 Version: 0.1.0

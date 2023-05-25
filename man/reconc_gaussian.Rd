@@ -30,7 +30,7 @@ The order of the base forecast means and covariance is given by the order of the
 }
 \examples{
 
-library(bayesReco)
+library(bayesRecon)
 
 # Create a minimal hierarchy with 2 bottom and 1 upper variable
 rec_mat <- get_reconc_matrices(aggf=c(1,2), h=2)
