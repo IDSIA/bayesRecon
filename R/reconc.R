@@ -112,7 +112,7 @@
 #'library(bayesRecon)
 #'
 #'# Create a minimal hierarchy with 2 bottom and 1 upper variable
-#'rec_mat <- get_reconc_matrices(aggf=c(1,2), h=2)
+#'rec_mat <- get_reconc_matrices(agg_levels=c(1,2), h=2)
 #'S <- rec_mat$S
 #'
 #'
@@ -178,7 +178,7 @@
 #'
 #'
 #' @seealso
-#' [reconc_gaussian()]
+#' [reconc_gaussian]
 #'
 #' @export
 reconc_BUIS <- function(S,
@@ -313,7 +313,7 @@ reconc_BUIS <- function(S,
 #'library(bayesRecon)
 #'
 #'# Create a minimal hierarchy with 2 bottom and 1 upper variable
-#'rec_mat <- get_reconc_matrices(aggf=c(1,2), h=2)
+#'rec_mat <- get_reconc_matrices(agg_levels=c(1,2), h=2)
 #'S <- rec_mat$S
 #'
 #'#Set the parameters of the Gaussian base forecast distributions
@@ -342,7 +342,7 @@ reconc_BUIS <- function(S,
 #' Zambon, L., Agosto, A., Giudici, P., Corani, G. (2023). *Properties of the reconciled distributions for Gaussian and count forecasts*. \doi{10.48550/arXiv.2303.15135}.
 #'
 #'
-#' @seealso [reconc_BUIS()]
+#' @seealso [reconc_BUIS]
 #'
 #' @export
 reconc_gaussian <- function(S, base_forecasts.mu,

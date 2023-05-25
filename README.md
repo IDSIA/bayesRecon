@@ -34,7 +34,7 @@ obtained using the function `get_reconc_matrices`.
 ``` r
 library(bayesRecon)
 
-rec_mat <- get_reconc_matrices(aggf=c(1,2), h=2)
+rec_mat <- get_reconc_matrices(agg_levels=c(1,2), h=2)
 S <- rec_mat$S
 print(S)
 #>      [,1] [,2]

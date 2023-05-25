@@ -4,15 +4,15 @@
 \alias{get_reconc_matrices}
 \title{Build hierarchy matrices}
 \usage{
-get_reconc_matrices(aggf, h)
+get_reconc_matrices(agg_levels, h)
 }
 \arguments{
-\item{aggf}{User-selected list of aggregation levels.}
+\item{agg_levels}{user-selected list of aggregation levels.}
 
-\item{h}{Number of steps ahead for the bottom level forecasts.}
+\item{h}{number of steps ahead for the bottom level forecasts.}
 }
 \value{
-A list containing the named elements
+A list containing the named elements:
 \itemize{
 \item \code{A} the aggregation matrix;
 \item \code{S} the summing matrix.
@@ -27,13 +27,13 @@ from user-selected list of aggregation levels.
 library(bayesRecon)
 
 #Create monthly hierarchy
-aggf <- c(1,2,3,4,6,12)
+agg_levels <- c(1,2,3,4,6,12)
 h <- 12
-rec_mat <- get_reconc_matrices(aggf, h)
+rec_mat <- get_reconc_matrices(agg_levels, h)
 S <- rec_mat$S
 A <- rec_mat$A
 
 }
 \seealso{
-\code{\link[=temporal_aggregation]{temporal_aggregation()}}
+\link{temporal_aggregation}
 }

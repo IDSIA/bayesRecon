@@ -33,7 +33,7 @@ The order of the base forecast means and covariance is given by the order of the
 library(bayesRecon)
 
 # Create a minimal hierarchy with 2 bottom and 1 upper variable
-rec_mat <- get_reconc_matrices(aggf=c(1,2), h=2)
+rec_mat <- get_reconc_matrices(agg_levels=c(1,2), h=2)
 S <- rec_mat$S
 
 #Set the parameters of the Gaussian base forecast distributions
@@ -63,5 +63,5 @@ Corani, G., Azzimonti, D., Augusto, J.P.S.C., Zaffalon, M. (2021). \emph{Probabi
 Zambon, L., Agosto, A., Giudici, P., Corani, G. (2023). \emph{Properties of the reconciled distributions for Gaussian and count forecasts}. \doi{10.48550/arXiv.2303.15135}.
 }
 \seealso{
-\code{\link[=reconc_BUIS]{reconc_BUIS()}}
+\link{reconc_BUIS}
 }

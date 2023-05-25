@@ -31,8 +31,8 @@ train = window(HydePark.ts, end = c(1973, 12))
 test = window(HydePark.ts, start = c(1974))
 
 ### Build hierarchy
-aggf = c(1,2,3,4,6,12)
-train.aggregate = bayesRecon::temporal_aggregation(train, aggf)
+agg_levels = c(1,2,3,4,6,12)
+train.aggregate = bayesRecon::temporal_aggregation(train, agg_levels)
 levels <- attributes(train.aggregate)$names
 
 ### Hierarchical forecasting
@@ -58,7 +58,7 @@ for (l in seq_along(train.aggregate)) {
 }
 
 ### Reconciliation
-tmp = bayesRecon::get_reconc_matrices(aggf, bottom.f = frequency(train), bottom.H = 12)
+tmp = bayesRecon::get_reconc_matrices(agg_levels, bottom.f = frequency(train), bottom.H = 12)
 S = tmp$S
 A = tmp$A
 reconc.res = bayesRecon::reconc_IS(S, base_forecasts = fc.samples, in_type = "samples", distr = "discrete")

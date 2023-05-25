@@ -7,7 +7,7 @@
 #' forecast distribution, which is obtained via conditioning.
 #' It only works with Poisson or Negative Binomial base forecasts.
 #'
-#' We strongly recommend to use the function [reconc_BUIS()], which implements
+#' We strongly recommend to use the function [reconc_BUIS], which implements
 #' the Bottom-Up Importance Sampling algorithm instead of MCMC.
 #' If you use this function, we suggest the usage of tools to check the convergence.
 #'
@@ -43,7 +43,7 @@
 #'library(bayesRecon)
 #'
 #'# Create a minimal hierarchy with 2 bottom and 1 upper variable
-#'rec_mat <- get_reconc_matrices(aggf=c(1,2), h=2)
+#'rec_mat <- get_reconc_matrices(agg_levels=c(1,2), h=2)
 #'S <- rec_mat$S
 #'
 #'#Set the parameters of the Poisson base forecast distributions
@@ -75,7 +75,7 @@
 #'
 #'
 #' @seealso
-#' [reconc_BUIS()]
+#' [reconc_BUIS]
 #'
 #' @export
 reconc_MCMC <- function(S,

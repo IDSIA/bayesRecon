@@ -66,7 +66,7 @@ The order of the \code{base_forecast} list is given by the order of the time ser
 library(bayesRecon)
 
 # Create a minimal hierarchy with 2 bottom and 1 upper variable
-rec_mat <- get_reconc_matrices(aggf=c(1,2), h=2)
+rec_mat <- get_reconc_matrices(agg_levels=c(1,2), h=2)
 S <- rec_mat$S
 
 
@@ -132,5 +132,5 @@ print(rowMeans(samples_buis))
 Zambon, L., Azzimonti, D. & Corani, G. (2022). \emph{Efficient probabilistic reconciliation of forecasts for real-valued and count time series}. \doi{10.48550/arXiv.2210.02286}.
 }
 \seealso{
-\code{\link[=reconc_gaussian]{reconc_gaussian()}}
+\link{reconc_gaussian}
 }
