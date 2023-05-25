@@ -136,5 +136,4 @@ cla \href{https://cran.r-project.org/doc/manuals/R-exts.html#Cross_002dreference
 }
 \seealso{
 \code{\link[=reconc_gaussian]{reconc_gaussian()}}
-\code{\link[=reconc_MCMC]{reconc_MCMC()}}
 }

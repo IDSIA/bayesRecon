@@ -180,7 +180,6 @@
 #'
 #' @seealso
 #' [reconc_gaussian()]
-#' [reconc_MCMC()]
 #'
 #' @export
 reconc_BUIS <- function(S,
