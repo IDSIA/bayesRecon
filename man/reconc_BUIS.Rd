@@ -14,32 +14,32 @@ reconc_BUIS(
 )
 }
 \arguments{
-\item{S}{Summing matrix (n x n_bottom)}
+\item{S}{summing matrix (n x n_bottom).}
 
 \item{base_forecasts}{a list containing the base_forecasts, see details.}
 
-\item{in_type}{A string with two possible values:
+\item{in_type}{a string with two possible values:
 \itemize{
 \item 'samples': base forecasts in the form of samples from the predictive distribution;
 \item 'params' : base forecasts in the form of estimated parameters of a parametric predictive distribution.
 }}
 
-\item{distr}{A string describing the type of predictive distribution
+\item{distr}{a string describing the type of predictive distribution:
 \itemize{
-\item 'continuous' or 'discrete' if \code{in_type}='samples'
-\item 'gaussian', 'poisson' or 'nbinom' if \code{in_type}='params'
+\item 'continuous' or 'discrete' if \code{in_type}='samples';
+\item 'gaussian', 'poisson' or 'nbinom' if \code{in_type}='params'.
 }}
 
-\item{num_samples}{Number of samples drawn from the reconciled distribution}
+\item{num_samples}{number of samples drawn from the reconciled distribution.}
 
-\item{seed}{Seed for randomness reproducibility}
+\item{seed}{seed for reproducibility.}
 }
 \value{
 A list containing the reconciled forecasts. The list has the following named elements:
 \itemize{
-\item \code{bottom_reconciled_samples}: a matrix (n_bottom x \code{num_samples}) containing the reconciled samples for the bottom time series
-\item \code{upper_reconciled_samples}: a matrix (n_upper x \code{num_samples}) containing the reconciled samples for the upper time series
-\item \code{reconciled_samples}: a matrix (n x \code{num_samples}) containing the reconciled samples for all time series
+\item \code{bottom_reconciled_samples}: a matrix (n_bottom x \code{num_samples}) containing the reconciled samples for the bottom time series;
+\item \code{upper_reconciled_samples}: a matrix (n_upper x \code{num_samples}) containing the reconciled samples for the upper time series;
+\item \code{reconciled_samples}: a matrix (n x \code{num_samples}) containing the reconciled samples for all time series.
 }
 }
 \description{
@@ -73,7 +73,6 @@ S <- rec_mat$S
 #1) Gaussian base forecasts
 
 #Set the parameters of the Gaussian base forecast distributions
-
 mu1 <- 2
 mu2 <- 4
 muY <- 9
@@ -130,9 +129,7 @@ print(rowMeans(samples_buis))
 
 }
 \references{
-Zambon, L., Azzimonti, D. & Corani, G. (2022). \emph{Efficient probabilistic reconciliation of forecasts for real-valued and count time series}. \href{https://doi.org/10.48550/arXiv.2210.02286}{arXiv.2210.02286}.
-
-cla \href{https://cran.r-project.org/doc/manuals/R-exts.html#Cross_002dreferences}{ciao}
+Zambon, L., Azzimonti, D. & Corani, G. (2022). \emph{Efficient probabilistic reconciliation of forecasts for real-valued and count time series}. \doi{10.48550/arXiv.2210.02286}.
 }
 \seealso{
 \code{\link[=reconc_gaussian]{reconc_gaussian()}}

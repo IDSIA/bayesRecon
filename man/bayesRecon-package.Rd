@@ -4,7 +4,7 @@
 \name{bayesRecon-package}
 \alias{bayesRecon}
 \alias{bayesRecon-package}
-\title{bayesRecon: Probabilistic Reconciliation Via Conditioning}
+\title{bayesRecon: Probabilistic Reconciliation via Conditioning}
 \description{
 Implementation of reconciliation methods for probabilistic hierarchical forecasts of time series.
 }
@@ -21,13 +21,13 @@ this is the recommended option for non-Gaussian base forecasts.
 }
 
 \references{
-Corani, G., Azzimonti, D., Augusto, J.P.S.C., Zaffalon, M. (2021). \emph{Probabilistic Reconciliation of Hierarchical Forecast via Bayes’ Rule}. In: Hutter, F., Kersting, K., Lijffijt, J., Valera, I. (eds) Machine Learning and Knowledge Discovery in Databases. ECML PKDD 2020. Lecture Notes in Computer Science(), vol 12459. Springer, Cham. \href{https://doi.org/10.1007/978-3-030-67664-3_13}{DOI:10.1007/978-3-030-67664-3_13}.
+Corani, G., Azzimonti, D., Augusto, J.P.S.C., Zaffalon, M. (2021). \emph{Probabilistic Reconciliation of Hierarchical Forecast via Bayes’ Rule}. In: Hutter, F., Kersting, K., Lijffijt, J., Valera, I. (eds) Machine Learning and Knowledge Discovery in Databases. ECML PKDD 2020. Lecture Notes in Computer Science(), vol 12459. Springer, Cham. \doi{10.1007/978-3-030-67664-3_13}.
 
-Corani, G., Rubattu, N., Azzimonti, D., Antonucci, A. (2022). \emph{Probabilistic reconciliation of count time series}. \href{https://doi.org/10.48550/arXiv.2207.09322}{arXiv.2207.09322}.
+Corani, G., Rubattu, N., Azzimonti, D., Antonucci, A. (2022). \emph{Probabilistic reconciliation of count time series}. \doi{10.48550/arXiv.2207.09322}.
 
-Zambon, L., Azzimonti, D. & Corani, G. (2022). \emph{Efficient probabilistic reconciliation of forecasts for real-valued and count time series}. \href{https://doi.org/10.48550/arXiv.2210.02286}{arXiv.2210.02286}.
+Zambon, L., Azzimonti, D. & Corani, G. (2022). \emph{Efficient probabilistic reconciliation of forecasts for real-valued and count time series}. \doi{10.48550/arXiv.2210.02286}.
 
-Zambon, L., Agosto, A., Giudici, P., Corani, G. (2023). \emph{Properties of the reconciled distributions for Gaussian and count forecasts}. \href{https://doi.org/10.48550/arXiv.2303.15135}{arXiv.2303.15135}.
+Zambon, L., Agosto, A., Giudici, P., Corani, G. (2023). \emph{Properties of the reconciled distributions for Gaussian and count forecasts}. \doi{10.48550/arXiv.2303.15135}.
 }
 \author{
 \strong{Maintainer}: Dario Azzimonti \email{dario.azzimonti@gmail.com} (\href{https://orcid.org/0000-0001-5080-3061}{ORCID})

@@ -15,15 +15,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Docs
 
-* Finish docs MCMC
+* Docs MCMC: add link/reference for MCMC convergence checks
 
-* update main package docs to link to MCMC function
 
-* Add basic examples for all main functions
-
-## Pre-CRAN submission
-
-* Add references to all papers in documentation
 
 
 ## Long term to do

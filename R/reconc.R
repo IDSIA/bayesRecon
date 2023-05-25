@@ -86,26 +86,26 @@
 #'
 #' The order of the `base_forecast` list is given by the order of the time series in the summing matrix.
 #'
-#' @param S Summing matrix (n x n_bottom)
+#' @param S summing matrix (n x n_bottom).
 #' @param base_forecasts a list containing the base_forecasts, see details.
-#' @param in_type A string with two possible values:
+#' @param in_type a string with two possible values:
 #'
 #' * 'samples': base forecasts in the form of samples from the predictive distribution;
 #' * 'params' : base forecasts in the form of estimated parameters of a parametric predictive distribution.
 #'
-#' @param distr A string describing the type of predictive distribution
+#' @param distr a string describing the type of predictive distribution:
 #'
-#' * 'continuous' or 'discrete' if `in_type`='samples'
-#' * 'gaussian', 'poisson' or 'nbinom' if `in_type`='params'
+#' * 'continuous' or 'discrete' if `in_type`='samples';
+#' * 'gaussian', 'poisson' or 'nbinom' if `in_type`='params'.
 #'
-#' @param num_samples Number of samples drawn from the reconciled distribution
-#' @param seed Seed for randomness reproducibility
+#' @param num_samples number of samples drawn from the reconciled distribution.
+#' @param seed seed for reproducibility.
 #'
 #' @return A list containing the reconciled forecasts. The list has the following named elements:
 #'
-#' * `bottom_reconciled_samples`: a matrix (n_bottom x `num_samples`) containing the reconciled samples for the bottom time series
-#' * `upper_reconciled_samples`: a matrix (n_upper x `num_samples`) containing the reconciled samples for the upper time series
-#' * `reconciled_samples`: a matrix (n x `num_samples`) containing the reconciled samples for all time series
+#' * `bottom_reconciled_samples`: a matrix (n_bottom x `num_samples`) containing the reconciled samples for the bottom time series;
+#' * `upper_reconciled_samples`: a matrix (n_upper x `num_samples`) containing the reconciled samples for the upper time series;
+#' * `reconciled_samples`: a matrix (n x `num_samples`) containing the reconciled samples for all time series.
 #'
 #' @examples
 #'
@@ -119,7 +119,6 @@
 #'#1) Gaussian base forecasts
 #'
 #'#Set the parameters of the Gaussian base forecast distributions
-#'
 #'mu1 <- 2
 #'mu2 <- 4
 #'muY <- 9
@@ -175,11 +174,8 @@
 #'print(rowMeans(samples_buis))
 #'
 #' @references
-#' Zambon, L., Azzimonti, D. & Corani, G. (2022). *Efficient probabilistic reconciliation of forecasts for real-valued and count time series*. [arXiv.2210.02286](https://doi.org/10.48550/arXiv.2210.02286).
+#' Zambon, L., Azzimonti, D. & Corani, G. (2022). *Efficient probabilistic reconciliation of forecasts for real-valued and count time series*. \doi{10.48550/arXiv.2210.02286}.
 #'
-#'
-#'
-#' cla [ciao](https://cran.r-project.org/doc/manuals/R-exts.html#Cross_002dreferences)
 #'
 #' @seealso
 #' [reconc_gaussian()]
@@ -297,9 +293,9 @@ reconc_BUIS <- function(S,
 #' @description
 #' Analytical computation of the reconciled forecasts in case of Gaussian base forecasts.
 #'
-#' @param S Summing matrix (n x n_bottom)
-#' @param base_forecasts.mu A vector containing the base forecasts means
-#' @param base_forecasts.Sigma A matrix containing the base forecasts covariance matrix
+#' @param S summing matrix (n x n_bottom).
+#' @param base_forecasts.mu a vector containing the base forecasts means.
+#' @param base_forecasts.Sigma a matrix containing the base forecasts covariance matrix.
 #'
 #' @details
 #' The order of the base forecast means and covariance is given by the order of the time series in the summing matrix.
@@ -307,10 +303,10 @@ reconc_BUIS <- function(S,
 #'
 #' @return A list containing the reconciled forecasts. The list has the following named elements:
 #'
-#' * `bottom_reconciled_mean`: reconciled mean for the bottom forecasts
-#' * `bottom_reconciled_covariance`: reconciled covariance for the bottom forecasts
-#' * `upper_reconciled_mean`: reconciled mean for the upper forecasts
-#' * `upper_reconciled_covariance`: reconciled covariance for the upper forecasts
+#' * `bottom_reconciled_mean`: reconciled mean for the bottom forecasts;
+#' * `bottom_reconciled_covariance`: reconciled covariance for the bottom forecasts;
+#' * `upper_reconciled_mean`: reconciled mean for the upper forecasts;
+#' * `upper_reconciled_covariance`: reconciled covariance for the upper forecasts.
 #'
 #' @examples
 #'
@@ -321,7 +317,6 @@ reconc_BUIS <- function(S,
 #'S <- rec_mat$S
 #'
 #'#Set the parameters of the Gaussian base forecast distributions
-#'
 #'mu1 <- 2
 #'mu2 <- 4
 #'muY <- 9
@@ -342,9 +337,9 @@ reconc_BUIS <- function(S,
 #'upper_cov    <- analytic_rec$upper_reconciled_covariance
 #'
 #' @references
-#' Corani, G., Azzimonti, D., Augusto, J.P.S.C., Zaffalon, M. (2021). *Probabilistic Reconciliation of Hierarchical Forecast via Bayes’ Rule*. In: Hutter, F., Kersting, K., Lijffijt, J., Valera, I. (eds) Machine Learning and Knowledge Discovery in Databases. ECML PKDD 2020. Lecture Notes in Computer Science(), vol 12459. Springer, Cham. [DOI:10.1007/978-3-030-67664-3_13](https://doi.org/10.1007/978-3-030-67664-3_13).
+#' Corani, G., Azzimonti, D., Augusto, J.P.S.C., Zaffalon, M. (2021). *Probabilistic Reconciliation of Hierarchical Forecast via Bayes’ Rule*. In: Hutter, F., Kersting, K., Lijffijt, J., Valera, I. (eds) Machine Learning and Knowledge Discovery in Databases. ECML PKDD 2020. Lecture Notes in Computer Science(), vol 12459. Springer, Cham. \doi{10.1007/978-3-030-67664-3_13}.
 #'
-#' Zambon, L., Agosto, A., Giudici, P., Corani, G. (2023). *Properties of the reconciled distributions for Gaussian and count forecasts*. [arXiv.2303.15135](https://doi.org/10.48550/arXiv.2303.15135).
+#' Zambon, L., Agosto, A., Giudici, P., Corani, G. (2023). *Properties of the reconciled distributions for Gaussian and count forecasts*. \doi{10.48550/arXiv.2303.15135}.
 #'
 #'
 #' @seealso [reconc_BUIS()]

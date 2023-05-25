@@ -7,19 +7,19 @@
 reconc_gaussian(S, base_forecasts.mu, base_forecasts.Sigma)
 }
 \arguments{
-\item{S}{Summing matrix (n x n_bottom)}
+\item{S}{summing matrix (n x n_bottom).}
 
-\item{base_forecasts.mu}{A vector containing the base forecasts means}
+\item{base_forecasts.mu}{a vector containing the base forecasts means.}
 
-\item{base_forecasts.Sigma}{A matrix containing the base forecasts covariance matrix}
+\item{base_forecasts.Sigma}{a matrix containing the base forecasts covariance matrix.}
 }
 \value{
 A list containing the reconciled forecasts. The list has the following named elements:
 \itemize{
-\item \code{bottom_reconciled_mean}: reconciled mean for the bottom forecasts
-\item \code{bottom_reconciled_covariance}: reconciled covariance for the bottom forecasts
-\item \code{upper_reconciled_mean}: reconciled mean for the upper forecasts
-\item \code{upper_reconciled_covariance}: reconciled covariance for the upper forecasts
+\item \code{bottom_reconciled_mean}: reconciled mean for the bottom forecasts;
+\item \code{bottom_reconciled_covariance}: reconciled covariance for the bottom forecasts;
+\item \code{upper_reconciled_mean}: reconciled mean for the upper forecasts;
+\item \code{upper_reconciled_covariance}: reconciled covariance for the upper forecasts.
 }
 }
 \description{
@@ -37,7 +37,6 @@ rec_mat <- get_reconc_matrices(aggf=c(1,2), h=2)
 S <- rec_mat$S
 
 #Set the parameters of the Gaussian base forecast distributions
-
 mu1 <- 2
 mu2 <- 4
 muY <- 9
@@ -59,9 +58,9 @@ upper_cov    <- analytic_rec$upper_reconciled_covariance
 
 }
 \references{
-Corani, G., Azzimonti, D., Augusto, J.P.S.C., Zaffalon, M. (2021). \emph{Probabilistic Reconciliation of Hierarchical Forecast via Bayes’ Rule}. In: Hutter, F., Kersting, K., Lijffijt, J., Valera, I. (eds) Machine Learning and Knowledge Discovery in Databases. ECML PKDD 2020. Lecture Notes in Computer Science(), vol 12459. Springer, Cham. \href{https://doi.org/10.1007/978-3-030-67664-3_13}{DOI:10.1007/978-3-030-67664-3_13}.
+Corani, G., Azzimonti, D., Augusto, J.P.S.C., Zaffalon, M. (2021). \emph{Probabilistic Reconciliation of Hierarchical Forecast via Bayes’ Rule}. In: Hutter, F., Kersting, K., Lijffijt, J., Valera, I. (eds) Machine Learning and Knowledge Discovery in Databases. ECML PKDD 2020. Lecture Notes in Computer Science(), vol 12459. Springer, Cham. \doi{10.1007/978-3-030-67664-3_13}.
 
-Zambon, L., Agosto, A., Giudici, P., Corani, G. (2023). \emph{Properties of the reconciled distributions for Gaussian and count forecasts}. \href{https://doi.org/10.48550/arXiv.2303.15135}{arXiv.2303.15135}.
+Zambon, L., Agosto, A., Giudici, P., Corani, G. (2023). \emph{Properties of the reconciled distributions for Gaussian and count forecasts}. \doi{10.48550/arXiv.2303.15135}.
 }
 \seealso{
 \code{\link[=reconc_BUIS]{reconc_BUIS()}}

@@ -7,24 +7,24 @@
 #' forecast distribution, which is obtained via conditioning.
 #' It only works with Poisson or Negative Binomial base forecasts.
 #'
-#' We strongly recommend to use the function 'reconc_buis', which implements
+#' We strongly recommend to use the function [reconc_BUIS()], which implements
 #' the Bottom-Up Importance Sampling algorithm instead of MCMC.
-#' If you use this function, we suggest the usage of tools to check the convergence...
-#' #TODO: quali?
+#' If you use this function, we suggest the usage of tools to check the convergence.
 #'
-#' @param S Summing matrix (n x n_bottom)
-#' @param base_forecasts list of the parameters of the base forecast distributions, see details
-#' @param distr A string describing the type of predictive distribution
-#' @param num_samples number of samples to draw using MCMC
-#' @param tuning_int number of iterations between scale updates of the proposal
-#' @param init_scale initial scale of the proposal
-#' @param burn_in number of initial samples to be discarded
-#' @param seed Seed for randomness reproducibility
+#'
+#' @param S summing matrix (n x n_bottom).
+#' @param base_forecasts list of the parameters of the base forecast distributions, see details.
+#' @param distr a string describing the type of predictive distribution.
+#' @param num_samples number of samples to draw using MCMC.
+#' @param tuning_int number of iterations between scale updates of the proposal.
+#' @param init_scale initial scale of the proposal.
+#' @param burn_in number of initial samples to be discarded.
+#' @param seed seed for reproducibility.
 #'
 #' @details
 #'
 #' The parameter `base_forecast` is a list containing n elements.
-#' Each element is a vector containing the estimated
+#' Each element is a vector containing the estimated:
 #'
 #' * mean and sd for the Gaussian base forecast, see \link[stats]{Normal}, if `distr`='gaussian';
 #' * lambda for the Poisson base forecast, see \link[stats]{Poisson}, if `distr`='poisson';
@@ -34,9 +34,9 @@
 #'
 #' @return A list containing the reconciled forecasts. The list has the following named elements:
 #'
-#' * `bottom_reconciled_samples`: a matrix (n_bottom x `num_samples`) containing reconciled samples for the bottom time series
-#' * `upper_reconciled_samples`: a matrix (n_upper x `num_samples`) containing reconciled samples for the upper time series
-#' * `reconciled_samples`: a matrix (n x `num_samples`) containing the reconciled samples for all time series
+#' * `bottom_reconciled_samples`: a matrix (n_bottom x `num_samples`) containing reconciled samples for the bottom time series;
+#' * `upper_reconciled_samples`: a matrix (n_upper x `num_samples`) containing reconciled samples for the upper time series;
+#' * `reconciled_samples`: a matrix (n x `num_samples`) containing the reconciled samples for all time series.
 #'
 #' @examples
 #'
@@ -60,7 +60,7 @@
 #'#Sample from the reconciled forecast distribution using MCMC
 #'mcmc = reconc_MCMC(S,base_forecasts=lambdas,distr="poisson",
 #'                   num_samples=30000, seed=42)
-#'samples_mcmc <- mcmc$reconciled_samples#'
+#'samples_mcmc <- mcmc$reconciled_samples
 #'
 #'#Compare the reconciled means with those obtained via BUIS
 #'buis = reconc_BUIS(S, base_forecasts, in_type="params",
@@ -71,7 +71,7 @@
 #'print(rowMeans(samples_buis))
 #'
 #' @references
-#' Corani, G., Rubattu, N., Azzimonti, D., Antonucci, A. (2022). *Probabilistic reconciliation of counttime series*. [arXiv.2207.09322](https://doi.org/10.48550/arXiv.2207.09322).
+#' Corani, G., Rubattu, N., Azzimonti, D., Antonucci, A. (2022). *Probabilistic reconciliation of count time series*. \doi{10.48550/arXiv.2207.09322}.
 #'
 #'
 #' @seealso

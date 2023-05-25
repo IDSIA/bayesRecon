@@ -16,28 +16,28 @@ reconc_MCMC(
 )
 }
 \arguments{
-\item{S}{Summing matrix (n x n_bottom)}
+\item{S}{summing matrix (n x n_bottom).}
 
-\item{base_forecasts}{list of the parameters of the base forecast distributions, see details}
+\item{base_forecasts}{list of the parameters of the base forecast distributions, see details.}
 
-\item{distr}{A string describing the type of predictive distribution}
+\item{distr}{a string describing the type of predictive distribution.}
 
-\item{num_samples}{number of samples to draw using MCMC}
+\item{num_samples}{number of samples to draw using MCMC.}
 
-\item{tuning_int}{number of iterations between scale updates of the proposal}
+\item{tuning_int}{number of iterations between scale updates of the proposal.}
 
-\item{init_scale}{initial scale of the proposal}
+\item{init_scale}{initial scale of the proposal.}
 
-\item{burn_in}{number of initial samples to be discarded}
+\item{burn_in}{number of initial samples to be discarded.}
 
-\item{seed}{Seed for randomness reproducibility}
+\item{seed}{seed for reproducibility.}
 }
 \value{
 A list containing the reconciled forecasts. The list has the following named elements:
 \itemize{
-\item \code{bottom_reconciled_samples}: a matrix (n_bottom x \code{num_samples}) containing reconciled samples for the bottom time series
-\item \code{upper_reconciled_samples}: a matrix (n_upper x \code{num_samples}) containing reconciled samples for the upper time series
-\item \code{reconciled_samples}: a matrix (n x \code{num_samples}) containing the reconciled samples for all time series
+\item \code{bottom_reconciled_samples}: a matrix (n_bottom x \code{num_samples}) containing reconciled samples for the bottom time series;
+\item \code{upper_reconciled_samples}: a matrix (n_upper x \code{num_samples}) containing reconciled samples for the upper time series;
+\item \code{reconciled_samples}: a matrix (n x \code{num_samples}) containing the reconciled samples for all time series.
 }
 }
 \description{
@@ -45,14 +45,13 @@ Uses Markov Chain Monte Carlo algorithm to draw samples from the reconciled
 forecast distribution, which is obtained via conditioning.
 It only works with Poisson or Negative Binomial base forecasts.
 
-We strongly recommend to use the function 'reconc_buis', which implements
+We strongly recommend to use the function \code{\link[=reconc_BUIS]{reconc_BUIS()}}, which implements
 the Bottom-Up Importance Sampling algorithm instead of MCMC.
-If you use this function, we suggest the usage of tools to check the convergence...
-#TODO: quali?
+If you use this function, we suggest the usage of tools to check the convergence.
 }
 \details{
 The parameter \code{base_forecast} is a list containing n elements.
-Each element is a vector containing the estimated
+Each element is a vector containing the estimated:
 \itemize{
 \item mean and sd for the Gaussian base forecast, see \link[stats]{Normal}, if \code{distr}='gaussian';
 \item lambda for the Poisson base forecast, see \link[stats]{Poisson}, if \code{distr}='poisson';
@@ -83,7 +82,7 @@ for (i in 1:nrow(S)) {
 #Sample from the reconciled forecast distribution using MCMC
 mcmc = reconc_MCMC(S,base_forecasts=lambdas,distr="poisson",
                   num_samples=30000, seed=42)
-samples_mcmc <- mcmc$reconciled_samples#'
+samples_mcmc <- mcmc$reconciled_samples
 
 #Compare the reconciled means with those obtained via BUIS
 buis = reconc_BUIS(S, base_forecasts, in_type="params",
@@ -95,7 +94,7 @@ print(rowMeans(samples_buis))
 
 }
 \references{
-Corani, G., Rubattu, N., Azzimonti, D., Antonucci, A. (2022). \emph{Probabilistic reconciliation of counttime series}. \href{https://doi.org/10.48550/arXiv.2207.09322}{arXiv.2207.09322}.
+Corani, G., Rubattu, N., Azzimonti, D., Antonucci, A. (2022). \emph{Probabilistic reconciliation of count time series}. \doi{10.48550/arXiv.2207.09322}.
 }
 \seealso{
 \code{\link[=reconc_BUIS]{reconc_BUIS()}}
