@@ -76,9 +76,9 @@
 #' The parameter `base_forecast` is a list containing n elements that depend on
 #' the options `in_type` and `distr`.
 #'
-#' If `in_type`='samples', each element of `base_forecast` is a vector containing samples from the base forecast distribution
+#' If `in_type`='samples', each element of `base_forecast` is a vector containing samples from the base forecast distribution.
 #'
-#' If `in_type`='params', each element of `base_forecast` is a vector containing the estimated
+#' If `in_type`='params', each element of `base_forecast` is a vector containing the estimated:
 #'
 #' * mean and sd for the Gaussian base forecast, see \link[stats]{Normal}, if `distr`='gaussian';
 #' * lambda for the Poisson base forecast, see \link[stats]{Poisson}, if `distr`='poisson';
@@ -90,10 +90,10 @@
 #' @param base_forecasts a list containing the base_forecasts, see details.
 #' @param in_type a string with two possible values:
 #'
-#' * 'samples': base forecasts in the form of samples from the predictive distribution;
-#' * 'params' : base forecasts in the form of estimated parameters of a parametric predictive distribution.
+#' * 'samples' if the base forecasts are in the form of samples;
+#' * 'params'  if the base forecasts are in the form of estimated parameters.
 #'
-#' @param distr a string describing the type of predictive distribution:
+#' @param distr a string describing the type of base forecasts:
 #'
 #' * 'continuous' or 'discrete' if `in_type`='samples';
 #' * 'gaussian', 'poisson' or 'nbinom' if `in_type`='params'.
@@ -178,7 +178,7 @@
 #'
 #'
 #' @seealso
-#' [reconc_gaussian]
+#' [reconc_gaussian()]
 #'
 #' @export
 reconc_BUIS <- function(S,
@@ -288,14 +288,14 @@ reconc_BUIS <- function(S,
   return(TRUE)
 }
 
-#' @title Reconciliation in closed form for Gaussian base forecasts
+#' @title Analytical reconciliation of Gaussian base forecasts
 #'
 #' @description
-#' Analytical computation of the reconciled forecasts in case of Gaussian base forecasts.
+#' Closed form computation of the reconciled forecasts in case of Gaussian base forecasts.
 #'
 #' @param S summing matrix (n x n_bottom).
-#' @param base_forecasts.mu a vector containing the base forecasts means.
-#' @param base_forecasts.Sigma a matrix containing the base forecasts covariance matrix.
+#' @param base_forecasts.mu a vector containing the means of the base forecasts.
+#' @param base_forecasts.Sigma a matrix containing the covariance matrix of the base forecasts.
 #'
 #' @details
 #' The order of the base forecast means and covariance is given by the order of the time series in the summing matrix.
@@ -342,7 +342,7 @@ reconc_BUIS <- function(S,
 #' Zambon, L., Agosto, A., Giudici, P., Corani, G. (2023). *Properties of the reconciled distributions for Gaussian and count forecasts*. \doi{10.48550/arXiv.2303.15135}.
 #'
 #'
-#' @seealso [reconc_BUIS]
+#' @seealso [reconc_BUIS()]
 #'
 #' @export
 reconc_gaussian <- function(S, base_forecasts.mu,

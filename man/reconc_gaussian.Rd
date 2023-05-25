@@ -2,16 +2,16 @@
 % Please edit documentation in R/reconc.R
 \name{reconc_gaussian}
 \alias{reconc_gaussian}
-\title{Reconciliation in closed form for Gaussian base forecasts}
+\title{Analytical reconciliation of Gaussian base forecasts}
 \usage{
 reconc_gaussian(S, base_forecasts.mu, base_forecasts.Sigma)
 }
 \arguments{
 \item{S}{summing matrix (n x n_bottom).}
 
-\item{base_forecasts.mu}{a vector containing the base forecasts means.}
+\item{base_forecasts.mu}{a vector containing the means of the base forecasts.}
 
-\item{base_forecasts.Sigma}{a matrix containing the base forecasts covariance matrix.}
+\item{base_forecasts.Sigma}{a matrix containing the covariance matrix of the base forecasts.}
 }
 \value{
 A list containing the reconciled forecasts. The list has the following named elements:
@@ -23,7 +23,7 @@ A list containing the reconciled forecasts. The list has the following named ele
 }
 }
 \description{
-Analytical computation of the reconciled forecasts in case of Gaussian base forecasts.
+Closed form computation of the reconciled forecasts in case of Gaussian base forecasts.
 }
 \details{
 The order of the base forecast means and covariance is given by the order of the time series in the summing matrix.
@@ -63,5 +63,5 @@ Corani, G., Azzimonti, D., Augusto, J.P.S.C., Zaffalon, M. (2021). \emph{Probabi
 Zambon, L., Agosto, A., Giudici, P., Corani, G. (2023). \emph{Properties of the reconciled distributions for Gaussian and count forecasts}. \doi{10.48550/arXiv.2303.15135}.
 }
 \seealso{
-\link{reconc_BUIS}
+\code{\link[=reconc_BUIS]{reconc_BUIS()}}
 }

@@ -43,11 +43,11 @@ A list containing the reconciled forecasts. The list has the following named ele
 \description{
 Uses Markov Chain Monte Carlo algorithm to draw samples from the reconciled
 forecast distribution, which is obtained via conditioning.
-It only works with Poisson or Negative Binomial base forecasts.
 
-We strongly recommend to use the function \link{reconc_BUIS}, which implements
-the Bottom-Up Importance Sampling algorithm instead of MCMC.
-If you use this function, we suggest the usage of tools to check the convergence.
+This is a bare-bones implementation of the Metropolis-Hastings algorithm, we suggest the usage of tools to check the convergence.
+The function only works with Poisson or Negative Binomial base forecasts.
+
+The function \code{\link[=reconc_BUIS]{reconc_BUIS()}} is generally faster on most hierarchies.
 }
 \details{
 The parameter \code{base_forecast} is a list containing n elements.
@@ -97,5 +97,5 @@ print(rowMeans(samples_buis))
 Corani, G., Rubattu, N., Azzimonti, D., Antonucci, A. (2022). \emph{Probabilistic reconciliation of count time series}. \doi{10.48550/arXiv.2207.09322}.
 }
 \seealso{
-\link{reconc_BUIS}
+\code{\link[=reconc_BUIS]{reconc_BUIS()}}
 }

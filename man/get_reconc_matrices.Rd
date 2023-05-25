@@ -20,7 +20,7 @@ A list containing the named elements:
 }
 \description{
 Creates the aggregation and summing matrices for a temporal hierarchy of time series
-from user-selected list of aggregation levels.
+from a user-selected list of aggregation levels.
 }
 \examples{
 
@@ -35,5 +35,5 @@ A <- rec_mat$A
 
 }
 \seealso{
-\link{temporal_aggregation}
+\code{\link[=temporal_aggregation]{temporal_aggregation()}}
 }

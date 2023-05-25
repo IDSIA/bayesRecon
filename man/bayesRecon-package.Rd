@@ -13,18 +13,18 @@ Implementation of reconciliation methods for probabilistic hierarchical forecast
 
 The package implements reconciliation via conditioning for probabilistic forecasts of hierarchical time series. The main functions are
 \itemize{
-\item \link{reconc_gaussian}: implements analytic formulae for the reconciliation of Gaussian base forecasts;
-\item \link{reconc_BUIS}: a generic tool for the reconciliation of any probabilistic time series forecast via importance sampling;
+\item \code{\link[=reconc_gaussian]{reconc_gaussian()}}: analytical reconciliation of Gaussian base forecasts;
+\item \code{\link[=reconc_BUIS]{reconc_BUIS()}}: reconciliation of any probabilistic base forecast via importance sampling;
 this is the recommended option for non-Gaussian base forecasts;
-\item \link{reconc_MCMC}: a generic tool for the reconciliation of probabilistic count time series forecasts via Markov Chain Monte Carlo.
+\item \code{\link[=reconc_MCMC]{reconc_MCMC()}}: reconciliation of probabilistic discrete base forecasts via Markov Chain Monte Carlo.
 }
 }
 
 \section{Utility functions}{
 
 \itemize{
-\item \link{temporal_aggregation}: creates a list of aggregated time series from a time series of class \link[stats]{ts};
-\item \link{get_reconc_matrices}: creates the aggregation and summing matrices for a temporal hierarchy of time series from user-selected list of aggregation levels.
+\item \code{\link[=temporal_aggregation]{temporal_aggregation()}}: temporal aggregation of a given time series object of class \link[stats]{ts};
+\item \code{\link[=get_reconc_matrices]{get_reconc_matrices()}}: aggregation and summing matrices for a temporal hierarchy of time series from user-selected list of aggregation levels.
 }
 }
 

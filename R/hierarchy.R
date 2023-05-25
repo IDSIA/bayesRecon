@@ -177,7 +177,7 @@
 
 }
 
-#' @title Non-overlapping temporal aggregation of a time series
+#' @title Temporal aggregation of a time series
 #'
 #' @description
 #' Creates a list of aggregated time series from a time series of class \link[stats]{ts}.
@@ -190,7 +190,19 @@
 #'
 #' @return A list of \link[stats]{ts} objects each containing the aggregates time series in the order defined by `agg_levels`.
 #'
-#' @seealso [get_reconc_matrices]
+#' @seealso [get_reconc_matrices()]
+#'
+#' @examples
+#'
+#' # Create a monthly count time series with 100 observations
+#' y <- ts(data=stats::rpois(100,lambda = 2),frequency = 12)
+#'
+#' # Create the aggregate time series according to agg_levels
+#' y_agg <- temporal_aggregation(y,agg_levels = c(2,3,4,6,12))
+#'
+#' # Show annual aggregate time series
+#' print(y_agg$`f=1`)
+#'
 #' @export
 temporal_aggregation <- function(y, agg_levels=NULL) {
   f = stats::frequency(y)
@@ -229,7 +241,7 @@ temporal_aggregation <- function(y, agg_levels=NULL) {
 #'
 #' @description
 #' Creates the aggregation and summing matrices for a temporal hierarchy of time series
-#' from user-selected list of aggregation levels.
+#' from a user-selected list of aggregation levels.
 #'
 #' @param agg_levels user-selected list of aggregation levels.
 #' @param h number of steps ahead for the bottom level forecasts.
@@ -250,7 +262,7 @@ temporal_aggregation <- function(y, agg_levels=NULL) {
 #'S <- rec_mat$S
 #'A <- rec_mat$A
 #'
-#' @seealso [temporal_aggregation]
+#' @seealso [temporal_aggregation()]
 #'
 #' @export
 get_reconc_matrices <- function(agg_levels, h) {

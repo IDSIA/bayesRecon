@@ -20,11 +20,11 @@ reconc_BUIS(
 
 \item{in_type}{a string with two possible values:
 \itemize{
-\item 'samples': base forecasts in the form of samples from the predictive distribution;
-\item 'params' : base forecasts in the form of estimated parameters of a parametric predictive distribution.
+\item 'samples' if the base forecasts are in the form of samples;
+\item 'params'  if the base forecasts are in the form of estimated parameters.
 }}
 
-\item{distr}{a string describing the type of predictive distribution:
+\item{distr}{a string describing the type of base forecasts:
 \itemize{
 \item 'continuous' or 'discrete' if \code{in_type}='samples';
 \item 'gaussian', 'poisson' or 'nbinom' if \code{in_type}='params'.
@@ -50,9 +50,9 @@ forecast distribution, which is obtained via conditioning.
 The parameter \code{base_forecast} is a list containing n elements that depend on
 the options \code{in_type} and \code{distr}.
 
-If \code{in_type}='samples', each element of \code{base_forecast} is a vector containing samples from the base forecast distribution
+If \code{in_type}='samples', each element of \code{base_forecast} is a vector containing samples from the base forecast distribution.
 
-If \code{in_type}='params', each element of \code{base_forecast} is a vector containing the estimated
+If \code{in_type}='params', each element of \code{base_forecast} is a vector containing the estimated:
 \itemize{
 \item mean and sd for the Gaussian base forecast, see \link[stats]{Normal}, if \code{distr}='gaussian';
 \item lambda for the Poisson base forecast, see \link[stats]{Poisson}, if \code{distr}='poisson';
@@ -132,5 +132,5 @@ print(rowMeans(samples_buis))
 Zambon, L., Azzimonti, D. & Corani, G. (2022). \emph{Efficient probabilistic reconciliation of forecasts for real-valued and count time series}. \doi{10.48550/arXiv.2210.02286}.
 }
 \seealso{
-\link{reconc_gaussian}
+\code{\link[=reconc_gaussian]{reconc_gaussian()}}
 }
