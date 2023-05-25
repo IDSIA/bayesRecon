@@ -6,17 +6,19 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-bayesRecon is a package for the probabilistic reconciliation of
-hierarchical time series forecasts.
+bayesRecon is a package for probabilistic reconciliation of hierarchical
+time series forecasts. Probabilistic reconciliation is performed via
+conditioning.
 
-## Installation
+The main functions are
 
-You can install the development version of bayesRecon like so:
-
-``` r
-# FILL THIS IN! HOW CAN PEOPLE INSTALL YOUR DEV PACKAGE?
-# This will be install though our github/gitlab
-```
+- `reconc_gaussian`: implements analytic formulae for the reconciliation
+  of Gaussian base forecasts.
+- `reconc_BUIS`: a generic tool for the reconciliation of any
+  probabilistic time series forecast via importance sampling; this is
+  the recommended option for non-Gaussian base forecasts.
+- `reconc_MCMC`: a generic tool for the reconciliation of probabilistic
+  count time series forecasts via Markov Chain Monte Carlo.
 
 ## Example
 
@@ -59,11 +61,8 @@ for (i in 1:nrow(S)) {
 }
 ```
 
-We perform probabilistic reconciliation based on conditioning, as
-explained in ADD REFERENCES
-
-We recommend using the BUIS algorithm to sample from the reconciled
-distribution. (REF?)
+We recommend using the BUIS algorithm (Zambon et al., 2022) to sample
+from the reconciled distribution.
 
 ``` r
 buis <- reconc_BUIS(S, base_forecasts, in_type="params",
@@ -72,8 +71,43 @@ buis <- reconc_BUIS(S, base_forecasts, in_type="params",
 samples_buis <- buis$reconciled_samples
 ```
 
-Nevertheless, we also provide a function for sampling using Markov Chain
-Monte Carlo.
+Since there is a positive incoherence in the forecasts
+($\lambda_Y > \lambda_1+\lambda_2$), the mean of the bottom reconciled
+forecast increases. We show below this behavior for $S_1$.
+
+``` r
+reconciled_forecast_S1 <- buis$bottom_reconciled_samples[1,]
+range_forecats <- range(reconciled_forecast_S1)
+hist(reconciled_forecast_S1, breaks=seq(range_forecats[1]-0.5,range_forecats[2]+0.5),
+     freq=F, xlab="S_1", ylab=NULL, main="base vs reconciled")
+points(seq(range_forecats[1],range_forecats[2]),
+       stats::dpois(seq(range_forecats[1],range_forecats[2]),lambda=lambda1),
+       pch=16,col=4,cex=2)
+```
+
+<img src="man/figures/README-unnamed-chunk-6-1.png" width="80%" style="display: block; margin: auto;" />
+
+The blue circles represent the probability mass function of a Poisson
+with parameter $\lambda_1$ plotted on top of the histogram of the
+reconciled bottom forecasts for $S_1$. Note how the histogram is shifted
+to the right.
+
+Moreover, while the base bottom forecast were assumed independent, the
+operation of reconciliation introduced a negative correlation between
+$S_1$ and $S_2$. We can visualize it with the plot below which shows the
+empirical correlations between the reconciled samples of $S_1$ and the
+reconciled samples of $S_2$.
+
+``` r
+AA<- xyTable(buis$bottom_reconciled_samples[1,],buis$bottom_reconciled_samples[2,])
+plot(AA$x , AA$y , cex=AA$number*0.001  , pch=16 , col=rgb(0,0,1,0.4) , xlab= "S_1" , ylab="S_2" ,
+     xlim=range(buis$bottom_reconciled_samples[1,]) , ylim=range(buis$bottom_reconciled_samples[2,]) )
+```
+
+<img src="man/figures/README-unnamed-chunk-7-1.png" width="80%" style="display: block; margin: auto;" />
+
+We also provide a function for sampling using Markov Chain Monte Carlo
+(Corani et al., 2022).
 
 ``` r
 mcmc = reconc_MCMC(S,base_forecasts,distr="poisson",
@@ -82,7 +116,55 @@ mcmc = reconc_MCMC(S,base_forecasts,distr="poisson",
 samples_mcmc <- mcmc$reconciled_samples
 ```
 
-- Plots?
+### Gaussian base forecasts
+
+We now assume that the base forecasts are Gaussian distributed, with
+parameters given by
+
+- $\mu_{Y} = 9$, $\mu_{S_1} = 2$, and $\mu_{S_2} = 4$;
+- $\sigma_{Y} = 2$, $\sigma_{S_1} = 2$, and $\sigma_{S_2} = 3$.
+
+``` r
+mu1 <- 2
+mu2 <- 4
+muY <- 9
+mus <- c(muY,mu1,mu2)
+
+sigma1 <- 2
+sigma2 <- 2
+sigmaY <- 3
+sigmas <- c(sigmaY,sigma1,sigma2)
+
+base_forecasts = list()
+for (i in 1:nrow(S)) {
+base_forecasts[[i]] = c(mus[[i]], sigmas[[i]])
+}
+```
+
+We use the BUIS algorithm to sample from the reconciled distribution:
+
+``` r
+buis <- reconc_BUIS(S, base_forecasts, in_type="params",
+                    distr="gaussian", num_samples=100000, seed=42)
+samples_buis <- buis$reconciled_samples
+buis_means <- rowMeans(samples_buis) #reconciled means
+```
+
+In the base forecasts are Gaussian, the reconciled distribution is still
+Gaussian and can be computed in closed form:
+
+``` r
+Sigma <- diag(sigmas^2)  #transform into covariance matrix
+analytic_rec <- reconc_gaussian(S, base_forecasts.mu = mus,
+                                base_forecasts.Sigma = Sigma)
+analytic_means <- c(analytic_rec$upper_reconciled_mean, 
+                    analytic_rec$bottom_reconciled_mean) #reconciled means
+```
+
+The base means of $Y$, $S_1$, and $S_2$ are 9, 2, 4.
+
+The reconciled means obtained analytically are 7.41, 2.71, 4.71, while
+the reconciled means obtained via BUIS are 7.41, 2.71, 4.71.
 
 ## References
 

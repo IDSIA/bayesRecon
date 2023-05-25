@@ -103,8 +103,8 @@
 #'
 #' @return A list containing the reconciled forecasts. The list has the following named elements:
 #'
-#' * `bottom_reconciled_samples`: a matrix (n_bottom x `num_samples`) containing reconciled samples for the bottom time series
-#' * `upper_reconciled_samples`: a matrix (n_upper x `num_samples`) containing reconciled samples for the upper time series
+#' * `bottom_reconciled_samples`: a matrix (n_bottom x `num_samples`) containing the reconciled samples for the bottom time series
+#' * `upper_reconciled_samples`: a matrix (n_upper x `num_samples`) containing the reconciled samples for the upper time series
 #' * `reconciled_samples`: a matrix (n x `num_samples`) containing the reconciled samples for all time series
 #'
 #' @examples
@@ -174,7 +174,10 @@
 #'#Print the reconciled means
 #'print(rowMeans(samples_buis))
 #'
-#' @references BUIS paper
+#' @references
+#' Zambon, L., Azzimonti, D. & Corani, G. (2022). *Efficient probabilistic reconciliation of forecasts for real-valued and count time series*. [arXiv.2210.02286](https://doi.org/10.48550/arXiv.2210.02286).
+#'
+#'
 #'
 #' cla [ciao](https://cran.r-project.org/doc/manuals/R-exts.html#Cross_002dreferences)
 #'
@@ -267,6 +270,28 @@ reconc_BUIS <- function(S,
 }
 
 ###############################################################################
+.check_cov <- function(cov_matrix) {
+  # Check if the matrix is square
+  if (!is.matrix(cov_matrix) || nrow(cov_matrix) != ncol(cov_matrix)) {
+    stop("base_forecasts.Sigma not square")
+  }
+  # Check if the matrix is positive semi-definite
+  eigen_values <- eigen(cov_matrix, symmetric = TRUE)$values
+  if (any(eigen_values <= 0)) {
+    stop("base_forecasts.Sigma not positive semi-definite")
+  }
+  # Check if the matrix is symmetric
+  if (!isSymmetric(cov_matrix)) {
+    stop("base_forecasts.Sigma not symmetric")
+  }
+  # Check if the diagonal elements are non-negative
+  if (any(diag(cov_matrix) < 0)) {
+    stop("base_forecasts.Sigma, diagonal elements are non-positive")
+  }
+  # If all checks pass, return TRUE
+  return(TRUE)
+}
+
 #' @title Reconciliation in closed form for Gaussian base forecasts
 #'
 #' @description
@@ -316,7 +341,11 @@ reconc_BUIS <- function(S,
 #'bottom_cov   <- analytic_rec$bottom_reconciled_covariance
 #'upper_cov    <- analytic_rec$upper_reconciled_covariance
 #'
-#' @references ECML paper; rec. effects
+#' @references
+#' Corani, G., Azzimonti, D., Augusto, J.P.S.C., Zaffalon, M. (2021). *Probabilistic Reconciliation of Hierarchical Forecast via Bayes’ Rule*. In: Hutter, F., Kersting, K., Lijffijt, J., Valera, I. (eds) Machine Learning and Knowledge Discovery in Databases. ECML PKDD 2020. Lecture Notes in Computer Science(), vol 12459. Springer, Cham. [DOI:10.1007/978-3-030-67664-3_13](https://doi.org/10.1007/978-3-030-67664-3_13).
+#'
+#' Zambon, L., Agosto, A., Giudici, P., Corani, G. (2023). *Properties of the reconciled distributions for Gaussian and count forecasts*. [arXiv.2303.15135](https://doi.org/10.48550/arXiv.2303.15135).
+#'
 #'
 #' @seealso [reconc_BUIS()]
 #'
@@ -330,14 +359,12 @@ reconc_gaussian <- function(S, base_forecasts.mu,
   n = length(base_forecasts.mu) #total number of TS
 
   # Ensure that data inputs are valid
-  if (!(nrow(base_forecasts.Sigma) == ncol(base_forecasts.Sigma))) {
-    stop("Input error: Sigma is not square")
-  }
+  .check_cov(base_forecasts.Sigma)
   if (!(nrow(base_forecasts.Sigma) == n)) {
     stop("Input error: nrow(base_forecasts.Sigma) != length(base_forecasts.mu)")
   }
   if (!(k + m == n)) {
-    stop("Input error: the shape of A is not correct")
+    stop("Input error: the shape of S is not correct")
   }
 
   Sigma_u = base_forecasts.Sigma[hier$upper_idxs, hier$upper_idxs]
@@ -348,7 +375,7 @@ reconc_gaussian <- function(S, base_forecasts.mu,
   mu_b = base_forecasts.mu[hier$bottom_idxs]
 
   # Formulation from:
-  # Zambon, Lorenzo, et al. "Properties of the reconciled distributions for
+  # Zambon, L., et al. "Properties of the reconciled distributions for
   # Gaussian and count forecasts." (2023)
   Q = Sigma_u - Sigma_ub %*% t(A) - A %*% t(Sigma_ub) + A %*% Sigma_b %*% t(A)
   invQ = solve(Q)

@@ -9,7 +9,7 @@ temporal_aggregation(y, aggf = NULL)
 \arguments{
 \item{y}{Univariate time series of class \link[stats]{ts}.}
 
-\item{aggf}{User-selected list of aggregates to consider.}
+\item{aggf}{User-selected list of aggregation levels.}
 }
 \value{
 A list of \link[stats]{ts} objects each containing the aggregates time series in the order defined by \code{aggf}.

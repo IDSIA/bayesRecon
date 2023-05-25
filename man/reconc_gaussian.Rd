@@ -59,7 +59,9 @@ upper_cov    <- analytic_rec$upper_reconciled_covariance
 
 }
 \references{
-ECML paper; rec. effects
+Corani, G., Azzimonti, D., Augusto, J.P.S.C., Zaffalon, M. (2021). \emph{Probabilistic Reconciliation of Hierarchical Forecast via Bayes’ Rule}. In: Hutter, F., Kersting, K., Lijffijt, J., Valera, I. (eds) Machine Learning and Knowledge Discovery in Databases. ECML PKDD 2020. Lecture Notes in Computer Science(), vol 12459. Springer, Cham. \href{https://doi.org/10.1007/978-3-030-67664-3_13}{DOI:10.1007/978-3-030-67664-3_13}.
+
+Zambon, L., Agosto, A., Giudici, P., Corani, G. (2023). \emph{Properties of the reconciled distributions for Gaussian and count forecasts}. \href{https://doi.org/10.48550/arXiv.2303.15135}{arXiv.2303.15135}.
 }
 \seealso{
 \code{\link[=reconc_BUIS]{reconc_BUIS()}}

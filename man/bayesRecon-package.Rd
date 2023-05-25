@@ -20,12 +20,21 @@ this is the recommended option for non-Gaussian base forecasts.
 }
 }
 
+\references{
+Corani, G., Azzimonti, D., Augusto, J.P.S.C., Zaffalon, M. (2021). \emph{Probabilistic Reconciliation of Hierarchical Forecast via Bayes’ Rule}. In: Hutter, F., Kersting, K., Lijffijt, J., Valera, I. (eds) Machine Learning and Knowledge Discovery in Databases. ECML PKDD 2020. Lecture Notes in Computer Science(), vol 12459. Springer, Cham. \href{https://doi.org/10.1007/978-3-030-67664-3_13}{DOI:10.1007/978-3-030-67664-3_13}.
+
+Corani, G., Rubattu, N., Azzimonti, D., Antonucci, A. (2022). \emph{Probabilistic reconciliation of count time series}. \href{https://doi.org/10.48550/arXiv.2207.09322}{arXiv.2207.09322}.
+
+Zambon, L., Azzimonti, D. & Corani, G. (2022). \emph{Efficient probabilistic reconciliation of forecasts for real-valued and count time series}. \href{https://doi.org/10.48550/arXiv.2210.02286}{arXiv.2210.02286}.
+
+Zambon, L., Agosto, A., Giudici, P., Corani, G. (2023). \emph{Properties of the reconciled distributions for Gaussian and count forecasts}. \href{https://doi.org/10.48550/arXiv.2303.15135}{arXiv.2303.15135}.
+}
 \author{
 \strong{Maintainer}: Dario Azzimonti \email{dario.azzimonti@gmail.com} (\href{https://orcid.org/0000-0001-5080-3061}{ORCID})
 
 Authors:
 \itemize{
-  \item Nicolo' Rubattu \email{nicolo.rubattu@supsi.ch} (\href{https://orcid.org/0000-0002-2703-1005}{ORCID})
+  \item Nicolò Rubattu \email{nicolo.rubattu@idsia.ch} (\href{https://orcid.org/0000-0002-2703-1005}{ORCID})
   \item Lorenzo Zambon \email{lorenzo.zambon@idsia.ch} (\href{https://orcid.org/0000-0002-8939-993X}{ORCID})
   \item Giorgio Corani \email{giorgio.corani@idsia.ch} (\href{https://orcid.org/0000-0002-1541-8384}{ORCID})
 }

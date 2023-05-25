@@ -37,8 +37,8 @@ reconc_BUIS(
 \value{
 A list containing the reconciled forecasts. The list has the following named elements:
 \itemize{
-\item \code{bottom_reconciled_samples}: a matrix (n_bottom x \code{num_samples}) containing reconciled samples for the bottom time series
-\item \code{upper_reconciled_samples}: a matrix (n_upper x \code{num_samples}) containing reconciled samples for the upper time series
+\item \code{bottom_reconciled_samples}: a matrix (n_bottom x \code{num_samples}) containing the reconciled samples for the bottom time series
+\item \code{upper_reconciled_samples}: a matrix (n_upper x \code{num_samples}) containing the reconciled samples for the upper time series
 \item \code{reconciled_samples}: a matrix (n x \code{num_samples}) containing the reconciled samples for all time series
 }
 }
@@ -130,7 +130,7 @@ print(rowMeans(samples_buis))
 
 }
 \references{
-BUIS paper
+Zambon, L., Azzimonti, D. & Corani, G. (2022). \emph{Efficient probabilistic reconciliation of forecasts for real-valued and count time series}. \href{https://doi.org/10.48550/arXiv.2210.02286}{arXiv.2210.02286}.
 
 cla \href{https://cran.r-project.org/doc/manuals/R-exts.html#Cross_002dreferences}{ciao}
 }

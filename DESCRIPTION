@@ -1,17 +1,18 @@
 Package: bayesRecon
 Type: Package
+Date: 2023-05-25
 Title: Probabilistic Reconciliation Via Conditioning
 Version: 0.1.0
-Authors@R: c(person(given = "Nicolo'",
-             family = "Rubattu",
-             role = c("aut"),
-             email = "nicolo.rubattu@supsi.ch",
-             comment = c(ORCID = "0000-0002-2703-1005")),
-      person(given = "Dario",
+Authors@R: c(person(given = "Dario",
              family = "Azzimonti",
              role = c("aut","cre"),
              email = "dario.azzimonti@gmail.com",
              comment = c(ORCID = "0000-0001-5080-3061")),
+      person(given = "Nicolò",
+             family = "Rubattu",
+             role = c("aut"),
+             email = "nicolo.rubattu@idsia.ch",
+             comment = c(ORCID = "0000-0002-2703-1005")),
       person(given = "Lorenzo",
              family = "Zambon",
              role = c("aut"),
