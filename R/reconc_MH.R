@@ -70,11 +70,10 @@
 #'print(rowMeans(samples_mcmc))
 #'print(rowMeans(samples_buis))
 #'
-#' @references BUIS paper
+#' @references IJF paper
 #'
 #' @seealso
-#' [reconc_gaussian()]
-#' [reconc_mcmc()]
+#' [reconc_BUIS()]
 #'
 #' @export
 reconc_MCMC <- function(S,

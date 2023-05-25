@@ -57,7 +57,9 @@ upper_means  <- analytic_rec$upper_reconciled_mean
 bottom_cov   <- analytic_rec$bottom_reconciled_covariance
 upper_cov    <- analytic_rec$upper_reconciled_covariance
 
-
+}
+\references{
+ECML paper; rec. effects
 }
 \seealso{
 \code{\link[=reconc_BUIS]{reconc_BUIS()}}

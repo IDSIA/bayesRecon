@@ -26,12 +26,12 @@ is the yearly forecast.
 **Insert figure**
 
 The hierarchy is described by the *aggregating matrix* S, which can be
-obtained using the function ADD LINK TO get_reconc_matrices FUNCTION
+obtained using the function \[get_reconc_matrices()\]
 
 ``` r
 library(bayesReco)
 
-rec_mat <- get_reconc_matrices(aggf=c(1,2), bottom.f=2, bottom.h=2)
+rec_mat <- get_reconc_matrices(aggf=c(1,2), h=2)
 S <- rec_mat$S
 print(S)
 #>      [,1] [,2]
@@ -69,8 +69,8 @@ buis <- reconc_BUIS(S, base_forecasts, in_type="params",
 samples_buis <- buis$reconciled_samples
 ```
 
-Nevertheless, we also provide a function for sampling using
-Metropolis-Hastings.
+Nevertheless, we also provide a function for sampling using Markov Chain
+Monte Carlo.
 
 ``` r
 mcmc = reconc_MCMC(S,base_forecasts,distr="poisson",
@@ -79,4 +79,4 @@ mcmc = reconc_MCMC(S,base_forecasts,distr="poisson",
 samples_mcmc <- mcmc$reconciled_samples
 ```
 
--   Plots?
+- Plots?

@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of bayesReco is to ...
+bayesReco is a package for the probabilistic reconciliation of hierarchical time series forecasts.
 
 ## Installation
 
@@ -37,8 +37,7 @@ where the bottom variables are the two 6-monthly forecasts and the upper variabl
 **Insert figure**
 
 The hierarchy is described by the *aggregating matrix* S,
-which can be obtained using the function 
-ADD LINK TO get_reconc_matrices FUNCTION
+which can be obtained using the function [get_reconc_matrices()]
 
 ```{r}
 library(bayesReco)
@@ -86,3 +85,10 @@ samples_mcmc <- mcmc$reconciled_samples
 
 
 * Plots?
+
+
+## References
+
+Corani, G., Azzimonti, D., Augusto, J.P.S.C., Zaffalon, M. (2021). Probabilistic Reconciliation of Hierarchical Forecast via Bayes’ Rule. In: Hutter, F., Kersting, K., Lijffijt, J., Valera, I. (eds) Machine Learning and Knowledge Discovery in Databases. ECML PKDD 2020. Lecture Notes in Computer Science(), vol 12459. Springer, Cham. https://doi.org/10.1007/978-3-030-67664-3_13
+
+

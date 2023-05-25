@@ -95,9 +95,8 @@ print(rowMeans(samples_buis))
 
 }
 \references{
-BUIS paper
+IJF paper
 }
 \seealso{
-\code{\link[=reconc_gaussian]{reconc_gaussian()}}
-\code{\link[=reconc_mcmc]{reconc_mcmc()}}
+\code{\link[=reconc_BUIS]{reconc_BUIS()}}
 }

@@ -172,13 +172,15 @@
 #'samples_buis <- buis$reconciled_samples
 #'
 #'#Print the reconciled means
-#'print(rowMeans(samples_buis$reconciled_samples))
+#'print(rowMeans(samples_buis))
 #'
 #' @references BUIS paper
 #'
+#' cla [ciao](https://cran.r-project.org/doc/manuals/R-exts.html#Cross_002dreferences)
+#'
 #' @seealso
 #' [reconc_gaussian()]
-#' [reconc_mcmc()]
+#' [reconc_MCMC()]
 #'
 #' @export
 reconc_BUIS <- function(S,
@@ -315,6 +317,7 @@ reconc_BUIS <- function(S,
 #'bottom_cov   <- analytic_rec$bottom_reconciled_covariance
 #'upper_cov    <- analytic_rec$upper_reconciled_covariance
 #'
+#' @references ECML paper; rec. effects
 #'
 #' @seealso [reconc_BUIS()]
 #'
