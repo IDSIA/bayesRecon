@@ -51,7 +51,7 @@ test_that("Monthly, in_type=='samples', distr='continuous'",{
   # Run IS Reconc from samples
   S = read.csv(file = "dataForTests/Monthly-Gaussian_S.csv", header = FALSE)
   S = as.matrix(S)
-  base_forecasts = .gen_gaussian("dataForTests/Monthly-Gaussian_basef.csv")
+  base_forecasts = .gen_gaussian("dataForTests/Monthly-Gaussian_basef.csv", seed=42)
   res.buis_samples = reconc_BUIS(S, base_forecasts, in_type = "samples", distr = "continuous", seed=42)
   # Run IS Reconc
   base_forecasts_in = read.csv(file = "dataForTests/Monthly-Gaussian_basef.csv", header = FALSE)
@@ -68,7 +68,7 @@ test_that("Monthly, in_type=='samples', distr='discrete'",{
   # Run IS Reconc from samples
   S = read.csv(file = "dataForTests/Monthly-Poisson_S.csv", header = FALSE)
   S = as.matrix(S)
-  base_forecasts = .gen_poisson("dataForTests/Monthly-Poisson_basef.csv")
+  base_forecasts = .gen_poisson("dataForTests/Monthly-Poisson_basef.csv", seed=42)
   res.buis_samples = reconc_BUIS(S, base_forecasts, in_type = "samples", distr = "discrete", seed=42)
   # Run IS Reconc
   base_forecasts_in = read.csv(file = "dataForTests/Monthly-Poisson_basef.csv", header = FALSE)

@@ -6,7 +6,7 @@
 \alias{bayesRecon-package}
 \title{bayesRecon: Probabilistic Reconciliation via Conditioning}
 \description{
-Implementation of reconciliation methods for probabilistic hierarchical forecasts of time series.
+Provides methods for probabilistic reconciliation of hierarchical forecasts of time series. The available methods include analytical Gaussian reconciliation (Corani et al., 2021) \doi{10.1007/978-3-030-67664-3_13}, MCMC reconciliation of count time series (Corani et al., 2022) \doi{10.48550/arXiv.2207.09322}, Bottom-Up Importance Sampling (Zambon et al., 2022) \doi{10.48550/arXiv.2210.02286}.
 }
 \section{Main functions}{
 

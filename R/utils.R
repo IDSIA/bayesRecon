@@ -50,8 +50,8 @@
 }
 
 # Functions for tests
-.gen_gaussian <- function(params_file) {
-  set.seed(0)
+.gen_gaussian <- function(params_file, seed=NULL) {
+  set.seed(seed)
   params = utils::read.csv(file = params_file, header = FALSE)
   out = list()
   for (i in 1:nrow(params)) {
@@ -60,8 +60,8 @@
   return(out)
 }
 
-.gen_poisson <- function(params_file) {
-  set.seed(0)
+.gen_poisson <- function(params_file, seed=NULL) {
+  set.seed(seed)
   params = utils::read.csv(file = params_file, header = FALSE)
   out = list()
   for (i in 1:nrow(params)) {
