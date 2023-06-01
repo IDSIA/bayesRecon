@@ -11,8 +11,8 @@ status](https://www.r-pkg.org/badges/version/bayesRecon)](https://CRAN.R-project
 [![](http://cranlogs.r-pkg.org/badges/grand-total/bayesRecon)](https://cran.r-project.org/package=bayesRecon)
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
-“[![License: LGPL (\>=
-3)](https://img.shields.io/badge/license-LGPL%20(%3E=%203)-red.svg)](https://cran.r-project.org/web/licenses/LGPL%20(%3E=%203))”
+[![License: LGPL (\>=
+3)](https://img.shields.io/badge/license-LGPL%20(%3E=%203)-forestgreen.svg)](https://cran.r-project.org/web/licenses/LGPL%20(%3E=%203))
 <!-- badges: end -->
 
 The package `bayesRecon` implements probabilistic reconciliation of
@@ -27,6 +27,23 @@ The main functions are:
   the recommended option for non-Gaussian base forecasts;
 - `reconc_MCMC`: a generic tool for the reconciliation of probabilistic
   count time series forecasts via Markov Chain Monte Carlo.
+
+## Installation
+
+You can install the **stable** version on [R
+CRAN](https://cran.r-project.org/package=bayesRecon)
+
+``` r
+install.packages("bayesRecon")
+```
+
+You can also install the **development** version from
+[Github](https://github.com/IDSIA/bayesRecon)
+
+``` r
+# install.packages("devtools")
+devtools::install_github("IDSIA/bayesRecon")
+```
 
 ## Example
 
