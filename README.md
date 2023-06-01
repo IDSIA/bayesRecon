@@ -268,7 +268,6 @@ the reconciled distributions for Gaussian and count forecasts*.
 <a href="https://sites.google.com/view/darioazzimonti/home">
 <img src="https://github.com/dazzimonti.png" width="100px;" alt="Dario Azzimonti" style="border-radius:50%;border:1px solid #646464;"/><br />
 <sub><b>Dario Azzimonti</b></sub></a><br />
-<sub>(Maintainer)</sub><br />
 <a href="mailto:dario.azzimonti@gmail.com?subject=bayesRecon package!">dario.azzimonti@gmail.com</a>
 </td>
 <td align="center" valign="top" width="14.28%">
