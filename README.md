@@ -5,9 +5,9 @@
 
 <!-- badges: start -->
 
+[![R-CMD-check](https://github.com/IDSIA/bayesRecon/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/IDSIA/bayesRecon/actions/workflows/R-CMD-check.yaml)
 [![CRAN
 status](https://www.r-pkg.org/badges/version/bayesRecon)](https://CRAN.R-project.org/package=bayesRecon)
-[![R-CMD-check](https://github.com/IDSIA/bayesRecon/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/IDSIA/bayesRecon/actions/workflows/R-CMD-check.yaml)
 [![](http://cranlogs.r-pkg.org/badges/grand-total/bayesRecon)](https://cran.r-project.org/package=bayesRecon)
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
@@ -45,7 +45,7 @@ You can also install the **development** version from
 devtools::install_github("IDSIA/bayesRecon")
 ```
 
-## Example
+## Usage
 
 Let us consider the minimal temporal hierarchy in the figure, where the
 bottom variables are the two 6-monthly forecasts and the upper variable
@@ -69,7 +69,7 @@ print(S)
 #> [3,]    0    1
 ```
 
-### Poisson base forecasts
+### Example 1: Poisson base forecasts
 
 We assume that the base forecasts are Poisson distributed, with
 parameters given by $\lambda_{Y} = 9$, $\lambda_{S_1} = 2$, and
@@ -175,7 +175,7 @@ mcmc = reconc_MCMC(
 samples_mcmc <- mcmc$reconciled_samples
 ```
 
-### Gaussian base forecasts
+### Example 2: Gaussian base forecasts
 
 We now assume that the base forecasts are Gaussian distributed, with
 parameters given by
@@ -252,3 +252,13 @@ reconciliation of forecasts for real-valued and count time series*.
 Zambon, L., Agosto, A., Giudici, P., Corani, G. (2023). *Properties of
 the reconciled distributions for Gaussian and count forecasts*.
 [arXiv.2303.15135](https://doi.org/10.48550/arXiv.2303.15135).
+
+## License
+
+This package is free and open source software, licensed under LGPL (\>=
+3).
+
+## Getting help
+
+If you encounter a clear bug, please file a minimal reproducible example
+on [GitHub](https://github.com/IDSIA/bayesRecon/issues).
