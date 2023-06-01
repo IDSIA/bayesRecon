@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
 [![CRAN status](https://www.r-pkg.org/badges/version/bayesRecon)](https://CRAN.R-project.org/package=bayesRecon)
 [![](http://cranlogs.r-pkg.org/badges/grand-total/bayesRecon)](https://cran.r-project.org/package=bayesRecon)
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
-[![License: LGPL (>= 3)](https://img.shields.io/badge/license-LGPL (>= 3)-forestgreen.svg)](https://cran.r-project.org/web/licenses/LGPL (>= 3))
+[![License: LGPL (>= 3)](https://img.shields.io/badge/license-LGPL (>= 3)-yellow.svg)](https://cran.r-project.org/web/licenses/LGPL (>= 3))
 <!-- badges: end -->
 
 The package `bayesRecon` implements probabilistic reconciliation of hierarchical time series forecasts via conditioning.
@@ -31,6 +31,9 @@ The main functions are:
  * `reconc_BUIS`: a generic tool for the reconciliation of any probabilistic time series forecast via importance sampling;
     this is the recommended option for non-Gaussian base forecasts;
  * `reconc_MCMC`: a generic tool for the reconciliation of probabilistic count time series forecasts via Markov Chain Monte Carlo.
+ 
+## News
+:boom: [2023-05-26] bayesRecon v0.1.0 is released!
  
 ## Installation
 

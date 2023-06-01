@@ -12,7 +12,7 @@ status](https://www.r-pkg.org/badges/version/bayesRecon)](https://CRAN.R-project
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![License: LGPL (\>=
-3)](https://img.shields.io/badge/license-LGPL%20(%3E=%203)-forestgreen.svg)](https://cran.r-project.org/web/licenses/LGPL%20(%3E=%203))
+3)](https://img.shields.io/badge/license-LGPL%20(%3E=%203)-yellow.svg)](https://cran.r-project.org/web/licenses/LGPL%20(%3E=%203))
 <!-- badges: end -->
 
 The package `bayesRecon` implements probabilistic reconciliation of
@@ -27,6 +27,10 @@ The main functions are:
   the recommended option for non-Gaussian base forecasts;
 - `reconc_MCMC`: a generic tool for the reconciliation of probabilistic
   count time series forecasts via Markov Chain Monte Carlo.
+
+## News
+
+:boom: \[2023-05-26\] bayesRecon v0.1.0 is released!
 
 ## Installation
 
