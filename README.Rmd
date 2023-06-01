@@ -236,10 +236,44 @@ for real-valued and count time series*. [arXiv.2210.02286](https://doi.org/10.48
 
 Zambon, L., Agosto, A., Giudici, P., Corani, G. (2023). *Properties of the reconciled distributions for Gaussian and count forecasts*. [arXiv.2303.15135](https://doi.org/10.48550/arXiv.2303.15135).
 
-## License
+## Contributors
 
-This package is free and open source software, licensed under LGPL (&gt;=
-3).
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%">
+        <a href="https://kentcdodds.com">
+        <img src="https://media.licdn.com/dms/image/C5103AQEQ_Php5q4mbg/profile-displayphoto-shrink_200_200/0/1516725458229?e=1689206400&v=beta&t=3J2eIC3tnXpzXZtR0RBmWGF9npTO-IrRqDq_cGIfhD8" width="100px;" alt="Dario Azzimonti" style="border-radius:50%;border:1px solid #646464;"/><br />
+        <sub><b>Dario Azzimonti</b></sub></a><br />
+        <sub>(Maintainer)</sub><br />
+        <a href="mailto:dario.azzimonti@gmail.com?subject=bayesRecon package!">dario.azzimonti@gmail.com</a>
+      </td>
+      <td align="center" valign="top" width="14.28%">
+        <a href="">
+        <img src="https://avatars.githubusercontent.com/u/61237332?v=4" width="100px;" alt="Nicolò Rubattu" style="border-radius:50%;border:1px solid #646464;"/><br />
+        <sub><b>Nicolò Rubattu</b></sub></a><br />
+        <a href="mailto:nicolo.rubattu@idsia.ch?subject=bayesRecon package!">nicolo.rubattu@idsia.ch</a>
+      </td>
+      <td align="center" valign="top" width="14.28%">
+        <a href="">
+        <img src="https://static.vecteezy.com/system/resources/thumbnails/003/337/584/small/default-avatar-photo-placeholder-profile-icon-vector.jpg" width="100px;" alt="Lorenzo Zambon" style="border-radius:50%;border:1px solid #646464;"/><br />
+        <sub><b>Lorenzo Zambon</b></sub></a><br />
+        <a href="mailto:lorenzo.zambon@idsia.ch?subject=bayesRecon package!">lorenzo.zambon@idsia.ch</a>
+      </td>
+      <td align="center" valign="top" width="14.28%">
+        <a href="https://sites.google.com/site/awerbhjkl678214/home">
+        <img src="https://ipg.idsia.ch/images/People/corani.png_2.png" width="100px;" alt="Giorgio Corani" style="border-radius:50%;border:1px solid #646464;"/><br />
+        <sub><b>Giorgio Corani</b></sub></a><br />
+        <a href="mailto:giorgio.corani@idsia.ch">giorgio.corani@idsia.ch</a>
+      </td>
+      </tr>
+  </tbody>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
 
 ## Getting help
 
