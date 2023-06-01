@@ -266,26 +266,26 @@ the reconciled distributions for Gaussian and count forecasts*.
 <tr>
 <td align="center" valign="top" width="14.28%">
 <a href="https://sites.google.com/view/darioazzimonti/home">
-<img src="github.com/dazzimonti.png" width="100px;" alt="Dario Azzimonti" style="border-radius:50%;border:1px solid #646464;"/><br />
+<img src="https://github.com/dazzimonti.png" width="100px;" alt="Dario Azzimonti" style="border-radius:50%;border:1px solid #646464;"/><br />
 <sub><b>Dario Azzimonti</b></sub></a><br />
 <sub>(Maintainer)</sub><br />
 <a href="mailto:dario.azzimonti@gmail.com?subject=bayesRecon package!">dario.azzimonti@gmail.com</a>
 </td>
 <td align="center" valign="top" width="14.28%">
 <a href="">
-<img src="github.com/nicorbtt.png" width="100px;" alt="Nicolò Rubattu" style="border-radius:50%;border:1px solid #646464;"/><br />
+<img src="https://github.com/nicorbtt.png" width="100px;" alt="Nicolò Rubattu" style="border-radius:50%;border:1px solid #646464;"/><br />
 <sub><b>Nicolò Rubattu</b></sub></a><br />
 <a href="mailto:nicolo.rubattu@idsia.ch?subject=bayesRecon package!">nicolo.rubattu@idsia.ch</a>
 </td>
 <td align="center" valign="top" width="14.28%">
 <a href="">
-<img src="github.com/LorenzoZambon.png" width="100px;" alt="Lorenzo Zambon" style="border-radius:50%;border:1px solid #646464;"/><br />
+<img src="https://github.com/LorenzoZambon.png" width="100px;" alt="Lorenzo Zambon" style="border-radius:50%;border:1px solid #646464;"/><br />
 <sub><b>Lorenzo Zambon</b></sub></a><br />
 <a href="mailto:lorenzo.zambon@idsia.ch?subject=bayesRecon package!">lorenzo.zambon@idsia.ch</a>
 </td>
 <td align="center" valign="top" width="14.28%">
 <a href="https://sites.google.com/site/awerbhjkl678214/home">
-<img src="github.com/gcorani.png" width="100px;" alt="Giorgio Corani" style="border-radius:50%;border:1px solid #646464;"/><br />
+<img src="https://github.com/gcorani.png" width="100px;" alt="Giorgio Corani" style="border-radius:50%;border:1px solid #646464;"/><br />
 <sub><b>Giorgio Corani</b></sub></a><br />
 <a href="mailto:giorgio.corani@idsia.ch">giorgio.corani@idsia.ch</a>
 </td>
