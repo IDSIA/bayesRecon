@@ -6,3 +6,4 @@
 ^TODO\.md$
 ^examples$
 ^\.github$
+^codecov\.yml$
