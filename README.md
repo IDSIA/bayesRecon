@@ -11,6 +11,8 @@ status](https://www.r-pkg.org/badges/version/bayesRecon)](https://CRAN.R-project
 [![](http://cranlogs.r-pkg.org/badges/grand-total/bayesRecon)](https://cran.r-project.org/package=bayesRecon)
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+“[![License: LGPL (\>=
+3)](https://img.shields.io/badge/license-LGPL%20(%3E=%203)-red.svg)](https://cran.r-project.org/web/licenses/LGPL%20(%3E=%203))”
 <!-- badges: end -->
 
 The package `bayesRecon` implements probabilistic reconciliation of

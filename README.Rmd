@@ -20,6 +20,7 @@ knitr::opts_chunk$set(
 [![R-CMD-check](https://github.com/IDSIA/bayesRecon/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/IDSIA/bayesRecon/actions/workflows/R-CMD-check.yaml)
 [![](http://cranlogs.r-pkg.org/badges/grand-total/bayesRecon)](https://cran.r-project.org/package=bayesRecon)
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+"[![License: LGPL (>= 3)](https://img.shields.io/badge/license-LGPL (>= 3)-red.svg)](https://cran.r-project.org/web/licenses/LGPL (>= 3))"
 <!-- badges: end -->
 
 The package `bayesRecon` implements probabilistic reconciliation of hierarchical time series forecasts via conditioning.
