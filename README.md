@@ -1,8 +1,11 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# bayesRecon: BAyesian reCONciliation of hierarchical forecasts <img src="./man/figures/logo.png" align="right" />
+# bayesRecon: BAyesian reCONciliation of hierarchical forecasts
 
+<!-- 
+<img src="./man/figures/logo.png" align="right" />
+-->
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/IDSIA/bayesRecon/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/IDSIA/bayesRecon/actions/workflows/R-CMD-check.yaml)
