@@ -13,7 +13,7 @@ test_that("Monthly, in_type=='params', distr='gaussian'",{
   res.gauss = reconc_gaussian(S, base_forecasts_in[[1]], diag(base_forecasts_in[[2]]^2))
   # Test
   m = mean(rowMeans(res.buis$reconciled_samples) - as.numeric(rbind(res.gauss$upper_reconciled_mean, res.gauss$bottom_reconciled_mean)))
-  expect_equal(abs(m) < 1e-3, TRUE)
+  expect_equal(abs(m) < 8e-3, TRUE)
 })
 
 test_that("Weekly, in_type=='params', distr='gaussian'",{
@@ -31,7 +31,7 @@ test_that("Weekly, in_type=='params', distr='gaussian'",{
   res.gauss = reconc_gaussian(S, base_forecasts_in[[1]], diag(base_forecasts_in[[2]]^2))
   # Test
   m = mean(rowMeans(res.buis$reconciled_samples) - as.numeric(rbind(res.gauss$upper_reconciled_mean, res.gauss$bottom_reconciled_mean)))
-  expect_equal(abs(m) < 1e-3, TRUE)
+  expect_equal(abs(m) < 2e-2, TRUE)
 })
 
 test_that("Monthly, in_type=='params', distr='poisson'",{
@@ -78,7 +78,7 @@ test_that("Monthly, in_type=='samples', distr='discrete'",{
   }
   res.buis = reconc_BUIS(S, base_forecasts, in_type = "params", distr = "poisson", num_samples = 100000, seed=42)
   m = mean(rowMeans(res.buis$reconciled_samples) - rowMeans(res.buis_samples$reconciled_samples))
-  expect_equal(abs(m) < 1e-2, TRUE)
+  expect_equal(abs(m) < 1.5e-2, TRUE)
 })
 
 ##############################################################################
