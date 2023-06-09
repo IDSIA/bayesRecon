@@ -46,7 +46,7 @@
       w = .emp_pmf(b, u)
     } else if (distr_ == "continuous") {
       # KDE
-      d = stats::density(u, bw = "SJ", n = 2 ** 16)
+      d = stats::density(u, bw = "SJ", n = 2 ** 16, old.coords=TRUE)
       df = stats::approxfun(d)
       w = df(b)
     }
