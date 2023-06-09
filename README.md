@@ -15,7 +15,7 @@ status](https://www.r-pkg.org/badges/version/bayesRecon)](https://CRAN.R-project
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![License: LGPL (\>=
-3)](https://img.shields.io/badge/license-LGPL%20(%3E=%203)-yellow.svg)](https://cran.r-project.org/web/licenses/LGPL%20(%3E=%203))
+3)](https://img.shields.io/badge/license-LGPL%20(%3E=%203)-yellow.svg)](https://www.gnu.org/licences/lgpl-3.0)
 <!-- badges: end -->
 
 The package `bayesRecon` implements probabilistic reconciliation of
@@ -275,13 +275,13 @@ the reconciled distributions for Gaussian and count forecasts*.
 <a href="mailto:dario.azzimonti@gmail.com?subject=bayesRecon package!">dario.azzimonti@gmail.com</a>
 </td>
 <td align="center" valign="top" width="14.28%">
-<a href="">
+<a href="#">
 <img src="https://github.com/nicorbtt.png" width="100px;" alt="Nicolò Rubattu" style="border-radius:50%;border:1px solid #646464;"/><br />
 <sub><b>Nicolò Rubattu</b></sub></a><br />
 <a href="mailto:nicolo.rubattu@idsia.ch?subject=bayesRecon package!">nicolo.rubattu@idsia.ch</a>
 </td>
 <td align="center" valign="top" width="14.28%">
-<a href="">
+<a href="#">
 <img src="https://github.com/LorenzoZambon.png" width="100px;" alt="Lorenzo Zambon" style="border-radius:50%;border:1px solid #646464;"/><br />
 <sub><b>Lorenzo Zambon</b></sub></a><br />
 <a href="mailto:lorenzo.zambon@idsia.ch?subject=bayesRecon package!">lorenzo.zambon@idsia.ch</a>
