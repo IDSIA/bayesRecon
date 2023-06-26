@@ -9,7 +9,11 @@
     "poisson"  = {
       samples = stats::rpois(n=n, lambda = params[[1]]) },
     "negbin"   = {
-      samples = stats::rnbinom(n=n, size = params[[1]], prob = params[[2]]) },
+      samples <-if (params[[2]] == 0) {
+          stats::rpois(n=n, lambda = params[[1]])
+        } else {
+          stats::rnbinom(n=n, mu = params[[1]], size = params[[2]])
+        } },
   )
   return(samples)
 }
@@ -21,7 +25,7 @@
     "poisson"  = {
       pmf = stats::dpois(x=x, lambda = params[[1]]) },
     "negbin"   = {
-      pmf = stats::dnbinom(x=x, size = params[[1]], prob = params[[2]]) },
+      pmf = stats::dnbinom(x=x, mu = params[[1]], size = params[[2]]) },
   )
   return(pmf)
 }
@@ -32,6 +36,7 @@
   return(w)
 }
 .fix_weights <- function(w) {
+  # print(paste("% not support:", mean(is.na(w))))
   w[is.na(w)] = 0
   if (sum(w) == 0) {
     w = w + 1

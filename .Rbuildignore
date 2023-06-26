@@ -7,3 +7,5 @@
 ^examples$
 ^\.github$
 ^codecov\.yml$
+^doc$
+^Meta$
