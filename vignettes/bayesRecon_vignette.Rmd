@@ -18,6 +18,10 @@ knitr::opts_chunk$set(
 set.seed(42)
 ```
 
+```{r klippy, echo=FALSE, include=TRUE}
+klippy::klippy(position = c('top', 'right'), tooltip_message = 'Copy', tooltip_success = 'Done', color="black")
+```
+
 # Introduction
 
 This vignette explains how to probabilistically reconcile hierarchical forecasts of time
