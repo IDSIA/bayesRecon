@@ -149,10 +149,10 @@ $$\mathbf{G} = (\mathbf{S}^T\mathbf{W}^{-1}_h\mathbf{S})^{-1}\mathbf{S}^T\mathbf
 where $\mathbf{W}_h = \text{Var}[(y_h - \hat{y}_h)]$.
 
 ## Probabilistic Reconciliation
-In a probabilistic framework, forecasts (*base distribution*) are assumed to be in the form of a predictive distribution $\pi_y \in \mathcal{P}(\mathbb{R}^{n+m})$, rather then a point forecast.
+We assume the base forecasts  to be constituted by predictive distributions, $\pi_y \in \mathcal{P}(\mathbb{R}^{n+m})$.
 
 Let $\mathcal{S} := \{ \mathbf{u} = \mathbf{A}\mathbf{b} \}$ be the the coherent subspace.
-The aim of probabilistic reconciliation is is to find a *reconciled distribution* $\tilde{\pi}_y \in \mathcal{P}(\mathcal{S})$. <br><br>
+Probabilistic reconciliation finds a *reconciled distribution* $\tilde{\pi}_y \in \mathcal{P}(\mathcal{S})$. <br><br>
 ```{r fig3, fig.show = "hold", fig.cap="**Figure 3**: Point reconciliation (left), probabilistic reconciliation (right).", out.width = "40%", fig.align = "center", echo=FALSE}
 knitr::include_graphics("../man/figures/pointrec.png")
 knitr::include_graphics("../man/figures/probrec.png")
@@ -256,8 +256,8 @@ library(bayesRecon)
 In this example, we consider a *Monthly* time series of car part sales, from Jan. 1998 to Mar. 2002 [@hyndman2008forecasting].
 ```{r carpart-plot, dpi=300, out.width = "100%", fig.align='center', fig.cap="**Figure 5**: Monthly car part sales.", fig.dim = c(6, 3)}
 layout(mat = matrix(c(1,2), nrow = 1, ncol = 2), widths = c(2,1))
-plot(carpart, xlab = "Time", ylab = "Car part sales", main = NULL)
-hist(carpart, xlab = "Car part sales", main = NULL)
+plot(carparts, xlab = "Time", ylab = "Car part sales", main = NULL)
+hist(carparts, xlab = "Car part sales", main = NULL)
 ```
 <br><br>
 Here we use a simple train-test split. We want to forecast the last 12 observations (i.e. 1 year).
