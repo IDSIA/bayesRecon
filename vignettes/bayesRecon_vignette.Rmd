@@ -2,6 +2,7 @@
 title: "Probabilistic Reconciliation via Conditioning with `bayesRecon`"
 author: "Nicolò Rubattu, Lorenzo Zambon"
 date: "`r Sys.Date()`"
+lang: "en"
 output: html_vignette
 bibliography: references.bib
 vignette: >
@@ -24,17 +25,21 @@ klippy::klippy(position = c('top', 'right'), tooltip_message = 'Copy', tooltip_s
 
 # Introduction
 
-This vignette explains how to probabilistically reconcile hierarchical forecasts of time
-series using the `bayesRecon` package ([R CRAN](https://cran.r-project.org/package=bayesRecon)).
+This vignette  how to  reconcile hierarchical forecasts using the `bayesRecon` package ([R CRAN](https://cran.r-project.org/package=bayesRecon)). The reconciliation is probabilistic.
 
-Frequently, time series data can naturally be broken down into smaller components. 
-For example, consider the time series of total number of car sales by a dealer. 
-It can be disaggregated by car manufacturer, then categories (e.g. City, Compact, Station Wagon, SUV), and finally the car model (e.g. Audi, BMW).
+Frequently, time series data can be naturally disaggregated. 
+For example, 
+a hierarchical time series regarding
+the  car sold by a dealer  could be obtained  by disaggregating the total sales first by  manufacturer and then by car type  (e.g. City, Compact, Station Wagon, SUV).
+Hierarchical time series are often the result of taxonomies and geographic division.
 
-Hierarchical time series are often defined as the result of taxonomies and geographic division, or temporal aggregation [@athanasopoulos2017forecasting]. \
+Another type of hierarchical
+forecast involves 
+temporal hierarchies [@athanasopoulos2017forecasting], 
+in which case the same variable is forecast at different time scales.
 For example, consider a *monthly* time series. 
 We want to predict the next year (i.e., a forecasting horizon *h* = 12).
-By aggregation of monthly values, we may obtain *quarterly* and *yearly* time series. 
+We  obtain for instance *quarterly* and *yearly* time series by aggregating of monthly values.
 Bottom levels are generally noisy, while upper levels are smoother and trends and seasonal patterns are better observable. 
 <br><br>
 
