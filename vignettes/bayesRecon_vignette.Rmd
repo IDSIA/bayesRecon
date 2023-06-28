@@ -256,8 +256,8 @@ library(bayesRecon)
 In this example, we consider a *Monthly* time series of car part sales, from Jan. 1998 to Mar. 2002 [@hyndman2008forecasting].
 ```{r carpart-plot, dpi=300, out.width = "100%", fig.align='center', fig.cap="**Figure 5**: Monthly car part sales.", fig.dim = c(6, 3)}
 layout(mat = matrix(c(1,2), nrow = 1, ncol = 2), widths = c(2,1))
-plot(carparts, xlab = "Time", ylab = "Car part sales", main = NULL)
-hist(carparts, xlab = "Car part sales", main = NULL)
+plot(carpart, xlab = "Time", ylab = "Car part sales", main = NULL)
+hist(carpart, xlab = "Car part sales", main = NULL)
 ```
 <br><br>
 Here we use a simple train-test split. We want to forecast the last 12 observations (i.e. 1 year).
