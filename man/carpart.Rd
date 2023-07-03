@@ -5,7 +5,7 @@
 \alias{carpart}
 \title{Carpart time series}
 \format{
-Univariate ime series of class \link[stats]{ts}.
+Univariate time series of class \link[stats]{ts}.
 }
 \source{
 Hyndman, R.J., Koehler, A.B., Ord, J.K., and Snyder, R.D., (2008) Forecasting with exponential
