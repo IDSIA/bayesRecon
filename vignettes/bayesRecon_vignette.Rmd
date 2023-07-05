@@ -68,6 +68,7 @@ install.packages('bayesRecon', dependencies = TRUE)
 Load the package.
 ```{r load}
 library(bayesRecon)
+library(forecast)
 ```
 
 # Example 1: Carpart
@@ -122,7 +123,7 @@ We collect the samples in a list of length equal to the number of predictive dis
 
 ``` {r hier-fore}
 # install.packages("glarma", dependencies = TRUE)
-library(glarma)
+#library(glarma)
 
 fc.samples <- list()
 B <- 20000
@@ -145,7 +146,7 @@ for (l in seq_along(train.agg)) {
   tmp <- matrix(data = NA, nrow = h, ncol = B)
   for (s in (1:B)) {
     # each call to 'forecast.glarma' returns a simulation path
-    tmp[, s] <- forecast(
+    tmp[, s] <- glarma::forecast(
       model,
       n.ahead = h,
       newdata = cbind(intercept = rep(1, h)),
