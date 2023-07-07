@@ -76,7 +76,7 @@ library(forecast)
 In this example, we consider a *monthly* time series of car part sales, from Jan. 1998 to Mar. 2002. \
 This is actually the #2655 time series of the *carparts* dataset [@hyndman2008forecasting].
 
-The time series consists of **count** data, and marginal  distribution of its values is skewed towards low values. Hence, we  produce base forecasts using a method specialized for  count time series.
+The time series consists of **count** data, and the distribution of its values is skewed. Hence, we  produce base forecasts using a method specialized for  count time series.
 
 ```{r carpart-plot, dpi=300, out.width = "100%", fig.align='center', fig.cap="**Figure 1**: Carpart: monthly car part sales.", fig.dim = c(6, 3)}
 layout(mat = matrix(c(1, 2), nrow = 1, ncol = 2), widths = c(2, 1))
@@ -115,14 +115,14 @@ for (l in levels) {
 <br><br>
 To generate the  forecasts, we 
 use the  `glarma` package ([R CRAN](https://cran.r-project.org/package=glarma)), which is specialized in forecasting count time series. It is based on
-a Generalized Linear Autoregressive Moving Average Model.
+a Generalized Linear Autoregressive Moving Average model.
 We adopt a Poisson predictive distribution.
 
 The models produce forecasts for 1 year ahead;
 <!-- *h* steps ahead according to the temporal level. -->
 this is *h=12* steps ahead for the monthly level,  *h=4* steps ahead  for the quarterly level, etc.
 Each forecast is constituted by $\mathbf{B}$ integer samples;
-we set $\mathbf{B}=20000$.
+we set $\mathbf{B}=20000$. *LZ: cambierei notazione per il numero di sample, si può confondere con la B che usiamo nei paper (e il grassetto di solilo lo usiamo per vettori)*
 
 Below we use a for loop to iterate over the levels of the temporal hierarchy.
 For each level, we fit an independent model; then  we obtain 
@@ -193,14 +193,14 @@ recon.res <- bayesRecon::reconc_BUIS(
   seed = 42
 )
 ```
-The function returns samples from the  *reconciled forecast*.
+The function returns samples from the  *reconciled forecast distribution*.
 ```{r res}
 reconciled_samples <- recon.res$reconciled_samples
 dim(reconciled_samples)
 
 ```
 
-We now compute the Mean Absolute Error (MAE) and the Continuous Ranked Probability Score (CRPS) for the bottom time series.  For CRPS, we use `crps_sample` from the package `scoringRules` ([R CRAN](https://cran.r-project.org/package=scoringRules)).
+We now compute the Mean Absolute Error (MAE) and the Continuous Ranked Probability Score (CRPS) for the bottom *LZ: (i.e., weekly)* time series.  For CRPS, we use `crps_sample` from the package `scoringRules` ([R CRAN](https://cran.r-project.org/package=scoringRules)).
 
 ```{r metrics}
 # install.packages("scoringRules", dependencies = TRUE)
@@ -288,9 +288,9 @@ for (level in train.agg) {
 ```
 
 
-Before reconciling the forecasts,  we obtain  matrix $\mathbf{S}$ using the function `get_reconc_matrices`.
+Before reconciling the forecasts,  we obtain the matrix $\mathbf{S}$ using the function `get_reconc_matrices`. *LZ: Indicare colori nella caption? (red=1, yellow=0)*
 
-```{r m3-rmat, dpi=300, out.width = "50%", fig.align='center', fig.cap="**Figure 4**: M3: A reconciliation matrix.", fig.dim = c(6, 6)}
+```{r m3-rmat, dpi=300, out.width = "50%", fig.align='center', fig.cap="**Figure 4**: M3: The summing matrix $\mathbf{S}$.", fig.dim = c(6, 6)}
 rmat <- get_reconc_matrices(agg_levels = c(2, 3, 4, 6, 12), h = 18)
 
 par(mai = c(0,0,0,0))
@@ -299,7 +299,7 @@ image(t(apply(t(rmat$A),1,rev)), xaxt='n', yaxt='n', ann=FALSE)
 <br>
 We now use the function `reconc_gaussian` which implements the closed-form Gaussian reconciliation,
 and the function `reconc_BUIS` which implements the Bottom-Up Important Sampling (BUIS) algorithm. 
-We can check that the algorithms return consistent results, apart from minor numerical differences due to the sampling randomness of BUIS.
+We can check that the algorithms return consistent results, apart from minor numerical differences due to the sampling randomness of BUIS. *LZ: secondo me non è chiarissimo il confronto tra i due risultati. Magari aggiungere commento nel codice?*
 
 ```{r m3-reco} 
 recon.gauss <- bayesRecon::reconc_gaussian(
@@ -324,6 +324,7 @@ round(rbind(
 ```
 
 We now show the *reconciled forecasts*.
+*LZ: potrebbe valere la pena mostrare anche i base forecast?*
 
 ```{r m3-plotfore, dpi=300, out.width = "100%", fig.align='center', fig.cap="**Figure 5**: M3: visualization of the reconciled forecasts. The red line is the test data, the blu line the recociled mean, the shadow blue region the reconciled 95% confidence interval.", fig.dim = c(6, 4)}
 yreconc.mu <- rowMeans(reconc.buis$bottom_reconciled_samples)
@@ -346,9 +347,10 @@ It is available via `bayesRecon::infantMortality`.
 It is a *yearly* grouped **cross-sectional** time series dataset, from 1901 to 2003, of infant mortality counts (deaths) in Australia; disaggregated by state, and sex (male and female). 
 States code refer to: New South Wales (NSW), Victoria (VIC), Queensland (QLD), South Australia (SA), Western Australia (WA), Northern Territory (NT), Australian Capital Territory (ACT), and Tasmania (TAS).
 
-We want to forecast the next year (2004). We use the auto.arima forecasting models from the package `forecast` ([R CRAN](https://cran.r-project.org/package=forecast)) to generate gaussian predictions for each node of the hierarchy. 
+We want to forecast the next year (2004). We use the auto.arima forecasting models from the package `forecast` ([R CRAN](https://cran.r-project.org/package=forecast)) to generate Gaussian predictions for each node of the hierarchy. 
 
 For each model we collect the residuals.
+*LZ: forse sottolinerei il fatto che ci servono per tenere conto delle correlazioni*
 
 ```{r infants-forecasts}
 # install.packages("forecast", dependencies = TRUE)
