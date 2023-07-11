@@ -11,8 +11,7 @@ List of time series of class \link[stats]{ts}.
 \url{https://forecasters.org/resources/time-series-data/m3-competition/}
 }
 \usage{
-train <- M3example$train
-test <- M3example$test
+M3example
 }
 \description{
 A monthly time series, from the M3 forecasting competition ("N1402").
