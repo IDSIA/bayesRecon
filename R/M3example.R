@@ -1,6 +1,6 @@
 #' A time series from the M3 forecasting competition
 #'
-#' A monthly time series, from the M3 forecasting competition ("N1402").
+#' A monthly time series, from the M3 forecasting competition ("N1485").
 #'
 #' @format
 #' List of time series of class \link[stats]{ts}.

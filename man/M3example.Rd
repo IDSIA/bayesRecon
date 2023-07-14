@@ -14,6 +14,6 @@ List of time series of class \link[stats]{ts}.
 M3example
 }
 \description{
-A monthly time series, from the M3 forecasting competition ("N1402").
+A monthly time series, from the M3 forecasting competition ("N1485").
 }
 \keyword{datasets}

@@ -8,9 +8,7 @@
 List of time series of class \link[stats]{ts}.
 }
 \source{
-R. J. Hyndman, R. A. Ahmed, G. Athanasopoulos and H.L. Shang (2011) Optimal combination
-forecasts for hierarchical time series. Computational Statistics and Data Analysis, 55(9), 2579–
-2589.
+hts package \href{https://cran.r-project.org/package=hts}{CRAN}
 }
 \usage{
 infantMortality
@@ -22,5 +20,10 @@ disaggregated by state (see below), and sex (male and female).
 \details{
 States: New South Wales (NSW), Victoria (VIC), Queensland (QLD), South Australia (SA), Western Australia
 (WA), Northern Territory (NT), Australian Capital Territory (ACT), and Tasmania (TAS).
+}
+\references{
+R. J. Hyndman, R. A. Ahmed, G. Athanasopoulos and H.L. Shang (2011) Optimal combination
+forecasts for hierarchical time series. Computational Statistics and Data Analysis, 55(9), 2579–
+2589.
 }
 \keyword{datasets}

@@ -1,7 +1,7 @@
 ---
 title: "Probabilistic Reconciliation via Conditioning with `bayesRecon`"
 author: "Nicolò Rubattu, Giorgio Corani, Dario Azzimonti, Lorenzo Zambon"
-date: "2023-07-10"
+date: "2023-07-14"
 lang: "en"
 output: html_vignette
 bibliography: references.bib
@@ -120,9 +120,10 @@ For each level, we fit an independent model; then  we obtain
 the  samples of the forecasts using the function `glarma::forecast.glarma`.
 Overall we have 28 predictive distributions (one for *Annual*, two for *Biannual*, etc.).
 We collect the samples of the 28 distributions in a list.
+
 The following lines of code take ~ 30 seconds on a personal computer.
 
-``` {r hier-fore}
+``` {r hier-fore, cache=TRUE}
 # install.packages("glarma", dependencies = TRUE)
 #library(glarma)
 
@@ -166,7 +167,11 @@ for (l in seq_along(train.agg)) {
 
 Base forecasts do not sum up correctly. In order to address incoherence we can now use a reconciliation algorithm.
 
-First, we obtain the summing matrix $\mathbf{S}$ using the function `get_reconc_matrices`. It requires the aggregation factors ($\{2, 3, 4, 6, 12\}$ in this example, the same used before to build the hierarchy), and the length of the forecasting horizon for the bottom time series (*h=12* in this example).
+First, we obtain the summing matrix $\mathbf{S}$ using the function `get_reconc_matrices`. 
+It requires: 
+
+*   the aggregation factors used before to build the hierarchy, $\{2, 3, 4, 6, 12\}$ in this example;
+*   the length of the forecasting horizon for the bottom time series (*h=12* in this example).
 
 ``` {r S}
 recon.matrices <- bayesRecon::get_reconc_matrices(agg_levels = c(2, 3, 4, 6, 12), h = 12)
@@ -231,6 +236,8 @@ metrics
 
 ```
 
+Note the improvements with respect to base forecast on both MAE and CRPS metrics.
+
 # Example 2: M3
 
 We now consider a *monthly* time series (N1485) from the M3 forecasting competition [@makridakis2000m3].
@@ -285,11 +292,15 @@ for (level in train.agg) {
 
 Before reconciling the forecasts,  we obtain the matrix $\mathbf{S}$ using the function `get_reconc_matrices`.
 
-```{r m3-rmat, dpi=300, out.width = '50%', fig.align='center', fig.cap="**Figure 4**: M3 - the summing matrix S (red=1, yellow=0).", fig.dim = c(6, 6)}
+```{r m3-rmat, dpi=300, out.width = '70%', fig.align='center', fig.cap="**Figure 4**: M3 - A matrix (red=1, yellow=0).", fig.dim = c(8, 8)}
 rmat <- get_reconc_matrices(agg_levels = c(2, 3, 4, 6, 12), h = 18)
 
-par(mai = c(0,0,0,0))
-image(t(apply(t(rmat$A),1,rev)), xaxt='n', yaxt='n', ann=FALSE)
+par(mai = c(1,1,0.5,0.5))
+image(1:ncol(rmat$A), 1:nrow(rmat$A), 
+      t(apply(t(rmat$A),1,rev)), 
+      xaxt='n', yaxt='n', ylab = "", xlab = levels[6])
+axis(1, at=1:ncol(rmat$A), label=1:ncol(rmat$A), las=1)
+axis(2, at=c(23,22,19,15,9), label=levels[1:5], las=2)
 ```
 <br>
 We now use the function `reconc_gaussian` which implements the closed-form Gaussian reconciliation,
@@ -381,7 +392,7 @@ for (s in infantMortality) {
 
 Build the $\mathbf{S}$ matrix.
 
-```{r infants-s, dpi=300, out.width = '50%', fig.align='center', fig.cap="**Figure 6**: Infants mortality - The summing matrix S (red=1, yellow=0).", fig.dim = c(6, 6)}
+```{r infants-s, dpi=300, out.width = '70%', fig.align='center', fig.cap="**Figure 6**: Infants mortality - A matrix (red=1, yellow=0).", fig.dim = c(8, 8)}
 # we have 16 bottom time series, and 11 upper time series
 A <- matrix(data = c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
                      1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -397,14 +408,20 @@ A <- matrix(data = c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 S <- rbind(A, diag(16))
 
 # plot of A
-par(mai = c(0,0,0,0))
-image(t(apply(t(A),1,rev)), xaxt='n', yaxt='n', ann=FALSE)
+par(mai = c(1.5,1,0.5,0.5))
+image(1:ncol(A), 1:nrow(A), 
+      t(apply(t(A),1,rev)), 
+      xaxt='n', yaxt='n', ann=FALSE)
+axis(1, at=1:ncol(A), label=names(infantMortality)[12:27], las=2)
+axis(2, at=c(1:11), label=rev(names(infantMortality)[1:11]), las=2)
 ```
 <br>
 
 Use Gaussian reconciliation, to ensure *coherent* forecasts. 
 
 We use a shrinkage estimation of the covariance matrix of the residuals.
+
+**TODO: write this function inside the package!**
 
 ```{r infants reconc}
 # Shrinkage estimation of a Covariance Matrix function (@hts:::shrink.estim)
@@ -427,7 +444,7 @@ shrink.covariance <- function (x, tar) {
 # means
 mu <- sapply(fc, "[[", 1)
 # Sample covariance
-Sigma.sample <- cov(residuals)
+Sigma.sample <- (t(residuals) %*% residuals) / (nrow(residuals) - 1)
 # Shrinkage covariance
 Sigma <- shrink.covariance(residuals, tar = diag(diag(Sigma.sample)))$cov.shrink
 ```
@@ -439,10 +456,8 @@ recon.gauss <- bayesRecon::reconc_gaussian(S,
                                            base_forecasts.mu = mu,
                                            base_forecasts.Sigma = Sigma)
 
-# point forecasts
-pf <- c(recon.gauss$upper_reconciled_mean,
-        recon.gauss$bottom_reconciled_mean)
-round(pf, 2)
+# check coherence
+A %*% recon.gauss$bottom_reconciled_mean - recon.gauss$upper_reconciled_mean
 ```
 
 # References

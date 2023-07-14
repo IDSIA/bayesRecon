@@ -85,7 +85,7 @@
       f.rhs,
       all.int = TRUE,
       binary.vec = 1:(k + k ^ 2),
-      scale = 0
+      scale = 196
     )$solution[1:k]
 
   return(indices_sol)
