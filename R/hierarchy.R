@@ -1,80 +1,74 @@
 # Function to find the best hierarchy contained in A
 # Returns a vector with length equal to the number of rows of A
 # Each entry is 1 if the corresponding row has to be picked, and 0 otherwise
-.get_hier_rows <- function(A) {
+.get_hier_rows <- function(A, scale = 196) {
   k <- nrow(A)
   m <- ncol(A)
-
+  
   # matrix C of the coefficients of the non-linear problem
   # (k variables, 1 constraint)
-
+  
   C <- A %*% t(A)
-
+  
   for (i in 1:k) {
     for (j in 1:k) {
       C[i, j] <- C[i, j] * sum((A[i, ] - A[j, ]) * (A[i, ] - A[j, ] - 1)) *
         sum((A[j, ] - A[i, ]) * (A[j, ] - A[i, ] - 1))
     }
   }
-
+  
   #-------------------
   # LINEARIZED PROBLEM
-  # Number of variables: k + k^2 + m + 1
-  # Number of constraints: 1 + k^2 + k^2 + k^2 + m + m
-
+  # Number of variables: k + k^2 + 1
+  # Number of constraints: 1 + k^2 + k^2 + k^2 + m
+  
   # Set coefficients of the objective function
-  f.obj <- c(rep(-1, k), rep(0, k ^ 2), rep(0, m), 1 - 1 / (2 * k))
-
+  f.obj <- c(rep(-1, k), rep(0, k ^ 2), 1 - 1 / (2 * k))
+  
   # Set matrix corresponding to coefficients of constraints by rows
-
+  
   coeff <-
-    c(rep(0, k), as.vector(C), rep(0, m), 0) #first constraint
-
-  M1 <- matrix(0, k ^ 2, k + k ^ 2 + m + 1)     #z_{ij} <= x_i
+    c(rep(0, k), as.vector(C), 0) #first constraint
+  
+  M1 <- matrix(0, k ^ 2, k + k ^ 2 + 1)     #z_{ij} <= x_i
   for (i in 1:k) {
     temp <- matrix(0, k, k)
     temp[i, ] <- rep(-1, k)
     M1[, i] <- as.vector(temp)
   }
   M1[, (k + 1):(k + k ^ 2)] <- diag(1, k ^ 2)
-
-  M2 <- matrix(0, k ^ 2, k + k ^ 2 + m + 1)     #z_{ij} <= x_j
+  
+  M2 <- matrix(0, k ^ 2, k + k ^ 2 + 1)     #z_{ij} <= x_j
   for (i in 1:k) {
     temp <- matrix(0, k, k)
     temp[, i] <- rep(-1, k)
     M2[, i] <- as.vector(temp)
   }
   M2[, (k + 1):(k + k ^ 2)] <- diag(1, k ^ 2)
-
-  M3 <- matrix(0, k ^ 2, k + k ^ 2 + m + 1)     #z_{ij} >= x_i + x_j - 1
+  
+  M3 <- matrix(0, k ^ 2, k + k ^ 2 + 1)     #z_{ij} >= x_i + x_j - 1
   M3[, 1:k] <- M1[, 1:k] + M2[, 1:k]
   M3[, (k + 1):(k + k ^ 2)] <- diag(1, k ^ 2)
-
-  M4 <- matrix(0, m, k + k ^ 2 + m + 1)       #y_j <= y
-  M4[, (k + k ^ 2 + 1):(k + k ^ 2 + m)] <- diag(1, m)
-  M4[, k + k ^ 2 + m + 1] <- rep(-1, m)
-
-  M5 <- matrix(0, m, k + k ^ 2 + m + 1)       #y_j = \sum_i x_i A_{ij}
-  M5[, 1:k] <- t(A)
-  M5[, (k + k ^ 2 + 1):(k + k ^ 2 + m)] <- diag(-1, m)
-
-  f.con <- rbind(coeff, M1, M2, M3, M4, M5)
-
+  
+  M4 <- matrix(0, m, k + k ^ 2 + 1)         #\sum_i x_i A_{ij} <= y
+  M4[, 1:k] <- t(A)
+  M4[, k + k ^ 2 + 1] <- rep(-1, m)
+  
+  f.con <- rbind(coeff, M1, M2, M3, M4)
+  
   # Set inequality/equality signs
   f.dir <- c("=",
              rep("<=", k ^ 2),
              rep("<=", k ^ 2),
              rep(">=", k ^ 2),
-             rep("<=", m),
-             rep("=", m))
-
+             rep("<=", m))
+  
   # Set right hand side coefficients
-  f.rhs <- c(0, rep(0, k ^ 2), rep(0, k ^ 2), rep(-1, k ^ 2),
-             rep(0, m), rep(0, m))
-
+  f.rhs <- c(0, rep(0, k ^ 2), rep(0, k ^ 2), rep(-1, k ^ 2), rep(0, m))
+  
   #---------------------
   # Solve the LP problem
-
+  
   # Variables final values
   indices_sol <-
     lpSolve::lp(
@@ -87,7 +81,7 @@
       binary.vec = 1:(k + k ^ 2),
       scale = 196
     )$solution[1:k]
-
+  
   return(indices_sol)
 }
 
