@@ -8,7 +8,7 @@
 Univariate time series of class \link[stats]{ts}.
 }
 \source{
-Godahewa, Rakshitha, Bergmeir, Christoph, Webb, Geoff, Hyndman, Rob, & Montero-Manso, Pablo. (2020). Car Parts Dataset (without Missing Values) (Version 2) \href{https://doi.org/10.5281/zenodo.4656021}{DOI}
+Godahewa, Rakshitha, Bergmeir, Christoph, Webb, Geoff, Hyndman, Rob, & Montero-Manso, Pablo. (2020). Car Parts Dataset (without Missing Values) (Version 2) \doi{10.5281/zenodo.4656021}
 }
 \usage{
 carpart
@@ -20,6 +20,6 @@ A monthly time series from the \code{carparts} dataset, 51 observations, Jan 199
 Hyndman, R.J., Koehler, A.B., Ord, J.K., and Snyder, R.D., (2008) Forecasting with exponential
 smoothing: the state space approach, Springer
 
-Godahewa, Rakshitha, Bergmeir, Christoph, Webb, Geoff, Hyndman, Rob, & Montero-Manso, Pablo. (2020). Car Parts Dataset (without Missing Values) (Version 2) \href{https://doi.org/10.5281/zenodo.4656021}{DOI}
+Godahewa, Rakshitha, Bergmeir, Christoph, Webb, Geoff, Hyndman, Rob, & Montero-Manso, Pablo. (2020). Car Parts Dataset (without Missing Values) (Version 2) \doi{10.5281/zenodo.4656021}
 }
 \keyword{datasets}
