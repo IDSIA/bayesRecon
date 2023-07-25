@@ -31,14 +31,13 @@ klippy::klippy(position = c('top', 'right'), tooltip_message = 'Copy', tooltip_s
 
 # Introduction
 
-This vignette shows how to use the `bayesRecon` package for the *probabilistic reconciliation* of hierarchical forecasts.
+This vignette shows how to use the `bayesRecon` package for the *probabilistic reconciliation* of hierarchical forecasts. We provide three examples:
 
-In the **Carpart** example we build a temporal hierarchy 
-on a count time series and we reconcile it via the Bottom-Up Importance Sampling (BUIS)  algorithm.
+1. **Carpart**: we build a temporal hierarchy on a count time series and we reconcile it via the Bottom-Up Importance Sampling (BUIS)  algorithm.
 
-In the **M3** example we build a temporal hierarchy on a smooth time series and we reconcile it using Gaussian reconciliation.
+2. **M3**: we build a temporal hierarchy on a smooth time series and we reconcile it using Gaussian reconciliation.
 
-In the **Infants mortality** example we reconcile cross-sectional forecasts.
+3. **Infants mortality**: we reconcile cross-sectional forecasts.
 
 The implemented reconciliation algorithms are discussed in:
 
@@ -65,7 +64,7 @@ library(bayesRecon)
 
 # Example 1: Carpart
 In this example, we consider a *monthly* time series of car part sales, from Jan. 1998 to Mar. 2002. \
-This is actually the #2655 time series of the *carparts* dataset [@hyndman2008forecasting]. It is available from `bayesRecon::carpart`.
+This is actually the time series #2655 of the *carparts* dataset [@hyndman2008forecasting]. It is available from `bayesRecon::carpart`.
 
 The time series consists of **count** data, and the distribution of its values is skewed. Hence, we  produce base forecasts using a method specialized for  count time series.
 
@@ -97,17 +96,16 @@ names(train.agg) <- levels
 ```
 
 The function returns a list of aggregated time series, ordered from the top (most aggregated) to the bottom (most disagreggated).
-``` {r temp-agg-plot, dpi=300, fig.show="hold", out.width="100%", out.heigth="100%", fig.align='center', fig.cap="**Figure 2**: Carpart - visualization of the aggregate time series.", fig.dim=c(6,3.5)}
+``` {r temp-agg-plot, dpi=300, fig.show="hold", out.width="100%", out.heigth="100%", fig.align='center', fig.cap="**Figure 2**: Carpart - visualization of the aggregated time series.", fig.dim=c(6,3.5)}
 par(mfrow = c(2, 3), mai = c(0.6, 0.6, 0.5, 0.5))
 for (l in levels) {
   plot(train.agg[[l]], xlab = "Time", ylab = "Car part sales", main = l)
 }
 ```
 <br><br>
-To generate the  forecasts, we 
-use the  `glarma` package ([R CRAN](https://cran.r-project.org/package=glarma)), which is specialized in forecasting count time series. It is based on
+We use the  `glarma` package ([R CRAN](https://cran.r-project.org/package=glarma)) to generate the  forecasts. This package is specialized in forecasting count time series and it is based on
 a Generalized Linear Autoregressive Moving Average model.
-We adopt a Poisson predictive distribution.
+In this example, we adopt a Poisson predictive distribution.
 
 The models produce forecasts for 1 year ahead;
 <!-- *h* steps ahead according to the temporal level. -->
@@ -181,7 +179,7 @@ S <- recon.matrices$S
 A <- recon.matrices$A 
 ```
 
-Then we use the function `reconc_BUIS` which implements the Bottom-Up Important Sampling (BUIS) algorithm.
+Then, we use the function `reconc_BUIS` which implements the Bottom-Up Important Sampling (BUIS) algorithm.
 It requires the $\mathbf{S}$ matrix, the *base forecasts*, the  type of the base forecasts ("samples" in this example) and the specification of the base forecasts distributions ("discrete" in this example, since the predictive distributions are Poisson).
 
 The `in_type` argument is a string with two possible values: "samples" if the base forecasts are in the form of samples, "params" if the base forecasts are in the form of estimated parameters. The `distr` argument is a string describing the type of base forecasts. It can be: "continuous" or "discrete" if `in_type = "samples"`; "gaussian", "poisson" or "nbinom" if `in_type = "params"`. 
@@ -374,7 +372,7 @@ It is available via `bayesRecon::infantMortality`.
 It is a *yearly* grouped **cross-sectional** time series dataset, from 1901 to 2003, of infant mortality counts (deaths) in Australia; disaggregated by state, and sex (male and female). 
 State codes refer to: New South Wales (NSW), Victoria (VIC), Queensland (QLD), South Australia (SA), Western Australia (WA), Northern Territory (NT), Australian Capital Territory (ACT), and Tasmania (TAS).
 
-We want to forecast the next year (2004). We use the auto.arima forecasting models from the package `forecast` ([R CRAN](https://cran.r-project.org/package=forecast)) to generate Gaussian predictions for each node of the hierarchy. 
+We want to forecast the next year, 2004. We use the auto.arima forecasting models from the package `forecast` ([R CRAN](https://cran.r-project.org/package=forecast)) to generate Gaussian predictions for each node of the hierarchy. 
 
 For each model, we collect the residuals to account for correlations. 
 

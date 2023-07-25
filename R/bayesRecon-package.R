@@ -1,3 +1,7 @@
+#' @section Learn more: 
+#' 
+#' To learn more about `bayesRecon`, start with the vignettes: `browseVignettes(package = "bayesRecon")`
+#' 
 #' @section Main functions:
 #'
 #' The package implements reconciliation via conditioning for probabilistic forecasts of hierarchical time series. The main functions are
