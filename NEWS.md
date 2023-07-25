@@ -1,3 +1,12 @@
+# bayesRecon 0.1.2
+
+* Vignette "Probabilistic Reconciliation via Conditioning with bayesRecon".
+
+* Added the `schaferStrimmer_cov` function.
+
+* Fixed bugs.
+
+
 # bayesRecon 0.1.1
 
 * Added a `NEWS.md` file to track changes to the package.
@@ -6,4 +15,4 @@
 
 # bayesRecon 0.1.0
 
-* Initial release of the package
+* Initial release of the package.

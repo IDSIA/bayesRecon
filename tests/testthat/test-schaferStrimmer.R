@@ -27,7 +27,7 @@ test_that("Test shrinkage estimator", {
     x <- t(rr)
     #x <- t(rr_centered)
     
-    lambdas[i] <- schaferStrimmer.cov(x)$lambda_star
+    lambdas[i] <- schaferStrimmer_cov(x)$lambda_star
     
   }
   # The average over 100 runs must be within a certain range

@@ -35,7 +35,7 @@
 #' x <- replicate(nSamples, trueMean) +  t(chol_trueSigma)%*%matrix(rnorm(pTrue*nSamples), 
 #'                                                                  nrow=pTrue,ncol=nSamples)
 #' x <- t(x) 
-#' res_shrinkage <- schaferStrimmer.cov(x)
+#' res_shrinkage <- schaferStrimmer_cov(x)
 #' res_shrinkage$lambda_star # should be 0.01287923
 #'
 #' @references
@@ -44,7 +44,7 @@
 #'
 #'
 #' @export
-schaferStrimmer.cov <- function(x){
+schaferStrimmer_cov <- function(x){
   n <- nrow(x)
   p <- ncol(x)
   
@@ -60,7 +60,7 @@ schaferStrimmer.cov <- function(x){
   
   
   # Scale x by the standard deviation
-  xscale <- scale(x,center=FALSE,scale=diag(sqrt(sMat)))
+  xscale <- scale(x,center=FALSE,scale=sqrt(diag(sMat)))
   # Compute the correlation equivalents
   rSmat <- stats::cov2cor(sMat)
   rTmat <- stats::cov2cor(tMat)

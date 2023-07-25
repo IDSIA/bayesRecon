@@ -1,12 +1,12 @@
 ---
 title: "Probabilistic Reconciliation via Conditioning with `bayesRecon`"
 author: "Nicolò Rubattu, Giorgio Corani, Dario Azzimonti, Lorenzo Zambon"
-date: "2023-07-14"
+date: "2023-07-25"
 lang: "en"
 output: html_vignette
 bibliography: references.bib
 cite:
-- '@zambon2022probabilistic'
+- '@zambon2022efficient'
 - '@zambon2023properties'
 - '@corani2023probabilistic'
 - '@corani2021probabilistic'
@@ -42,7 +42,7 @@ In the **Infants mortality** example we reconcile cross-sectional forecasts.
 
 The implemented reconciliation algorithms are discussed in:
 
-* Zambon, L., Azzimonti, D., & Corani, G. (2022). Probabilistic reconciliation of forecasts via importance sampling.
+* Zambon, L., Azzimonti, D., & Corani, G. (2022). Efficient probabilistic reconciliation of forecasts for real-valued and count time series.
 
 * Zambon, L., Agosto, A., Giudici, P., & Corani, G. (2023). Properties of the reconciled distributions for Gaussian and count forecasts.
 
@@ -88,7 +88,7 @@ test <- window(carpart, start = c(2001, 4))
 
 We now build the temporal hierarchy and compute the *base forecasts*.
 
-We build the hierarchy using the `temporal aggregation` function. We aggregate at *2-Monthly*, *Quarterly*, *4-Monthly*, *Biannual*, *Annual* by specifying the `agg_levels` argument.
+We build the hierarchy using the `temporal aggregation` function. We aggregate at *2-Monthly*, *Quarterly*, *4-Monthly*, *Biannual*, and *Annual* by specifying the `agg_levels` argument.
 
 ``` {r temp-agg}
 train.agg <- bayesRecon::temporal_aggregation(train, agg_levels = c(2, 3, 4, 6, 12))
@@ -175,12 +175,14 @@ It requires:
 
 ``` {r S}
 recon.matrices <- bayesRecon::get_reconc_matrices(agg_levels = c(2, 3, 4, 6, 12), h = 12)
-S <- recon.matrices$S # Summing matrix
-A <- recon.matrices$A # A matrix
+# Summing matrix
+S <- recon.matrices$S 
+# A matrix
+A <- recon.matrices$A 
 ```
 
 Then we use the function `reconc_BUIS` which implements the Bottom-Up Important Sampling (BUIS) algorithm.
-It requires the $\mathbf{S}$ matrix, the *base forecasts*, the  type of the base forecasts ("samples" in this example and of the specification of the base forecasts distributions ("discrete" in this example, since the predictive distributions are Poisson).
+It requires the $\mathbf{S}$ matrix, the *base forecasts*, the  type of the base forecasts ("samples" in this example) and the specification of the base forecasts distributions ("discrete" in this example, since the predictive distributions are Poisson).
 
 The `in_type` argument is a string with two possible values: "samples" if the base forecasts are in the form of samples, "params" if the base forecasts are in the form of estimated parameters. The `distr` argument is a string describing the type of base forecasts. It can be: "continuous" or "discrete" if `in_type = "samples"`; "gaussian", "poisson" or "nbinom" if `in_type = "params"`. 
 
@@ -236,19 +238,19 @@ metrics
 
 ```
 
-Note the improvements with respect to base forecast on both MAE and CRPS metrics.
+Note the improvements with respect to the base forecast on both MAE and CRPS metrics.
 
 # Example 2: M3
 
 We now consider a *monthly* time series (N1485) from the M3 forecasting competition [@makridakis2000m3].
-This is available from `bayesRecon::M3sample`.
+It is available from `bayesRecon::M3sample`.
 
 ```{r m3-plot, dpi=300, out.width = "100%", fig.align='center', fig.cap="**Figure 3**: M3 - N1485 time series.", fig.dim = c(6, 3)}
 plot(M3example$train, xlab = "Time", ylab = "y", main = "N1485")
 ```
 <br>
-We build the temporal hierarchy using the `temporal_aggregation` function. We aggregate at *2-Monthly*, *Quarterly*, *4-Monthly*, *Biannual*, *Annual*. As we do not specify the `agg_levels` argument, the function generates
-all the factors of the time series frequency  (i.e. `frequency(M3example$train)`).
+We build the temporal hierarchy using the `temporal_aggregation` function. We aggregate at *2-Monthly*, *Quarterly*, *4-Monthly*, *Biannual*, and *Annual*. As we do not specify the `agg_levels` argument, the function generates
+all the factors of the time series frequency  (i.e. `frequency(M3example$train)` ).
 
 ```{r m3-agg} 
 train.agg <- bayesRecon::temporal_aggregation(M3example$train)
@@ -337,22 +339,31 @@ yhat.mu <- tail(sapply(fc, "[[", 1), 18)
 yhat.sigma <- tail(sapply(fc, "[[", 2), 18)
 yhat.hi95 <- qnorm(0.975, mean = yhat.mu, sd = yhat.sigma)
 yhat.lo95 <- qnorm(0.025, mean = yhat.mu, sd = yhat.sigma)
-
 yreconc.mu <- rowMeans(reconc.buis$bottom_reconciled_samples)
-yreconc.hi95 <- apply(reconc.buis$bottom_reconciled_samples, 1, function(x) quantile(x, 0.975))
-yreconc.lo95 <- apply(reconc.buis$bottom_reconciled_samples, 1, function(x) quantile(x, 0.025))
+yreconc.hi95 <- apply(reconc.buis$bottom_reconciled_samples, 1, 
+                      function(x) quantile(x, 0.975))
+yreconc.lo95 <- apply(reconc.buis$bottom_reconciled_samples, 1, 
+                      function(x) quantile(x, 0.025))
 
-ylim_ <- c(min(train, test, yhat.lo95, yreconc.lo95) - 1, 
-           max(train, test, yhat.hi95, yreconc.hi95) + 1)
-plot(M3example$train, xlim = c(1990, 1995.6), ylim = ylim_, ylab = "y", main = "N1485 Forecasts")
+ylim_ <- c(min(M3example$train, M3example$test, yhat.lo95, yreconc.lo95) - 1, 
+           max(M3example$train, M3example$test, yhat.hi95, yreconc.hi95) + 1)
+
+plot(M3example$train, xlim = c(1990, 1995.6), ylim = ylim_, 
+     ylab = "y", main = "N1485 Forecasts")
 lines(M3example$test, lty = "dashed")
-lines(ts(yhat.mu, start = start(M3example$test), frequency = 12), col = "coral", lwd = 2)
-lines(ts(yreconc.mu, start = start(M3example$test), frequency = 12), col = "blue2", lwd = 2)
+lines(ts(yhat.mu, start = start(M3example$test), frequency = 12), 
+      col = "coral", lwd = 2)
+lines(ts(yreconc.mu, start = start(M3example$test), frequency = 12), 
+      col = "blue2", lwd = 2)
 xtest <- time(M3example$test)
-polygon(c(xtest, rev(xtest)), c(yhat.mu, rev(yhat.hi95)), col = "#FF7F5066", border = "#FF7F5066")
-polygon(c(xtest, rev(xtest)), c(yhat.mu, rev(yhat.lo95)), col = "#FF7F5066", border = "#FF7F5066")
-polygon(c(xtest, rev(xtest)), c(yreconc.mu, rev(yreconc.hi95)), col = "#0000EE4D", border = "#0000EE4D")
-polygon(c(xtest, rev(xtest)), c(yreconc.mu, rev(yreconc.lo95)), col = "#0000EE4D", border = "#0000EE4D")
+polygon(c(xtest, rev(xtest)), c(yhat.mu, rev(yhat.hi95)), 
+        col = "#FF7F5066", border = "#FF7F5066")
+polygon(c(xtest, rev(xtest)), c(yhat.mu, rev(yhat.lo95)), 
+        col = "#FF7F5066", border = "#FF7F5066")
+polygon(c(xtest, rev(xtest)), c(yreconc.mu, rev(yreconc.hi95)), 
+        col = "#0000EE4D", border = "#0000EE4D")
+polygon(c(xtest, rev(xtest)), c(yreconc.mu, rev(yreconc.lo95)), 
+        col = "#0000EE4D", border = "#0000EE4D")
 ```
 
 # Example 3: Infants mortality
@@ -361,11 +372,11 @@ In this example, we consider the *infantgts* time series hierarchical time serie
 It is available via `bayesRecon::infantMortality`.
 
 It is a *yearly* grouped **cross-sectional** time series dataset, from 1901 to 2003, of infant mortality counts (deaths) in Australia; disaggregated by state, and sex (male and female). 
-States code refer to: New South Wales (NSW), Victoria (VIC), Queensland (QLD), South Australia (SA), Western Australia (WA), Northern Territory (NT), Australian Capital Territory (ACT), and Tasmania (TAS).
+State codes refer to: New South Wales (NSW), Victoria (VIC), Queensland (QLD), South Australia (SA), Western Australia (WA), Northern Territory (NT), Australian Capital Territory (ACT), and Tasmania (TAS).
 
 We want to forecast the next year (2004). We use the auto.arima forecasting models from the package `forecast` ([R CRAN](https://cran.r-project.org/package=forecast)) to generate Gaussian predictions for each node of the hierarchy. 
 
-For each model we collect the residuals to account for correlations. 
+For each model, we collect the residuals to account for correlations. 
 
 ```{r infants-forecasts}
 # install.packages("forecast", dependencies = TRUE)
@@ -417,39 +428,28 @@ axis(2, at=c(1:11), label=rev(names(infantMortality)[1:11]), las=2)
 ```
 <br>
 
-Use Gaussian reconciliation, to ensure *coherent* forecasts. 
+We can now use Gaussian reconciliation, to ensure *coherent* forecasts. 
 
-We use a shrinkage estimation of the covariance matrix of the residuals.
+We require an estimate of the covariance of the base forecasts. We can estimate it 
+with the sample covariance of the in-sample errors. However, this estimator is often 
+a poor estimate due to high variance, especially when the number of series in the hierarchy
+is larger than the length of the series. @wickramasuriya2019optimal proposed an estimator 
+of the covariance that shrinks the off-diagonal elements towards 0.
 
-**TODO: write this function inside the package!**
+The function `bayesRecon::schaferStrimmer_cov` implements this estimator by following 
+@schafer2005shrinkage to compute the optimal
+shrinkage intensity.
 
 ```{r infants reconc}
-# Shrinkage estimation of a Covariance Matrix function (@hts:::shrink.estim)
-shrink.covariance <- function (x, tar) {
-  p <- ncol(x)
-  n <- nrow(x)
-  covm <- crossprod(x) / n
-  corm <- cov2cor(covm)
-  xs <- scale(x, center = FALSE, scale = sqrt(diag(covm)))
-  v <- (1 / (n * (n - 1))) * (crossprod(xs ^ 2) - 1 / n * (crossprod(xs)) ^ 2)
-  diag(v) <- 0
-  corapn <- cov2cor(tar)
-  d <- (corm - corapn) ^ 2
-  lambda <- sum(v) / sum(d)
-  lambda <- max(min(lambda, 1), 0)
-  shrink.cov <- lambda * tar + (1 - lambda) * covm
-  return(list(cov.shrink = shrink.cov, lambda = lambda))
-}
-
 # means
 mu <- sapply(fc, "[[", 1)
-# Sample covariance
-Sigma.sample <- (t(residuals) %*% residuals) / (nrow(residuals) - 1)
 # Shrinkage covariance
-Sigma <- shrink.covariance(residuals, tar = diag(diag(Sigma.sample)))$cov.shrink
+shrink.res <- bayesRecon::schaferStrimmer_cov(residuals)
+print(paste("The estimated shrinkage intensity is", round(shrink.res$lambda_star, 3)))
+Sigma <- shrink.res$shrink_cov
 ```
 
-The function `reconc_gaussian` implements the closed-form Gaussian reconciliation. It requires the covariance matrix, and the vector of means.
+The function `reconc_gaussian` implements the closed-form Gaussian reconciliation. It requires the covariance matrix and the vector of means.
 
 ```{r infants-recon}
 recon.gauss <- bayesRecon::reconc_gaussian(S,
@@ -457,7 +457,7 @@ recon.gauss <- bayesRecon::reconc_gaussian(S,
                                            base_forecasts.Sigma = Sigma)
 
 # check coherence
-A %*% recon.gauss$bottom_reconciled_mean - recon.gauss$upper_reconciled_mean
+(A %*% recon.gauss$bottom_reconciled_mean) - recon.gauss$upper_reconciled_mean
 ```
 
 # References
