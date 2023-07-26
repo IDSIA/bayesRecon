@@ -22,8 +22,6 @@ States: New South Wales (NSW), Victoria (VIC), Queensland (QLD), South Australia
 (WA), Northern Territory (NT), Australian Capital Territory (ACT), and Tasmania (TAS).
 }
 \references{
-R. J. Hyndman, R. A. Ahmed, G. Athanasopoulos and H.L. Shang (2011) Optimal combination
-forecasts for hierarchical time series. Computational Statistics and Data Analysis, 55(9), 2579–
-2589.
+R. J. Hyndman, R. A. Ahmed, G. Athanasopoulos and H.L. Shang (2011) Optimal combination forecasts for hierarchical time series. Computational Statistics and Data Analysis, 55(9), 2579-2589.
 }
 \keyword{datasets}

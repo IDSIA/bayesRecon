@@ -47,7 +47,7 @@ The implemented reconciliation algorithms are discussed in:
 
 * Corani, G., Azzimonti, D., & Rubattu, N. (2023). Probabilistic reconciliation of count time series.
 
-* Corani, G., Azzimonti, D., Augusto, J. P., & Zaffalon, M. (2021). Probabilistic reconciliation of hierarchical forecast via Bayes’ rule.
+* Corani, G., Azzimonti, D., Augusto, J. P., & Zaffalon, M. (2021). Probabilistic reconciliation of hierarchical forecast via Bayes' rule.
 
 # Setup
 
