@@ -35,7 +35,9 @@ The main functions are:
 
 :boom: \[2023-07-26\] Added the vignette “Probabilistic Reconciliation
 via Conditioning with bayesRecon”. Added the `schaferStrimmer_cov`
-function. :boom: \[2023-05-26\] bayesRecon v0.1.0 is released!
+function.
+
+:boom: \[2023-05-26\] bayesRecon v0.1.0 is released!
 
 ## Installation
 
