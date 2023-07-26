@@ -292,7 +292,7 @@ for (level in train.agg) {
 
 Before reconciling the forecasts,  we obtain the matrix $\mathbf{S}$ using the function `get_reconc_matrices`.
 
-```{r m3-rmat, dpi=300, out.width = '70%', fig.align='center', fig.cap="**Figure 4**: M3 - A matrix (red=1, yellow=0).", fig.dim = c(8, 8)}
+```{r m3-rmat, dpi=300, out.width = '70%', fig.align='center', fig.cap="**Figure 4**: M3 - The aggregating matrix $\mathbf{A}$ (red=1, yellow=0).", fig.dim = c(8, 8)}
 rmat <- get_reconc_matrices(agg_levels = c(2, 3, 4, 6, 12), h = 18)
 
 par(mai = c(1,1,0.5,0.5))
@@ -305,7 +305,7 @@ axis(2, at=c(23,22,19,15,9), label=levels[1:5], las=2)
 <br>
 We now use the function `reconc_gaussian` which implements the closed-form Gaussian reconciliation,
 and the function `reconc_BUIS` which implements the Bottom-Up Important Sampling (BUIS) algorithm. 
-We can check that the algorithms return consistent results, apart from minor numerical differences due to the sampling randomness of BUIS, which are smaller by increasing the `num_samples` argument of `reconc_BUIS`.
+We can check that the algorithms return consistent results, apart from minor numerical differences due to the sampling randomness of BUIS, which get smaller as we increase the `num_samples` argument of `reconc_BUIS`.
 
 ```{r m3-reco} 
 recon.gauss <- bayesRecon::reconc_gaussian(
@@ -332,7 +332,7 @@ round(rbind(
 
 We now show the *base forecasts* and the *reconciled forecasts*.
 
-```{r m3-plotfore, dpi=300, out.width = "100%", fig.align='center', fig.cap="**Figure 5**: M3 - visualization of base and reconciled forecasts. The black line is the actual data (dashed is the test). The orange line is the forecasted mean, the blu line the recociled mean. Shadow regions show the 95% prediction intervals.", fig.dim = c(6, 4)}
+```{r m3-plotfore, dpi=300, out.width = "100%", fig.align='center', fig.cap="**Figure 5**: M3 - visualization of base and reconciled forecasts. The black line is the actual data (dashed is the test). The orange line is the forecasted mean, the blu line the reconciled mean. Shadow regions show the 95% prediction intervals.", fig.dim = c(6, 4)}
 yhat.mu <- tail(sapply(fc, "[[", 1), 18)
 yhat.sigma <- tail(sapply(fc, "[[", 2), 18)
 yhat.hi95 <- qnorm(0.975, mean = yhat.mu, sd = yhat.sigma)
@@ -366,15 +366,15 @@ polygon(c(xtest, rev(xtest)), c(yreconc.mu, rev(yreconc.lo95)),
 
 # Example 3: Infants mortality
 
-In this example, we consider the *infantgts* time series hierarchical time series [@hyndman2011optimal].
+In this example, we consider the *infantgts* hierarchical time series [@hyndman2011optimal].
 It is available via `bayesRecon::infantMortality`.
 
-It is a *yearly* grouped **cross-sectional** time series dataset, from 1901 to 2003, of infant mortality counts (deaths) in Australia; disaggregated by state, and sex (male and female). 
+It is a *yearly* grouped **cross-sectional** time series dataset, from 1901 to 2003, of infant mortality counts (deaths) in Australia, disaggregated by state and sex (male and female). 
 State codes refer to: New South Wales (NSW), Victoria (VIC), Queensland (QLD), South Australia (SA), Western Australia (WA), Northern Territory (NT), Australian Capital Territory (ACT), and Tasmania (TAS).
 
 We want to forecast the next year, 2004. We use the auto.arima forecasting models from the package `forecast` ([R CRAN](https://cran.r-project.org/package=forecast)) to generate Gaussian predictions for each node of the hierarchy. 
 
-For each model, we collect the residuals to account for correlations. 
+For each model, we collect the residuals to take into account correlations. 
 
 ```{r infants-forecasts}
 # install.packages("forecast", dependencies = TRUE)
@@ -401,7 +401,7 @@ for (s in infantMortality) {
 
 Build the $\mathbf{S}$ matrix.
 
-```{r infants-s, dpi=300, out.width = '70%', fig.align='center', fig.cap="**Figure 6**: Infants mortality - A matrix (red=1, yellow=0).", fig.dim = c(8, 8)}
+```{r infants-s, dpi=300, out.width = '70%', fig.align='center', fig.cap="**Figure 6**: Infants mortality - $\mathbf{A}$ matrix (red=1, yellow=0).", fig.dim = c(8, 8)}
 # we have 16 bottom time series, and 11 upper time series
 A <- matrix(data = c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
                      1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -429,8 +429,8 @@ axis(2, at=c(1:11), label=rev(names(infantMortality)[1:11]), las=2)
 We can now use Gaussian reconciliation, to ensure *coherent* forecasts. 
 
 We require an estimate of the covariance of the base forecasts. We can estimate it 
-with the sample covariance of the in-sample errors. However, this estimator is often 
-a poor estimate due to high variance, especially when the number of series in the hierarchy
+with the sample covariance of the in-sample errors. However, this is often 
+a poor estimate due to the high variance, especially when the number of series in the hierarchy
 is larger than the length of the series. @wickramasuriya2019optimal proposed an estimator 
 of the covariance that shrinks the off-diagonal elements towards 0.
 
