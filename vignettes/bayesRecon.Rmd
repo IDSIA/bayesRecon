@@ -1,7 +1,7 @@
 ---
 title: "Probabilistic Reconciliation via Conditioning with `bayesRecon`"
 author: "Nicolò Rubattu, Giorgio Corani, Dario Azzimonti, Lorenzo Zambon"
-date: "2023-07-25"
+date: "2023-07-26"
 lang: "en"
 output: html_vignette
 bibliography: references.bib

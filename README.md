@@ -41,7 +41,7 @@ You can install the **stable** version on [R
 CRAN](https://cran.r-project.org/package=bayesRecon)
 
 ``` r
-install.packages("bayesRecon")
+install.packages("bayesRecon", dependencies = TRUE)
 ```
 
 You can also install the **development** version from
@@ -49,7 +49,7 @@ You can also install the **development** version from
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("IDSIA/bayesRecon")
+devtools::install_github("IDSIA/bayesRecon", build_vignettes = TRUE, dependencies = TRUE)
 ```
 
 ## Usage
