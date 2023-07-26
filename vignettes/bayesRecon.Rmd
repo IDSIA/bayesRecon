@@ -292,7 +292,7 @@ for (level in train.agg) {
 
 Before reconciling the forecasts,  we obtain the matrix $\mathbf{S}$ using the function `get_reconc_matrices`.
 
-```{r m3-rmat, dpi=300, out.width = '70%', fig.align='center', fig.cap="**Figure 4**: M3 - The aggregating matrix $\mathbf{A}$ (red=1, yellow=0).", fig.dim = c(8, 8)}
+```{r m3-rmat, dpi=300, out.width = '70%', fig.align='center', fig.cap="**Figure 4**: M3 - The aggregating matrix A (red=1, yellow=0).", fig.dim = c(8, 8)}
 rmat <- get_reconc_matrices(agg_levels = c(2, 3, 4, 6, 12), h = 18)
 
 par(mai = c(1,1,0.5,0.5))
@@ -401,7 +401,7 @@ for (s in infantMortality) {
 
 Build the $\mathbf{S}$ matrix.
 
-```{r infants-s, dpi=300, out.width = '70%', fig.align='center', fig.cap="**Figure 6**: Infants mortality - $\mathbf{A}$ matrix (red=1, yellow=0).", fig.dim = c(8, 8)}
+```{r infants-s, dpi=300, out.width = '70%', fig.align='center', fig.cap="**Figure 6**: Infants mortality - The aggregating matrix A (red=1, yellow=0).", fig.dim = c(8, 8)}
 # we have 16 bottom time series, and 11 upper time series
 A <- matrix(data = c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
                      1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
