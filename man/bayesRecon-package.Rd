@@ -11,7 +11,7 @@ Provides methods for probabilistic reconciliation of hierarchical forecasts of t
 \section{Learn more}{
 
 
-To learn more about \code{bayesRecon}, start with the vignettes: browseVignettes(package = "bayesRecon")
+To learn more about \code{bayesRecon}, start with the vignettes: \code{browseVignettes(package = "bayesRecon")}
 }
 
 \section{Main functions}{
