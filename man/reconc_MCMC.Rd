@@ -94,7 +94,7 @@ print(rowMeans(samples_buis))
 
 }
 \references{
-Corani, G., Azzimonti, D., Rubattu, N. (2023). \emph{Probabilistic reconciliation of count time series}. \doi{doi.org/10.1016/j.ijforecast.2023.04.003}.
+Corani, G., Azzimonti, D., Rubattu, N. (2023). \emph{Probabilistic reconciliation of count time series}. \doi{10.1016/j.ijforecast.2023.04.003}.
 }
 \seealso{
 \code{\link[=reconc_BUIS]{reconc_BUIS()}}

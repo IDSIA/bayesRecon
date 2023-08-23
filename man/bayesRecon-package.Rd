@@ -37,7 +37,7 @@ this is the recommended option for non-Gaussian base forecasts;
 \references{
 Corani, G., Azzimonti, D., Augusto, J.P.S.C., Zaffalon, M. (2021). \emph{Probabilistic Reconciliation of Hierarchical Forecast via Bayes' Rule}. In: Hutter, F., Kersting, K., Lijffijt, J., Valera, I. (eds) Machine Learning and Knowledge Discovery in Databases. ECML PKDD 2020. Lecture Notes in Computer Science(), vol 12459. Springer, Cham. \doi{10.1007/978-3-030-67664-3_13}.
 
-Corani, G., Azzimonti, D., Rubattu, N. (2023). \emph{Probabilistic reconciliation of count time series}. \doi{doi.org/10.1016/j.ijforecast.2023.04.003}.
+Corani, G., Azzimonti, D., Rubattu, N. (2023). \emph{Probabilistic reconciliation of count time series}. \doi{10.1016/j.ijforecast.2023.04.003}.
 
 Zambon, L., Azzimonti, D. & Corani, G. (2022). \emph{Efficient probabilistic reconciliation of forecasts for real-valued and count time series}. \doi{10.48550/arXiv.2210.02286}.
 

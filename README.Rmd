@@ -231,15 +231,15 @@ while the reconciled means obtained via BUIS are
 
 ## References
 
-Corani, G., Azzimonti, D., Augusto, J.P.S.C., Zaffalon, M. (2021). *Probabilistic Reconciliation of Hierarchical Forecast via Bayes’ Rule*. In: Hutter, F., Kersting, K., Lijffijt, J., Valera, I. (eds) Machine Learning and Knowledge Discovery in Databases. ECML PKDD 2020. Lecture Notes in Computer Science(), vol 12459. Springer, Cham. [DOI:10.1007/978-3-030-67664-3_13](doi.org/10.1007/978-3-030-67664-3_13).
+Corani, G., Azzimonti, D., Augusto, J.P.S.C., Zaffalon, M. (2021). *Probabilistic Reconciliation of Hierarchical Forecast via Bayes’ Rule*. In: Hutter, F., Kersting, K., Lijffijt, J., Valera, I. (eds) Machine Learning and Knowledge Discovery in Databases. ECML PKDD 2020. Lecture Notes in Computer Science(), vol 12459. Springer, Cham. [DOI](https://doi.org/10.1007/978-3-030-67664-3_13)
 
 Corani, G., Azzimonti, D., Rubattu, N. (2023). *Probabilistic reconciliation of count
-time series*. [arXiv.2207.09322](doi.org/10.1016/j.ijforecast.2023.04.003).
+time series*. [DOI](https://doi.org/10.1016/j.ijforecast.2023.04.003)
 
 Zambon, L., Azzimonti, D. & Corani, G. (2022). *Efficient probabilistic reconciliation of forecasts
-for real-valued and count time series*. [arXiv.2210.02286](doi.org/10.48550/arXiv.2210.02286).
+for real-valued and count time series*. [DOI](https://doi.org/10.48550/arXiv.2210.02286)
 
-Zambon, L., Agosto, A., Giudici, P., Corani, G. (2023). *Properties of the reconciled distributions for Gaussian and count forecasts*. [arXiv.2303.15135](doi.org/10.48550/arXiv.2303.15135).
+Zambon, L., Agosto, A., Giudici, P., Corani, G. (2023). *Properties of the reconciled distributions for Gaussian and count forecasts*. [DOI](https://doi.org/10.48550/arXiv.2303.15135)
 
 ## Contributors
 
