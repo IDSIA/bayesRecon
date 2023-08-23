@@ -33,7 +33,7 @@ The main functions are:
 
 ## News
 
-:boom: \[2023-07-26\] Added the vignette “Probabilistic Reconciliation
+:boom: \[2023-08-23\] Added the vignette “Probabilistic Reconciliation
 via Conditioning with bayesRecon”. Added the `schaferStrimmer_cov`
 function.
 
