@@ -55,7 +55,7 @@ Each element is a vector containing the estimated:
 \itemize{
 \item mean and sd for the Gaussian base forecast, see \link[stats]{Normal}, if \code{distr}='gaussian';
 \item lambda for the Poisson base forecast, see \link[stats]{Poisson}, if \code{distr}='poisson';
-\item size and probability of success for the negative binomial base forecast, see \link[stats]{NegBinomial}, if \code{distr}='nbinom'.
+\item mu and size for the negative binomial base forecast, see \link[stats]{NegBinomial}, if \code{distr}='nbinom'.
 }
 
 The order of the \code{base_forecast} list is given by the order of the time series in the summing matrix.

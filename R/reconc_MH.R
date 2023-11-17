@@ -29,7 +29,7 @@
 #'
 #' * mean and sd for the Gaussian base forecast, see \link[stats]{Normal}, if `distr`='gaussian';
 #' * lambda for the Poisson base forecast, see \link[stats]{Poisson}, if `distr`='poisson';
-#' * size and probability of success for the negative binomial base forecast, see \link[stats]{NegBinomial}, if `distr`='nbinom'.
+#' * mu and size for the negative binomial base forecast, see \link[stats]{NegBinomial}, if `distr`='nbinom'.
 #'
 #' The order of the `base_forecast` list is given by the order of the time series in the summing matrix.
 #'

@@ -47,6 +47,22 @@ test_that("Monthly, in_type=='params', distr='poisson'",{
   expect_no_error(res.buis)
 })
 
+
+test_that("Monthly, in_type=='params', distr='nbinom'",{
+  S = read.csv(file = "dataForTests/Monthly-NegBin_S.csv", header = FALSE)
+  S = as.matrix(S)
+  base_forecasts_in = read.csv(file = "dataForTests/Monthly-NegBin_basef.csv", header = FALSE)
+  base_forecasts = list()
+  for (i in 1:nrow(base_forecasts_in)) {
+    base_forecasts[[i]] = list(as.numeric(base_forecasts_in[i,]))[[1]]
+  }
+  res.buis = reconc_BUIS(S, base_forecasts,
+                         in_type = "params", distr = "nbinom", num_samples = 10000, seed=42)
+  expect_no_error(res.buis)
+})
+
+
+
 test_that("Monthly, in_type=='samples', distr='continuous'",{
   # Run IS Reconc from samples
   S = read.csv(file = "dataForTests/Monthly-Gaussian_S.csv", header = FALSE)
