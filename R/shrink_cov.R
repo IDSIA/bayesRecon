@@ -15,7 +15,7 @@
 #'
 #' @return A list containing the shrinkage estimator and the optimal lambda. The list has the following named elements:
 #'
-#' * `shrink_cov`: the shrinked covariance matrix (`n` x `n`);
+#' * `shrink_cov`: the shrinked covariance matrix (`p` x `p`);
 #' * `lambda_star`: the optimal lambda for the shrinkage;
 #'
 #' @examples

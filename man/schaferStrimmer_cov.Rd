@@ -12,7 +12,7 @@ schaferStrimmer_cov(x)
 \value{
 A list containing the shrinkage estimator and the optimal lambda. The list has the following named elements:
 \itemize{
-\item \code{shrink_cov}: the shrinked covariance matrix (\code{n} x \code{n});
+\item \code{shrink_cov}: the shrinked covariance matrix (\code{p} x \code{p});
 \item \code{lambda_star}: the optimal lambda for the shrinkage;
 }
 }
