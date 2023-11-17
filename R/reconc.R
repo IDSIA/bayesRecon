@@ -10,7 +10,7 @@
       samples = stats::rpois(n=n, lambda = params[[1]]) },
     "nbinom"   = {
       samples <-if (params[[2]] == 0) {
-          warning("Parameter size=0 in nbinom, using a Poisson with lambda=mu.")
+          stop("Parameter size=0 in nbinom, this is not a valid distribution.")
           stats::rpois(n=n, lambda = params[[1]])
         } else {
           stats::rnbinom(n=n, mu = params[[1]], size = params[[2]])
