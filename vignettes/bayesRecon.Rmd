@@ -20,7 +20,8 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  eval=TRUE ### !!!! set to FALSE here to render only the text !!!!
+  #eval=TRUE ### !!!! set to FALSE here to render only the text !!!!
+  eval=FALSE ### !!!! set to FALSE here to render only the text !!!!
 )
 set.seed(42)
 ```
@@ -34,28 +35,17 @@ klippy::klippy(position = c('top', 'right'), tooltip_message = 'Copy', tooltip_s
 This vignette shows how to perform  *probabilistic reconciliation* with
 the `bayesRecon` package. We provide three examples:
 
-1. *Temporal hierarchy for a count time series*: we build a temporal hierarchy over a count time series,  produce base forecasts using glarma and  reconcile them via Bottom-Up Importance Sampling (BUIS).
+1. *Temporal hierarchy for a count time series*: we build a temporal hierarchy over a count time series,  produce the base forecasts using `glarma` and  reconcile them via Bottom-Up Importance Sampling (BUIS).
 
-2.  *Temporal hierarchy for a smooth time series*: we build a temporal hierarchy over a smooth time series,  compute the base forecasts using ets and  we reconcile them in closed form using Gaussian reconciliation.
+2.  *Temporal hierarchy for a smooth time series*: we build a temporal hierarchy over a smooth time series,  compute the base forecasts using `ets` and  we reconcile them in closed form using Gaussian reconciliation.
 
-3.   *Cross-sectional  hierarchy of smooth time series*: we reconcile forecasts for a cross-sectional hierarchy. Also in this case we use ets to generate the base forecasts and we apply Gaussian reconciliation.
+3.   *Hierarchical of smooth time series*: this is an example of a cross-sectional hierarchy. We generate the base forecasts using `ets` and we reconcile them via Gaussian reconciliation.
 
 4. *Cross-sectional hierarchy of count time series*
 <mark> LZ </mark> 
 
 
 <mark>toglierei le citazioni</mark>
-The  reconciliation algorithms are discussed in:
-
-* Zambon, L., Azzimonti, D., & Corani, G. (2022). Efficient probabilistic reconciliation of forecasts for real-valued and count time series,
-Statistics and Computing 34.1 (2024): 21.
-
-* Zambon, L., Agosto, A., Giudici, P., & Corani, G. (2023). Properties of the reconciled distributions for Gaussian and count forecasts, arXiv preprint arXiv:2303.15135.
-
-* Corani, G., Azzimonti, D., & Rubattu, N. (2023). Probabilistic reconciliation of count time series, International Journal of Forecasting (2023).
-
-* Corani, G., Azzimonti, D., Augusto, J. P., & Zaffalon, M. (2021). Probabilistic reconciliation of hierarchical forecast via Bayes' rule.
-Proc. ECML-PKDD 2020, pp. 211-226. 
 
 # Installation
 
@@ -75,7 +65,7 @@ library(bayesRecon)
 We select a monthly time series of counts from  the *carparts* dataset
 <mark>citerei piuttosto il package expsmooth [@expsmooth_pkg]</mark>
 [@hyndman2008forecasting].
-The data set contains time series of sales of cars part from Jan. 1998 to Mar. 2002. We select in particular time series #2655, which we make it available  as `bayesRecon::carpart`.
+The data set contains time series of sales of cars part from Jan. 1998 to Mar. 2002. We select in particular time series #2655, which we make it available  as `bayesRecon::carparts_example`.
 <mark>la chiamerei piuttosto carparts_example</mark>
 
 
@@ -83,15 +73,15 @@ This time series  has a skewed distribution of  values.
 
 ```{r carpart-plot, dpi=300, out.width = "100%", fig.align='center', fig.cap="**Figure 1**: Carpart - monthly car part sales.", fig.dim = c(6, 3)}
 layout(mat = matrix(c(1, 2), nrow = 1, ncol = 2), widths = c(2, 1))
-plot(carpart, xlab = "Time", ylab = "Car part sales", main = NULL)
-hist(carpart, xlab = "Car part sales", main = NULL)
+plot(carparts_example, xlab = "Time", ylab = "Car part sales", main = NULL)
+hist(carparts_example, xlab = "Car part sales", main = NULL)
 ```
 <br><br>
 We divide the time series into train and test, such that the test set
 contains  the last 12 months.
 ```{r train-test}
-train <- window(carpart, end = c(2001, 3))
-test <- window(carpart, start = c(2001, 4))
+train <- window(carparts_example, end = c(2001, 3))
+test  <- window(carparts_example, start = c(2001, 4))
 ```
 
 <!-- In order to do hierarchical forecasting: -->
@@ -254,11 +244,11 @@ Note the improvements of the reconciled forecasts compared to the base forecasts
 We now consider a *monthly* time series (N1485) from the M3 forecasting competition [@makridakis2000m3].
 <mark> citerei il pacchetto mcomp da cui l'abbiamo presa </mark>
 
-It is available from `bayesRecon::M3sample`.
+It is available from `bayesRecon::M3_example`.
 <mark>lo chiamerei m3_example</mark>
 
 ```{r m3-plot, dpi=300, out.width = "100%", fig.align='center', fig.cap="**Figure 3**: M3 - N1485 time series.", fig.dim = c(6, 3)}
-plot(M3example$train, xlab = "Time", ylab = "y", main = "N1485")
+plot(M3_example$train, xlab = "Time", ylab = "y", main = "N1485")
 ```
 <br>
 We build the temporal hierarchy using the `temporal_aggregation` function. 
