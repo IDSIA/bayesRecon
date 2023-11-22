@@ -247,7 +247,7 @@ We build the temporal hierarchy using the `temporal_aggregation` function.
 Without specifying  `agg_levels`, the function  generates by default all the feasible aggregation: 2-Monthly, Quarterly, 4-Monthly, Biannual, and Annual.
 
 ```{r m3-agg} 
-train.agg <- bayesRecon::temporal_aggregation(M3example$train)
+train.agg <- bayesRecon::temporal_aggregation(M3_example$train)
 levels <- c("Annual", "Biannual", "4-Monthly", "Quarterly", "2-Monthly", "Monthly")
 names(train.agg) <- levels
 ```
@@ -260,7 +260,7 @@ All the  predictive distributions are Gaussian.
 # install.packages("forecast", dependencies = TRUE)
 library(forecast)
 
-H <- length(M3example$test)
+H <- length(M3_example$test)
 H
 
 fc <- list()
@@ -338,17 +338,17 @@ yreconc.hi95 <- apply(reconc.buis$bottom_reconciled_samples, 1,
 yreconc.lo95 <- apply(reconc.buis$bottom_reconciled_samples, 1, 
                       function(x) quantile(x, 0.025))
 
-ylim_ <- c(min(M3example$train, M3example$test, yhat.lo95, yreconc.lo95) - 1, 
-           max(M3example$train, M3example$test, yhat.hi95, yreconc.hi95) + 1)
+ylim_ <- c(min(M3_example$train, M3_example$test, yhat.lo95, yreconc.lo95) - 1, 
+           max(M3_example$train, M3_example$test, yhat.hi95, yreconc.hi95) + 1)
 
-plot(M3example$train, xlim = c(1990, 1995.6), ylim = ylim_, 
+plot(M3_example$train, xlim = c(1990, 1995.6), ylim = ylim_, 
      ylab = "y", main = "N1485 Forecasts")
-lines(M3example$test, lty = "dashed")
-lines(ts(yhat.mu, start = start(M3example$test), frequency = 12), 
+lines(M3_example$test, lty = "dashed")
+lines(ts(yhat.mu, start = start(M3_example$test), frequency = 12), 
       col = "coral", lwd = 2)
-lines(ts(yreconc.mu, start = start(M3example$test), frequency = 12), 
+lines(ts(yreconc.mu, start = start(M3_example$test), frequency = 12), 
       col = "blue2", lwd = 2)
-xtest <- time(M3example$test)
+xtest <- time(M3_example$test)
 polygon(c(xtest, rev(xtest)), c(yhat.mu, rev(yhat.hi95)), 
         col = "#FF7F5066", border = "#FF7F5066")
 polygon(c(xtest, rev(xtest)), c(yhat.mu, rev(yhat.lo95)), 
