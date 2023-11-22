@@ -363,12 +363,13 @@ polygon(c(xtest, rev(xtest)), c(yreconc.mu, rev(yreconc.lo95)),
 
 #   Gaussian reconciliation of a cross-sectional hierarchy
 
-In this example, we consider the hierarchical time series *infantgts*  [@hyndman2011optimal], which is available 
+In this example, we consider the hierarchical time series *infantgts*, which is available 
 from the 'hts' package [@hts_pkg]
-We make it also available as `bayesRecon::infantMortality`.
+We make it available also in our package as `bayesRecon::infantMortality`.
 
 It contains counts of infant mortality (deaths) in Australia, disaggregated by state and sex (male and female). 
-#State codes refer to: New South Wales (NSW), Victoria (VIC), Queensland (QLD), South Australia (SA), Western Australia (WA), Northern Territory (NT), Australian Capital Territory (ACT), and Tasmania (TAS).
+
+<!-- State codes refer to: New South Wales (NSW), Victoria (VIC), Queensland (QLD), South Australia (SA), Western Australia (WA), Northern Territory (NT), Australian Capital Territory (ACT), and Tasmania (TAS). -->
 
 We want to forecast one year ahead. We use  'auto.arima'  from the [`forecast` ](https://cran.r-project.org/package=forecast) package. 
 We collect the residuals, which we will later use to compute the covariance matrix. 
@@ -422,10 +423,8 @@ axis(1, at=1:ncol(A), label=names(infantMortality)[12:27], las=2)
 axis(2, at=c(1:11), label=rev(names(infantMortality)[1:11]), las=2)
 ```
 <br>
-We use the shrinkage estimator @schafer2005shrinkage
-to estimate the covariance matrix of the residuals, as
-in  @wickramasuriya2019optimal.
-The estimator is implemented by the function `bayesRecon::schaferStrimmer_cov`.
+We use the shrinkage estimator [@schafer2005shrinkage]
+to estimate the covariance matrix of the residuals, which is implemented by  `bayesRecon::schaferStrimmer_cov`.
 
 ```{r infants reconc}
 # means
@@ -436,8 +435,7 @@ print(paste("The estimated shrinkage intensity is", round(shrink.res$lambda_star
 Sigma <- shrink.res$shrink_cov
 ```
 
-We pass the covariance matrix and the vector of means to
-the function `reconc_gaussian`, to perform  the Gaussian reconciliation. 
+We now perform Gaussian reconciliation:
 
 ```{r infants-recon}
 recon.gauss <- bayesRecon::reconc_gaussian(S,
