@@ -88,7 +88,7 @@
 # Function that extract the "best hierarchy rows" from A, and sorts them in
 # the correct order (i.e. bottom-up)
 # Also sorts accordingly the vector v (e.g. of parameters)
-.get_HG <- function(A, v, d) {
+.get_HG <- function(A, v, d, it) {
   #get the indices of the "hierarchy rows" of A
   indices_sol <- .get_hier_rows(A)
 
@@ -97,12 +97,14 @@
   H <- matrix(A[ind_h, ],ncol=ncol(A))
   v_h <- v[ind_h]
   d_h <- d[ind_h]
+  it_h <- it[ind_h]
 
   #sort bottom-up
   ord <- order(rowSums(H))
   H <- matrix(H[ord, ],ncol=ncol(A))
   v_h <- v_h[ord]
   d_h <- d_h[ord]
+  it_h <- it_h[ord]
 
   #collect remaining rows in matrix G
   ind_g <- as.logical(1 - indices_sol)
@@ -110,10 +112,12 @@
     G <- NULL
     v_g <- NULL
     d_g <- NULL
+    it_g <- NULL
   } else {
     G <- matrix(A[ind_g, ],ncol=ncol(A))
     v_g <- v[ind_g]
     d_g <- d[ind_g]
+    it_g <- it[ind_g]
   }
 
   out = list(
@@ -122,7 +126,9 @@
     Hv = v_h,
     Gv = v_g,
     Hdistr = d_h,
-    Gdistr = d_g
+    Gdistr = d_g,
+    Hin_type = it_h,
+    Gin_type = it_g
   )
   return(out)
 

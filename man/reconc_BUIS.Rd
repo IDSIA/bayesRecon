@@ -18,17 +18,21 @@ reconc_BUIS(
 
 \item{base_forecasts}{a list containing the base_forecasts, see details.}
 
-\item{in_type}{a string with two possible values:
+\item{in_type}{a string or a list of length n. If it is a list the i-th element is a string with two possible values:
 \itemize{
-\item 'samples' if the base forecasts are in the form of samples;
-\item 'params'  if the base forecasts are in the form of estimated parameters.
-}}
+\item 'samples' if the i-th base forecasts are in the form of samples;
+\item 'params'  if the i-th base forecasts are in the form of estimated parameters.
+}
 
-\item{distr}{a string describing the type of base forecasts:
+If it \code{in_type} is a string it is assumed that all base forecasts are of the same type.}
+
+\item{distr}{a string or a list of length n describing the type of base forecasts. If it is a list the i-th element is a string with two possible values:
 \itemize{
-\item 'continuous' or 'discrete' if \code{in_type}='samples';
-\item 'gaussian', 'poisson' or 'nbinom' if \code{in_type}='params'.
-}}
+\item 'continuous' or 'discrete' if \code{in_type[[i]]}='samples';
+\item 'gaussian', 'poisson' or 'nbinom' if \code{in_type[[i]]}='params'.
+}
+
+If \code{distr} is a string it is assumed that all distributions are of the same type.}
 
 \item{num_samples}{number of samples drawn from the reconciled distribution.}
 
@@ -47,17 +51,19 @@ Uses the Bottom-Up Importance Sampling algorithm to draw samples from the reconc
 forecast distribution, which is obtained via conditioning.
 }
 \details{
-The parameter \code{base_forecast} is a list containing n elements that depend on
-the options \code{in_type} and \code{distr}.
+The parameter \code{base_forecast} is a list containing n elements where the i-th element depends on
+the values of \code{in_type[[i]]} and \code{distr[[i]]}.
 
-If \code{in_type}='samples', each element of \code{base_forecast} is a vector containing samples from the base forecast distribution.
+If \code{in_type[[i]]}='samples', then \code{base_forecast[[i]]} is a vector containing samples from the base forecast distribution.
 
-If \code{in_type}='params', each element of \code{base_forecast} is a vector containing the estimated:
+If \code{in_type[[i]]}='params', then \code{base_forecast[[i]]} is a vector containing the estimated:
 \itemize{
-\item mean and sd for the Gaussian base forecast, see \link[stats]{Normal}, if \code{distr}='gaussian';
-\item lambda for the Poisson base forecast, see \link[stats]{Poisson}, if \code{distr}='poisson';
-\item mu and size for the negative binomial base forecast, see \link[stats]{NegBinomial}, if \code{distr}='nbinom'.
+\item mean and sd for the Gaussian base forecast if \code{distr[[i]]}='gaussian', see \link[stats]{Normal},;
+\item lambda for the Poisson base forecast if \code{distr[[i]]}='poisson', see \link[stats]{Poisson};
+\item mu and size for the negative binomial base forecast if \code{distr[[i]]}='nbinom', see \link[stats]{NegBinomial}.
 }
+
+See the description of the parameters \code{in_type} and \code{distr} for more details.
 
 The order of the \code{base_forecast} list is given by the order of the time series in the summing matrix.
 }

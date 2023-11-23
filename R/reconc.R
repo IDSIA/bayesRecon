@@ -79,30 +79,36 @@
 #'
 #' @details
 #'
-#' The parameter `base_forecast` is a list containing n elements that depend on
-#' the options `in_type` and `distr`.
+#' The parameter `base_forecast` is a list containing n elements where the i-th element depends on
+#' the values of `in_type[[i]]` and `distr[[i]]`.
 #'
-#' If `in_type`='samples', each element of `base_forecast` is a vector containing samples from the base forecast distribution.
+#' If `in_type[[i]]`='samples', then `base_forecast[[i]]` is a vector containing samples from the base forecast distribution.
 #'
-#' If `in_type`='params', each element of `base_forecast` is a vector containing the estimated:
+#' If `in_type[[i]]`='params', then `base_forecast[[i]]` is a vector containing the estimated:
 #'
-#' * mean and sd for the Gaussian base forecast, see \link[stats]{Normal}, if `distr`='gaussian';
-#' * lambda for the Poisson base forecast, see \link[stats]{Poisson}, if `distr`='poisson';
-#' * mu and size for the negative binomial base forecast, see \link[stats]{NegBinomial}, if `distr`='nbinom'.
+#' * mean and sd for the Gaussian base forecast if `distr[[i]]`='gaussian', see \link[stats]{Normal},;
+#' * lambda for the Poisson base forecast if `distr[[i]]`='poisson', see \link[stats]{Poisson};
+#' * mu and size for the negative binomial base forecast if `distr[[i]]`='nbinom', see \link[stats]{NegBinomial}.
+#' 
+#' See the description of the parameters `in_type` and `distr` for more details. 
 #'
 #' The order of the `base_forecast` list is given by the order of the time series in the summing matrix.
 #'
 #' @param S summing matrix (n x n_bottom).
 #' @param base_forecasts a list containing the base_forecasts, see details.
-#' @param in_type a string with two possible values:
+#' @param in_type a string or a list of length n. If it is a list the i-th element is a string with two possible values:
 #'
-#' * 'samples' if the base forecasts are in the form of samples;
-#' * 'params'  if the base forecasts are in the form of estimated parameters.
+#' * 'samples' if the i-th base forecasts are in the form of samples;
+#' * 'params'  if the i-th base forecasts are in the form of estimated parameters.
+#' 
+#' If it `in_type` is a string it is assumed that all base forecasts are of the same type. 
 #'
-#' @param distr a string describing the type of base forecasts:
+#' @param distr a string or a list of length n describing the type of base forecasts. If it is a list the i-th element is a string with two possible values:
 #'
-#' * 'continuous' or 'discrete' if `in_type`='samples';
-#' * 'gaussian', 'poisson' or 'nbinom' if `in_type`='params'.
+#' * 'continuous' or 'discrete' if `in_type[[i]]`='samples';
+#' * 'gaussian', 'poisson' or 'nbinom' if `in_type[[i]]`='params'.
+#' 
+#' If `distr` is a string it is assumed that all distributions are of the same type.
 #'
 #' @param num_samples number of samples drawn from the reconciled distribution.
 #' @param seed seed for reproducibility.
@@ -200,6 +206,10 @@ reconc_BUIS <- function(S,
   if (!is.list(distr)) {
     distr = rep(list(distr), nrow(S))
   }
+  
+  if (!is.list(in_type)) {
+    in_type = rep(list(in_type), nrow(S))
+  }
 
   # Split bottoms, uppers
   split_hierarchy.res = .split_hierarchy(S, base_forecasts)
@@ -208,7 +218,7 @@ reconc_BUIS <- function(S,
   bottom_base_forecasts = split_hierarchy.res$bottom
 
   # H, G
-  get_HG.res = .get_HG(A, upper_base_forecasts, distr[split_hierarchy.res$upper_idxs])
+  get_HG.res = .get_HG(A, upper_base_forecasts, distr[split_hierarchy.res$upper_idxs], in_type[split_hierarchy.res$upper_idxs])
   H = get_HG.res$H
   upper_base_forecasts_H = get_HG.res$Hv
   G = get_HG.res$G
@@ -219,10 +229,11 @@ reconc_BUIS <- function(S,
   n_bottom = ncol(A)
   # 1. Bottom samples
   B = list()
+  in_type_bottom = in_type[split_hierarchy.res$bottom_idxs]
   for (bi in 1:n_bottom) {
-    if (in_type == "samples") {
+    if (in_type_bottom[[bi]] == "samples") {
       B[[bi]] = unlist(bottom_base_forecasts[[bi]])
-    } else if (in_type == "params") {
+    } else if (in_type_bottom[[bi]] == "params") {
       B[[bi]] = .distr_sample(bottom_base_forecasts[[bi]],
                               distr[split_hierarchy.res$bottom_idxs][[bi]],
                               num_samples)
@@ -238,7 +249,7 @@ reconc_BUIS <- function(S,
       b = (B %*% c),
       # (num_samples x 1)
       u = unlist(upper_base_forecasts_H[[hi]]),
-      in_type_ = in_type,
+      in_type_ = get_HG.res$Hin_type[[hi]],
       distr_ = get_HG.res$Hdistr[[hi]]
     )
     B[, b_mask] = .resample(B[, b_mask], weights)
@@ -252,7 +263,7 @@ reconc_BUIS <- function(S,
       weights = weights * .compute_weights(
         b = (B %*% c),
         u = unlist(upper_base_forecasts_G[[gi]]),
-        in_type_ = in_type,
+        in_type_ = get_HG.res$Gin_type[[gi]],
         distr_ = get_HG.res$Gdistr[[gi]]
       )
     }

@@ -5,34 +5,50 @@
   if (!(nrow(S) == length(base_forecasts))) {
     stop("Input error: nrow(S) != length(base_forecasts)")
   }
-
-  if (!(in_type %in% c("params", "samples"))) {
-    stop("Input error: in_type must be a 'samples' or 'params'")
+  
+  if (is.character(in_type)) {
+    if (!(in_type %in% c("params", "samples"))) {
+      stop("Input error: in_type must be either 'samples' or 'params'")
+    }
+    flag_list_intype = FALSE
+  }else if (is.list(in_type)) {
+    if (!(nrow(S) == length(in_type))) {
+      stop("Input error: nrow(S) != length(in_type)")
+    }
+    for(i in 1:nrow(S)){
+      if (!(in_type[[i]] %in% c("params", "samples"))) {
+        stop("Input error: in_type[[",i,"]] must be either 'samples' or 'params'")
+      }
+    }
+    flag_list_intype = TRUE
+  }else{
+    stop("Input error: in_type must be either a string or a list, check documentation")
   }
-
+  
   if (is.character(distr) &
       length(distr) == 1) {
     # if distr is a string...
-    if (in_type == "params" & !(distr %in% .DISTR_SET)) {
-      stop(paste(
-        "Input error: if in_type='params', distr must be {",
-        paste(.DISTR_SET, collapse = ', '),
-        "}"
-      ))
+    if (flag_list_intype){
+      for(i in 1:nrow(S)){
+        .check_distr(in_type[[i]], distr)
+      }
+    }else{
+      .check_distr(in_type, distr)
     }
-    if (in_type == "samples" & !(distr %in% .DISTR_SET2)) {
-      stop(paste(
-        "Input error: if in_type='samples', distr must be {",
-        paste(.DISTR_SET2, collapse = ', '),
-        "}"
-      ))
-    }
-  }
-
-  if (is.list(distr)) {
+  }else  if (is.list(distr)) {
     if (!(nrow(S) == length(distr))) {
       stop("Input error: nrow(S) != length(distr)")
     }
+    for(i in 1:nrow(S)){
+      if (flag_list_intype){
+        .check_distr(in_type[[i]], distr[[i]],i)
+      }else{
+        .check_distr(in_type, distr[[i]],i)
+      }
+      
+    }
+  }else{
+    stop("Input error: distr must be either a string or a list, check documentation")
   }
 
   # Eventually:
@@ -42,6 +58,30 @@
   # - poisson:  1 parameter,  (lambda)
   # - nbinom:   2 parameters, (n, p)
   # TODO if distr is a list, check that entries are coherent
+}
+
+# Individual check on the parameter distr
+.check_distr <- function(in_type, distr, i=NULL) {
+  
+  add_string = ""
+  if(!is.null(i)){
+    add_string = paste("[[",i,"]]")
+  }
+  
+  if (in_type == "params" & !(distr %in% .DISTR_SET)) {
+    stop(paste(
+      "Input error: if in_type='params', distr", add_string, " must be {",
+      paste(.DISTR_SET, collapse = ', '),
+      "}"
+    ))
+  }
+  if (in_type == "samples" & !(distr %in% .DISTR_SET2)) {
+    stop(paste(
+      "Input error: if in_type='samples', distr", add_string, " must be {",
+      paste(.DISTR_SET2, collapse = ', '),
+      "}"
+    ))
+  }
 }
 
 # Misc
