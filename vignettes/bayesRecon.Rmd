@@ -169,15 +169,10 @@ A <- recon.matrices$A
 ```
 
 To reconcile using Bottom-Up Important Sampling (BUIS) we
-we use the function `reconc_BUIS`.
-It requires the $\mathbf{S}$ matrix, the *base forecasts*, the  type (`in_type`)  of the base forecasts.
-The `in_type` argument can be set to "samples" if the base forecasts are in the form of samples, as  in our case. Alternatively, it can be set to "params" if the base forecasts are parametric distributions; in this case we pass the  the parameters to the reconciliation algorithm. This is shown in the Gaussian reconciliation example.
+we use the function `reconc_BUIS`, passing to it
+the $\mathbf{S}$ matrix, the *base forecasts*, the  type  of the base forecasts (`in_type`="samples") and whether the samples are discrete or integer (`distr` = "discrete").
+The  examples shown later perform instead reconciliation of Gaussian base forecasts, in which case  (`in_type`="params").
 
-We need specifying the type of samples  ("discrete" in this example, since the predictive distributions are Poisson).
-<mark>se sono samples, perchè è necessario dare il tipo??</mark>
-
-
-The `distr` argument is a string describing the type of base forecasts. It can be: "continuous" or "discrete" if `in_type = "samples"`; "gaussian", "poisson" or "nbinom" if `in_type = "params"`. 
 
 ``` {r reconc}
 recon.res <- bayesRecon::reconc_BUIS(
@@ -195,7 +190,7 @@ dim(reconciled_samples)
 
 ```
 
-We now compute the Mean Absolute Error (MAE) and the Continuous Ranked Probability Score (CRPS) for the bottom (i.e., *monthly*) time series.  For CRPS, we use `crps_sample` from the package `scoringRules` ([R CRAN](https://cran.r-project.org/package=scoringRules)).
+We now compute the Mean Absolute Error (MAE) and the Continuous Ranked Probability Score (CRPS) for the bottom (i.e., *monthly*) time series.  For computing CRPS, we use the package [`scoringRules`](https://cran.r-project.org/package=scoringRules).
 
 ```{r metrics}
 # install.packages("scoringRules", dependencies = TRUE)
@@ -234,7 +229,7 @@ metrics
 
 # Temporal hierarchy over a smooth time series
 
-We select a smooth monthly time series (N1485) from the M3 forecasting competition [@makridakis2000m3]. The data set is available in
+In this second example, we select a smooth monthly time series (N1485) from the M3 forecasting competition [@makridakis2000m3]. The data set is available in
 the Mcomp package [@mcomp_pkg] and we make available this time series as `bayesRecon::m3_example`.
 
 
@@ -364,14 +359,14 @@ polygon(c(xtest, rev(xtest)), c(yreconc.mu, rev(yreconc.lo95)),
 #   Gaussian reconciliation of a cross-sectional hierarchy
 
 In this example, we consider the hierarchical time series *infantgts*, which is available 
-from the 'hts' package [@hts_pkg]
+from the `hts` package [@hts_pkg]
 We make it available also in our package as `bayesRecon::infantMortality`.
 
 It contains counts of infant mortality (deaths) in Australia, disaggregated by state and sex (male and female). 
 
 <!-- State codes refer to: New South Wales (NSW), Victoria (VIC), Queensland (QLD), South Australia (SA), Western Australia (WA), Northern Territory (NT), Australian Capital Territory (ACT), and Tasmania (TAS). -->
 
-We want to forecast one year ahead. We use  'auto.arima'  from the [`forecast` ](https://cran.r-project.org/package=forecast) package. 
+We forecast one year ahead using `auto.arima`  from the [`forecast` ](https://cran.r-project.org/package=forecast) package. 
 We collect the residuals, which we will later use to compute the covariance matrix. 
 
 ```{r infants-forecasts}
@@ -423,8 +418,7 @@ axis(1, at=1:ncol(A), label=names(infantMortality)[12:27], las=2)
 axis(2, at=c(1:11), label=rev(names(infantMortality)[1:11]), las=2)
 ```
 <br>
-We use the shrinkage estimator [@schafer2005shrinkage]
-to estimate the covariance matrix of the residuals, which is implemented by  `bayesRecon::schaferStrimmer_cov`.
+We use  `bayesRecon::schaferStrimmer_cov` to estimate the covariance matrix of the residuals with shrinkage [@schafer2005shrinkage].
 
 ```{r infants reconc}
 # means
