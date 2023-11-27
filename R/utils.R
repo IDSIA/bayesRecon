@@ -2,6 +2,7 @@
 .DISTR_SET = c("gaussian", "poisson", "nbinom")
 .DISTR_SET2 = c("continuous", "discrete")
 .check_input <- function(S, base_forecasts, in_type, distr) {
+  
   if (!(nrow(S) == length(base_forecasts))) {
     stop("Input error: nrow(S) != length(base_forecasts)")
   }
@@ -83,6 +84,32 @@
     ))
   }
 }
+
+# Returns TRUE if A is a hierarchy matrix 
+# (according to Definition 1 in "Find Maximal Hierarchy")
+# If this returns TRUE we avoid solving the integer linear programming problem
+.check_hierarchical <- function(A) {
+  
+  k <- nrow(A)
+  m <- ncol(A)
+  
+  for (i in 1:k) {
+    for (j in 1:k) {
+      if (i < j) {
+        cond1 = A[i,] %*% A[j,] != 0     # Upper i and j have some common descendants
+        cond2 = sum(A[i,] - A[j,] >= 0) < m  # Upper j is not a descendant of upper i
+        cond3 = sum(A[i,] - A[j,] <= 0) < m  # Upper i is not a descendant of upper j
+        if (cond1 & cond2 & cond3) {
+          return(FALSE)
+        }
+      }
+    }
+  }
+  
+  return(TRUE)
+  
+}
+
 
 # Misc
 .shape <- function(m) {

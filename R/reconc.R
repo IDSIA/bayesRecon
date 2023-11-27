@@ -218,12 +218,27 @@ reconc_BUIS <- function(S,
   bottom_base_forecasts = split_hierarchy.res$bottom
 
   # H, G
-  get_HG.res = .get_HG(A, upper_base_forecasts, distr[split_hierarchy.res$upper_idxs], in_type[split_hierarchy.res$upper_idxs])
-  H = get_HG.res$H
-  upper_base_forecasts_H = get_HG.res$Hv
-  G = get_HG.res$G
-  upper_base_forecasts_G = get_HG.res$Gv
-
+  if(.check_hierarchical(A)){
+    H = A
+    G = NULL
+    upper_base_forecasts_H = upper_base_forecasts
+    upper_base_forecasts_G = NULL
+    in_typeH = in_type[split_hierarchy.res$upper_idxs]
+    distr_H  = distr[split_hierarchy.res$upper_idxs]
+    in_typeG = NULL
+    distr_G  = NULL
+  }else{
+    get_HG.res = .get_HG(A, upper_base_forecasts, distr[split_hierarchy.res$upper_idxs], in_type[split_hierarchy.res$upper_idxs])
+    H = get_HG.res$H
+    upper_base_forecasts_H = get_HG.res$Hv
+    G = get_HG.res$G
+    upper_base_forecasts_G = get_HG.res$Gv
+    in_typeH = get_HG.res$Hin_type
+    distr_H  = get_HG.res$Hdistr
+    in_typeG = get_HG.res$Gin_type
+    distr_G  = get_HG.res$Gdistr
+  }
+  
   # Reconciliation using BUIS
   n_upper = nrow(A)
   n_bottom = ncol(A)
@@ -249,8 +264,8 @@ reconc_BUIS <- function(S,
       b = (B %*% c),
       # (num_samples x 1)
       u = unlist(upper_base_forecasts_H[[hi]]),
-      in_type_ = get_HG.res$Hin_type[[hi]],
-      distr_ = get_HG.res$Hdistr[[hi]]
+      in_type_ = in_typeH[[hi]],
+      distr_ = distr_H[[hi]]
     )
     B[, b_mask] = .resample(B[, b_mask], weights)
   }
@@ -263,8 +278,8 @@ reconc_BUIS <- function(S,
       weights = weights * .compute_weights(
         b = (B %*% c),
         u = unlist(upper_base_forecasts_G[[gi]]),
-        in_type_ = get_HG.res$Gin_type[[gi]],
-        distr_ = get_HG.res$Gdistr[[gi]]
+        in_type_ = in_typeG[[gi]],
+        distr_ = distr_G[[gi]]
       )
     }
     B = .resample(B, weights)
