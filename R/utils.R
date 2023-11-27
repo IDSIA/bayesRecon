@@ -3,6 +3,8 @@
 .DISTR_SET2 = c("continuous", "discrete")
 .check_input <- function(S, base_forecasts, in_type, distr) {
   
+  .check_S(S)
+  
   if (!(nrow(S) == length(base_forecasts))) {
     stop("Input error: nrow(S) != length(base_forecasts)")
   }
@@ -59,6 +61,38 @@
   # - poisson:  1 parameter,  (lambda)
   # - nbinom:   2 parameters, (n, p)
   # TODO if distr is a list, check that entries are coherent
+}
+
+
+# Checks if a matrix is a covariance matrix (i.e. symmetric p.d.)
+.check_cov <- function(cov_matrix) {
+  # Check if the matrix is square
+  if (!is.matrix(cov_matrix) || nrow(cov_matrix) != ncol(cov_matrix)) {
+    stop("base_forecasts.Sigma not square")
+  }
+  # Check if the matrix is positive semi-definite
+  eigen_values <- eigen(cov_matrix, symmetric = TRUE)$values
+  if (any(eigen_values <= 0)) {
+    stop("base_forecasts.Sigma not positive semi-definite")
+  }
+  # Check if the matrix is symmetric
+  if (!isSymmetric(cov_matrix)) {
+    stop("base_forecasts.Sigma not symmetric")
+  }
+  # Check if the diagonal elements are non-negative
+  if (any(diag(cov_matrix) < 0)) {
+    stop("base_forecasts.Sigma, diagonal elements are non-positive")
+  }
+  # If all checks pass, return TRUE
+  return(TRUE)
+}
+
+
+# Function to check values allowed in S.
+.check_S <- function(S) {
+  if(!identical(sort(unique(as.vector(S))), c(0,1)) ){
+    stop("Input error: S must be a matrix containing only 0s and 1s.")
+  }
 }
 
 # Individual check on the parameter distr

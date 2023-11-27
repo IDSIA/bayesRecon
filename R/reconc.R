@@ -297,28 +297,7 @@ reconc_BUIS <- function(S,
   return(out)
 }
 
-###############################################################################
-.check_cov <- function(cov_matrix) {
-  # Check if the matrix is square
-  if (!is.matrix(cov_matrix) || nrow(cov_matrix) != ncol(cov_matrix)) {
-    stop("base_forecasts.Sigma not square")
-  }
-  # Check if the matrix is positive semi-definite
-  eigen_values <- eigen(cov_matrix, symmetric = TRUE)$values
-  if (any(eigen_values <= 0)) {
-    stop("base_forecasts.Sigma not positive semi-definite")
-  }
-  # Check if the matrix is symmetric
-  if (!isSymmetric(cov_matrix)) {
-    stop("base_forecasts.Sigma not symmetric")
-  }
-  # Check if the diagonal elements are non-negative
-  if (any(diag(cov_matrix) < 0)) {
-    stop("base_forecasts.Sigma, diagonal elements are non-positive")
-  }
-  # If all checks pass, return TRUE
-  return(TRUE)
-}
+
 
 #' @title Analytical reconciliation of Gaussian base forecasts
 #'
@@ -379,6 +358,8 @@ reconc_BUIS <- function(S,
 #' @export
 reconc_gaussian <- function(S, base_forecasts.mu,
                             base_forecasts.Sigma) {
+  # Check if S contains only 0s and 1s. 
+  .check_S(S)
   hier = .get_A_from_S(S)
   A = hier$A
   k = nrow(A)    #number of upper TS
