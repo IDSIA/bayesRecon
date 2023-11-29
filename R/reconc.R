@@ -18,6 +18,7 @@
   )
   return(samples)
 }
+
 .distr_pmf <- function(x, params, distr_) {
   switch(
     distr_,
@@ -30,21 +31,55 @@
   )
   return(pmf)
 }
+
 .emp_pmf <- function(l, density_samples) {
   empirical_pmf = sapply(0:max(density_samples), function(i)
     sum(density_samples == i) / length(density_samples))
   w = sapply(l, function(i) empirical_pmf[i + 1])
   return(w)
 }
-.fix_weights <- function(w) {
-  # print(paste("% not support:", mean(is.na(w))))
-  w[is.na(w)] = 0
-  if (sum(w) == 0) {
-    w = w + 1
-    warning("WARNING: all IS weights are zero, increase sample size or check your forecasts.")
+
+.check_weigths <- function(w, n_eff_min=200, p_n_eff=0.05) {
+  warning = FALSE
+  warning_code = c()
+  warning_msg = c()
+  
+  # Effective sample size
+  n = length(w)
+  n_eff = (sum(w)^2) / sum(w^2)
+  
+  # 1. Uniform w
+  if (mean(w) == 1) {
+    warning = TRUE
+    warning_code = c(warning_code, 1) 
+    warning_msg = c(warning_msg, 
+                    paste("<add warning message>", n_eff))
   }
-  return(w)
+  
+  # 2. n_eff < threshold
+  if (n_eff < n_eff_min) {
+    warning = TRUE
+    warning_code = c(warning_code, 2) 
+    warning_msg = c(warning_msg, 
+                    paste("<add warning message>", n_eff))
+  }
+  
+  # 3. n_eff < p*n, e.g. p = 0.05
+  if (n_eff < p_n_eff*n) {
+    warning = TRUE
+    warning_code = c(warning_code, 3) 
+    warning_msg = c(warning_msg, 
+                    paste("<add warning message>", n_eff))
+  }
+  
+  res = list(warning = warning,
+             warning_code = warning_code,
+             warning_msg = warning_msg,
+             n_eff = n_eff)
+  
+  return(res)
 }
+
 .compute_weights <- function(b, u, in_type_, distr_) {
   if (in_type_ == "samples") {
     if (distr_ == "discrete") {
@@ -56,12 +91,18 @@
       df = stats::approxfun(d)
       w = df(b)
     }
+    # be sure no NA are returned, if NA, we want 0:
+    # for the discrete branch:   if b_i !in u        --> NA
+    # for the continuous branch: if b_i !in range(u) --> NA
+    w[is.na(w)] = 0
   } else if (in_type_ == "params") {
-    w = .distr_pmf(b, u, distr_)
+    w = .distr_pmf(b, u, distr_)   # this never returns NA
   }
-  w = .fix_weights(w)
+  # be sure not to return all 0 weights, return ones instead
+  if (sum(w) == 0) { w = w + 1 }
   return(w)
 }
+
 .resample <- function(S_, weights, num_samples = NA) {
   if (is.na(num_samples)) {
     num_samples = length(weights)
@@ -198,6 +239,7 @@ reconc_BUIS <- function(S,
                    in_type,
                    distr,
                    num_samples = 2e4,
+                   suppressWarnings = FALSE, #TODO add to doc
                    seed = NULL) {
   set.seed(seed)
 
@@ -221,7 +263,8 @@ reconc_BUIS <- function(S,
   .check_hierfamily_rel(split_hierarchy.res, distr)
 
   # H, G
-  if(.check_hierarchical(A)){
+  is.hier = .check_hierarchical(A)
+  if(is.hier) {
     H = A
     G = NULL
     upper_base_forecasts_H = upper_base_forecasts
@@ -230,7 +273,7 @@ reconc_BUIS <- function(S,
     distr_H  = distr[split_hierarchy.res$upper_idxs]
     in_typeG = NULL
     distr_G  = NULL
-  }else{
+  } else {
     get_HG.res = .get_HG(A, upper_base_forecasts, distr[split_hierarchy.res$upper_idxs], in_type[split_hierarchy.res$upper_idxs])
     H = get_HG.res$H
     upper_base_forecasts_H = get_HG.res$Hv
@@ -270,6 +313,14 @@ reconc_BUIS <- function(S,
       in_type_ = in_typeH[[hi]],
       distr_ = distr_H[[hi]]
     )
+    check_weights.res = .check_weigths(weights)
+    if (check_weights.res$warning & !suppressWarnings) {
+      warning_msg = check_weights.res$warning_msg
+      # TODO add information to the string
+      upper_fromS_i = which(lapply(seq_len(nrow(S)), function(i) sum(abs(S[i,] - c))) == 0)
+      warning_msg = paste(warning_msg, "Check upper ts at  S-row-index:", upper_fromS_i)
+      warning(warning_msg)
+    }
     B[, b_mask] = .resample(B[, b_mask], weights)
   }
 
@@ -284,6 +335,20 @@ reconc_BUIS <- function(S,
         in_type_ = in_typeG[[gi]],
         distr_ = distr_G[[gi]]
       )
+    }
+    check_weights.res = .check_weigths(weights)
+    if (check_weights.res$warning & !suppressWarnings) {
+      warning_msg = check_weights.res$warning_msg
+      # TODO add information to the string
+      upper_fromS_i = c()
+      for (gi in 1:nrow(G)) {
+        c = G[gi, ]
+        upper_fromS_i = c(upper_fromS_i,
+                          which(lapply(seq_len(nrow(S)), function(i) sum(abs(S[i,] - c))) == 0))
+      }
+      warning_msg = paste(warning_msg, "Check upper ts at S-row-index:",
+                          paste0("{",paste(upper_fromS_i, collapse = ","), "}"))
+      warning(warning_msg)
     }
     B = .resample(B, weights)
   }
