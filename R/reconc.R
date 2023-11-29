@@ -216,6 +216,9 @@ reconc_BUIS <- function(S,
   A = split_hierarchy.res$A
   upper_base_forecasts = split_hierarchy.res$upper
   bottom_base_forecasts = split_hierarchy.res$bottom
+  
+  # Check on continuous/discrete in relationship to the hierarchy
+  .check_hierfamily_rel(split_hierarchy.res, distr)
 
   # H, G
   if(.check_hierarchical(A)){
