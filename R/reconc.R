@@ -389,6 +389,10 @@ reconc_BUIS <- function(S,
 #'
 #' @details
 #' The order of the base forecast means and covariance is given by the order of the time series in the summing matrix.
+#' 
+#' The function returns only the reconciled parameters of the bottom variables.
+#' The reconciled parameters for the upper variables or reconciled samples for the entire hierarchy can be obtained from these.
+#' The Examples section shows how.
 #'
 #'
 #' @return A list containing the bottom reconciled forecasts. The list has the following named elements:
@@ -396,7 +400,6 @@ reconc_BUIS <- function(S,
 #' * `bottom_reconciled_mean`: reconciled mean for the bottom forecasts;
 #' * `bottom_reconciled_covariance`: reconciled covariance for the bottom forecasts.
 #' 
-#' How to obtain the reconciled upper parameters is shown in Examples.
 #'
 #' @examples
 #'
@@ -432,6 +435,15 @@ reconc_BUIS <- function(S,
 #'# Obtain reconciled mu and Sigma for the entire hierarchy
 #'Y_mu_reconc <- S %*% bottom_mu_reconc
 #'Y_Sigma_reconc <- S %*% bottom_Sigma_reconc %*% t(S)  # note: singular matrix
+#'
+#'# Obtain reconciled samples for the entire hierarchy:
+#'# i.e., sample from the reconciled bottoms and multiply by S
+#'chol_decomp = chol(bottom_Sigma_reconc) # Compute the Cholesky Decomposition
+#'Z = matrix(rnorm(n = 2000), nrow = 2) # Sample from standard normal
+#'B = chol_decomp %*% Z + matrix(rep(bottom_mu_reconc, 1000), nrow=2) # Apply the transformation
+#'
+#'U = S %*% B
+#'Y_reconc = rbind(U, B)
 #'
 #' @references
 #' Corani, G., Azzimonti, D., Augusto, J.P.S.C., Zaffalon, M. (2021). *Probabilistic Reconciliation of Hierarchical Forecast via Bayes' Rule*. In: Hutter, F., Kersting, K., Lijffijt, J., Valera, I. (eds) Machine Learning and Knowledge Discovery in Databases. ECML PKDD 2020. Lecture Notes in Computer Science(), vol 12459. Springer, Cham. \doi{10.1007/978-3-030-67664-3_13}.

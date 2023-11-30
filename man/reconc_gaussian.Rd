@@ -19,14 +19,16 @@ A list containing the bottom reconciled forecasts. The list has the following na
 \item \code{bottom_reconciled_mean}: reconciled mean for the bottom forecasts;
 \item \code{bottom_reconciled_covariance}: reconciled covariance for the bottom forecasts.
 }
-
-How to obtain the reconciled upper parameters is shown in Examples.
 }
 \description{
 Closed form computation of the reconciled forecasts in case of Gaussian base forecasts.
 }
 \details{
 The order of the base forecast means and covariance is given by the order of the time series in the summing matrix.
+
+The function returns only the reconciled parameters of the bottom variables.
+The reconciled parameters for the upper variables or reconciled samples for the entire hierarchy can be obtained from these.
+The Examples section shows how.
 }
 \examples{
 
@@ -62,6 +64,15 @@ upper_Sigma_reconc <- A \%*\% bottom_Sigma_reconc \%*\% t(A)
 # Obtain reconciled mu and Sigma for the entire hierarchy
 Y_mu_reconc <- S \%*\% bottom_mu_reconc
 Y_Sigma_reconc <- S \%*\% bottom_Sigma_reconc \%*\% t(S)  # note: singular matrix
+
+# Obtain reconciled samples for the entire hierarchy:
+# i.e., sample from the reconciled bottoms and multiply by S
+chol_decomp = chol(bottom_Sigma_reconc) # Compute the Cholesky Decomposition
+Z = matrix(rnorm(n = 2000), nrow = 2) # Sample from standard normal
+B = chol_decomp \%*\% Z + matrix(rep(bottom_mu_reconc, 1000), nrow=2) # Apply the transformation
+
+U = S \%*\% B
+Y_reconc = rbind(U, B)
 
 }
 \references{
