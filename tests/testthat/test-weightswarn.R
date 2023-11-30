@@ -1,4 +1,4 @@
-test_that("Test shrinkage estimator", {
+test_that("Test effective sample size", {
   S = matrix(data = c(1,1,1,0,0,1), nrow=3, byrow = TRUE)
   
   # -----------
@@ -17,6 +17,10 @@ test_that("Test shrinkage estimator", {
   expect_equal(check_w$warning_code, 1)
   expect_equal(check_w$n_eff, n)
   
+  # Try the warning message
+  # base_forecast = list(u,b1,b2)
+  # a = bayesRecon::reconc_BUIS(S, base_forecast, in_type = "samples", distr = list("continuous","discrete","discrete"), seed=42)
+  
   # -----------
   n = 199
   b1 = rpois(n=n, lambda = 3)
@@ -33,6 +37,10 @@ test_that("Test shrinkage estimator", {
   expect_equal(check_w$warning_code, c(1,2))
   expect_equal(check_w$n_eff, n)
   
+  # Try the warning message
+  # base_forecast = list(u,b1,b2)
+  # a = bayesRecon::reconc_BUIS(S, base_forecast, in_type = "samples", distr = list("continuous","discrete","discrete"), seed=42)
+
   # -----------
   n = 2000
   b1 = rpois(n=n, lambda = 3)
@@ -48,9 +56,8 @@ test_that("Test shrinkage estimator", {
   expect_equal(check_w$warning, TRUE)
   expect_equal(check_w$warning_code, c(2,3))
   expect_equal(check_w$n_eff < 200, TRUE)
+  
+  # Try the warning message
+  # base_forecast = list(u,b1,b2)
+  # a = bayesRecon::reconc_BUIS(S, base_forecast, in_type = "samples", distr = list("continuous","discrete","discrete"), seed=42)
 })
-
-
-# base_forecast = list(u,b1,b2)
-# 
-# a = bayesRecon::reconc_BUIS(S, base_forecast, in_type = "samples", distr = list("continuous","discrete","discrete"), seed=42)

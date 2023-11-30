@@ -53,7 +53,7 @@
     warning = TRUE
     warning_code = c(warning_code, 1) 
     warning_msg = c(warning_msg, 
-                    paste("<add warning message>", n_eff))
+                    paste0("Importance Sampling: all the weights are zeros. This is probably caused by a strong incoherence between bottom and upper base forecasts. An uniform distribution for the weights is used. effective_sample_size= ", round(n_eff,2),"."))
   }
   
   # 2. n_eff < threshold
@@ -61,7 +61,7 @@
     warning = TRUE
     warning_code = c(warning_code, 2) 
     warning_msg = c(warning_msg, 
-                    paste("<add warning message>", n_eff))
+                    paste0("Importance Sampling: effective_sample_size= ", round(n_eff,2), " (< ", n_eff_min,")."))
   }
   
   # 3. n_eff < p*n, e.g. p = 0.05
@@ -69,7 +69,7 @@
     warning = TRUE
     warning_code = c(warning_code, 3) 
     warning_msg = c(warning_msg, 
-                    paste("<add warning message>", n_eff))
+                    paste0("Importance Sampling: effective_sample_size= ", round(n_eff,2), " (< ", round(p_n_eff * 100, 2),"%)."))
   }
   
   res = list(warning = warning,
@@ -127,32 +127,40 @@
 #'
 #' If `in_type[[i]]`='params', then `base_forecast[[i]]` is a vector containing the estimated:
 #'
-#' * mean and sd for the Gaussian base forecast if `distr[[i]]`='gaussian', see \link[stats]{Normal},;
+#' * mean and sd for the Gaussian base forecast if `distr[[i]]`='gaussian', see \link[stats]{Normal};
 #' * lambda for the Poisson base forecast if `distr[[i]]`='poisson', see \link[stats]{Poisson};
 #' * mu and size for the negative binomial base forecast if `distr[[i]]`='nbinom', see \link[stats]{NegBinomial}.
 #' 
 #' See the description of the parameters `in_type` and `distr` for more details. 
 #'
 #' The order of the `base_forecast` list is given by the order of the time series in the summing matrix.
+#' 
+#' Warnings are triggered from the Importance Sampling step if:
+#' 
+#' * weights are all zeros;
+#' * the effective sample size is < 200;
+#' * the effective sample size is < 5% of the sample size (`num_samples` if `in_type` is 'params' or the size of the base forecast if if `in_type` is 'samples').
 #'
-#' @param S summing matrix (n x n_bottom).
-#' @param base_forecasts a list containing the base_forecasts, see details.
-#' @param in_type a string or a list of length n. If it is a list the i-th element is a string with two possible values:
+#' @param S Summing matrix (n x n_bottom).
+#' @param base_forecasts A list containing the base_forecasts, see details.
+#' @param in_type A string or a list of length n. If it is a list the i-th element is a string with two possible values:
 #'
 #' * 'samples' if the i-th base forecasts are in the form of samples;
 #' * 'params'  if the i-th base forecasts are in the form of estimated parameters.
 #' 
 #' If it `in_type` is a string it is assumed that all base forecasts are of the same type. 
 #'
-#' @param distr a string or a list of length n describing the type of base forecasts. If it is a list the i-th element is a string with two possible values:
+#' @param distr A string or a list of length n describing the type of base forecasts. If it is a list the i-th element is a string with two possible values:
 #'
 #' * 'continuous' or 'discrete' if `in_type[[i]]`='samples';
 #' * 'gaussian', 'poisson' or 'nbinom' if `in_type[[i]]`='params'.
 #' 
 #' If `distr` is a string it is assumed that all distributions are of the same type.
 #'
-#' @param num_samples number of samples drawn from the reconciled distribution.
-#' @param seed seed for reproducibility.
+#' @param num_samples Number of samples drawn from the reconciled distribution.
+#' @param suppress_warnings Logical. If \code{TRUE}, no warnings about effective sample size
+#'        are triggered. If \code{FALSE}, warnings are generated. Default is \code{FALSE}. See Details.
+#' @param seed Seed for reproducibility.
 #'
 #' @return A list containing the reconciled forecasts. The list has the following named elements:
 #'
@@ -239,7 +247,7 @@ reconc_BUIS <- function(S,
                    in_type,
                    distr,
                    num_samples = 2e4,
-                   suppressWarnings = FALSE, #TODO add to doc
+                   suppress_warnings = FALSE,
                    seed = NULL) {
   set.seed(seed)
 
@@ -314,12 +322,14 @@ reconc_BUIS <- function(S,
       distr_ = distr_H[[hi]]
     )
     check_weights.res = .check_weigths(weights)
-    if (check_weights.res$warning & !suppressWarnings) {
+    if (check_weights.res$warning & !suppress_warnings) {
       warning_msg = check_weights.res$warning_msg
-      # TODO add information to the string
+      # add information to the warning message
       upper_fromS_i = which(lapply(seq_len(nrow(S)), function(i) sum(abs(S[i,] - c))) == 0)
-      warning_msg = paste(warning_msg, "Check upper ts at  S-row-index:", upper_fromS_i)
-      warning(warning_msg)
+      for (wmsg in warning_msg) {
+        wmsg = paste(wmsg, paste0("Check the upper forecast at index: ", upper_fromS_i,"."))
+        warning(wmsg)
+      }
     }
     B[, b_mask] = .resample(B[, b_mask], weights)
   }
@@ -337,18 +347,19 @@ reconc_BUIS <- function(S,
       )
     }
     check_weights.res = .check_weigths(weights)
-    if (check_weights.res$warning & !suppressWarnings) {
+    if (check_weights.res$warning & !suppress_warnings) {
       warning_msg = check_weights.res$warning_msg
-      # TODO add information to the string
+      # add information to the warning message
       upper_fromS_i = c()
       for (gi in 1:nrow(G)) {
         c = G[gi, ]
         upper_fromS_i = c(upper_fromS_i,
                           which(lapply(seq_len(nrow(S)), function(i) sum(abs(S[i,] - c))) == 0))
       }
-      warning_msg = paste(warning_msg, "Check upper ts at S-row-index:",
-                          paste0("{",paste(upper_fromS_i, collapse = ","), "}"))
-      warning(warning_msg)
+      for (wmsg in warning_msg) {
+        wmsg = paste(wmsg, paste0("Check the upper forecasts at index: ", paste0("{",paste(upper_fromS_i, collapse = ","), "}.")))
+        warning(wmsg)
+      }
     }
     B = .resample(B, weights)
   }
