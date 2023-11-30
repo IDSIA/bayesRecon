@@ -395,6 +395,8 @@ reconc_BUIS <- function(S,
 #'
 #' * `bottom_reconciled_mean`: reconciled mean for the bottom forecasts;
 #' * `bottom_reconciled_covariance`: reconciled covariance for the bottom forecasts.
+#' 
+#' How to obtain the reconciled upper parameters is shown in Examples.
 #'
 #' @examples
 #'

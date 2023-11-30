@@ -19,6 +19,8 @@ A list containing the bottom reconciled forecasts. The list has the following na
 \item \code{bottom_reconciled_mean}: reconciled mean for the bottom forecasts;
 \item \code{bottom_reconciled_covariance}: reconciled covariance for the bottom forecasts.
 }
+
+How to obtain the reconciled upper parameters is shown in Examples.
 }
 \description{
 Closed form computation of the reconciled forecasts in case of Gaussian base forecasts.
