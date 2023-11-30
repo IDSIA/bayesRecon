@@ -209,7 +209,7 @@
 #'                                 base_forecasts.Sigma = Sigma)
 #'
 #'#Compare the reconciled means obtained analytically and via BUIS
-#'print(c(analytic_rec$upper_reconciled_mean, analytic_rec$bottom_reconciled_mean))
+#'print(c(S %*% analytic_rec$bottom_reconciled_mean))
 #'print(rowMeans(samples_buis))
 #'
 #'

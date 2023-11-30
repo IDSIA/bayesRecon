@@ -315,8 +315,8 @@ reconc.buis <- bayesRecon::reconc_BUIS(
 
 # check that the algorithms return consistent results
 round(rbind(
-  c(recon.gauss$bottom_reconciled_mean),
-  rowMeans(reconc.buis$reconciled_samples[24:41,])  # note: bottom means
+  c(rmat$S %*% recon.gauss$bottom_reconciled_mean),
+  rowMeans(reconc.buis$reconciled_samples)
 ))
 ```
 
