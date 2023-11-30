@@ -1,0 +1,188 @@
+---
+title: "Properties of the reconciled distribution via conditioning"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Properties of the reconciled distribution via conditioning}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(bayesRecon)
+```
+
+
+# Introduction
+
+This vignette reproduces the results of the paper Zambon, Agosto, Giudici, Corani (IJF, 2023) (...)
+
+
+# Data and base forecasts
+
+Credit default swaps (CDS) are financial instruments that guarantee insurance against the possible default of a given company. 
+The CDS price is a function of the probability of default estimated by the market for that company.
+An extreme market event takes place when the value of the CDS spread on a given day exceeds the 90-th percentile of its distribution in the last trading year.
+We forecast the extreme market events for the companies of the Euro Stoxx 50 index in the period 2005-2018, which includes 3508 trading days.
+We consider the 29 companies included in the index  having a regularly quoted CDS  and we divide them into five economic sectors: Financial (FIN), Information and Communication Technology (ICT), Manufacturing (MFG), Energy (ENG), and Trade (TRD). 
+We start from the CDS spread time series retrieved from Bloomberg and we count the daily number of extreme events for each sector, obtaining five daily time series with 3508 data points each.
+
+We organize the time series into a hierarchy with 5 bottom and 1 upper time series:
+the five economic sectors constitute the bottom level, while their sum constitutes the top level. 
+
+```{r out.width = '50%', echo = FALSE}
+knitr::include_graphics("img/finTS_hier.jpg")
+```
+
+The base forecasts for the bottom time series are computed using the model of {agosto2022multivariate}, 
+whose predictive distribution is a multivariate negative binomial with a static vector 
+of dispersion parameters and a time-varying vector of location parameters following a score-driven dynamics. 
+The base forecasts for the upper time series are computed using a univariate version of this model.
+
+The model parameters are estimated through in-sample maximum likelihood.
+We then compute the 1-day ahead base forecasts for time $t+1$ by conditioning on the counts observed up to time $t$. 
+
+We make available the base forecasts and the actual values via `bayesRecon::carparts_example`.
+
+```{r}
+# Hierarchy composed by 6 time series: 5 bottom and 1 upper
+n_b <- 5
+n_u <- 1
+n <- n_b + n_u   
+
+A <- matrix(1, ncol = n_b, nrow = n_u)  # aggregating matrix
+S <- rbind(A, diag(n_b))                # summing matrix
+
+# Actual values:
+actuals <- extreme_market_events$actuals
+# Base forecasts:
+base_fc <- extreme_market_events$base_fc
+
+N <- nrow(actuals)  # number of days
+```
+
+# Reconciliation via conditioning
+
+We reconcile the base forecasts via conditioning, using importance sampling.
+We perform 3508 reconciliations, one for each day, drawing each time $100,000$ samples 
+from the reconciled distribution.
+We use the `reconc_BUIS` function, which implements the BUIS algorithm (TODO: add ref).
+Note that, since there is only one upper time series in the hierarchy, the BUIS algorithm is
+equivalent to importance sampling.
+
+For each day, we save the empirical mean, median, and quantiles of the reconciled distribution.
+
+```{r}
+# Need to save the mean and median of the reconciled distribution
+# to compute the squared error and the absolute error:
+rec_means   <- matrix(NA, ncol = n, nrow = N)
+rec_medians <- matrix(NA, ncol = n, nrow = N)
+
+# Need to save the lower and upper quantiles of the reconciled distribution
+# to compute the interval score:
+rec_L <- matrix(NA, ncol = n, nrow = N)
+rec_U <- matrix(NA, ncol = n, nrow = N)
+int_cov = 0.9   # use 90% interval         
+q1 <- (1 - int_cov) / 2
+q2 <- (1 + int_cov) / 2
+
+for (j in 1:N) {
+  # Base forecasts:
+  base_fc_j <- c()   
+  for (i in 1:n) {
+    base_fc_j[[i]] <- c(base_fc$mu[[j,i]], base_fc$size[[i]])
+  }
+  
+  # Reconcile via importance sampling:
+  buis <- reconc_BUIS(S, base_fc_j, "params", "nbinom", num_samples = 1e5, seed = 42)
+  samples_y <- buis$reconciled_samples
+  
+  # Save mean, median, and lower and upper quantiles:
+  rec_means[j,]   <- rowMeans(samples_y)
+  rec_medians[j,] <- apply(samples_y, 1, median)
+  rec_L[j,]       <- apply(samples_y, 1, quantile, q1)
+  rec_U[j,]       <- apply(samples_y, 1, quantile, q2)
+}
+
+
+```
+
+
+We compute the median and the quantiles of the negative binomial base forecasts:
+
+```{r}
+base_means   <- base_fc$mu
+base_medians <- matrix(NA, ncol = n, nrow = N)
+base_L       <- matrix(NA, ncol = n, nrow = N)
+base_U       <- matrix(NA, ncol = n, nrow = N)
+
+for (i in 1:n) {
+  base_medians[,i] <- sapply(base_means[,i], function(mu) qnbinom(p = 0.5, size = base_fc$size[[i]], mu = mu))
+  base_L[,i]       <- sapply(base_means[,i], function(mu) qnbinom(p = q1,  size = base_fc$size[[i]], mu = mu))
+  base_U[,i]       <- sapply(base_means[,i], function(mu) qnbinom(p = q2,  size = base_fc$size[[i]], mu = mu))
+}
+```
+
+
+For each day and for each time series, we compute the absolute error, the squared error, 
+and the interval score for the base and reconciled forecasts.
+
+```{r}
+# Compute the squared errors
+SE_base <- (base_means - actuals)^2
+SE_rec  <- (rec_means - actuals)^2
+
+# Compute the absolute errors
+AE_base <- abs(base_medians - actuals)
+AE_rec  <- abs(rec_medians - actuals)
+
+# Define the function for the interval score
+int_score <- function(l, u, actual, int_cov = 0.9) {
+  is <- (u - l) +
+  2 / (1-int_cov) * (actual - u) * (actual>u) +
+  2 / (1-int_cov) * (l - actual) * (l>actual) 
+  return(is)
+}
+
+# Compute the interval scores
+IS_base <- mapply(int_score, base_L, base_U, data.matrix(actuals))
+IS_base <- matrix(IS_base, nrow = N)
+IS_rec <- mapply(int_score, rec_L, rec_U, data.matrix(actuals))
+IS_rec <- matrix(IS_rec, nrow = N)
+```
+
+
+We compute and show the skill scores, which measure the improvement of the 
+reconciled forecasts over the base forecasts.
+The skill score is symmetric and bounded between -2 and 2.
+(add formula?)
+
+```{r}
+SS_AE <- (AE_base - AE_rec) / (AE_base + AE_rec) * 2
+SS_SE <- (SE_base - SE_rec) / (SE_base + SE_rec) * 2
+SS_IS <- (IS_base - IS_rec) / (IS_base + IS_rec) * 2
+SS_AE[is.na(SS_AE)] <- 0
+SS_SE[is.na(SS_SE)] <- 0
+SS_IS[is.na(SS_IS)] <- 0
+
+mean_skill_scores <- c(round(colMeans(SS_AE), 2), round(colMeans(SS_SE), 2), round(colMeans(SS_IS), 2))
+mean_skill_scores <- data.frame(t(matrix(mean_skill_scores, nrow = n)))
+colnames(mean_skill_scores) <- names(actuals)
+rownames(mean_skill_scores) <- c("Absolute error", "Squared error", "Interval score")
+print(mean_skill_scores)
+```
+
+# Analysis of the reconciled mean and variance
+
+TODO: Plot examples to show reconciliation effects 
+
+
+
+
+
