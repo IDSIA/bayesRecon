@@ -391,12 +391,10 @@ reconc_BUIS <- function(S,
 #' The order of the base forecast means and covariance is given by the order of the time series in the summing matrix.
 #'
 #'
-#' @return A list containing the reconciled forecasts. The list has the following named elements:
+#' @return A list containing the bottom reconciled forecasts. The list has the following named elements:
 #'
 #' * `bottom_reconciled_mean`: reconciled mean for the bottom forecasts;
-#' * `bottom_reconciled_covariance`: reconciled covariance for the bottom forecasts;
-#' * `upper_reconciled_mean`: reconciled mean for the upper forecasts;
-#' * `upper_reconciled_covariance`: reconciled covariance for the upper forecasts.
+#' * `bottom_reconciled_covariance`: reconciled covariance for the bottom forecasts.
 #'
 #' @examples
 #'
@@ -405,6 +403,7 @@ reconc_BUIS <- function(S,
 #'# Create a minimal hierarchy with 2 bottom and 1 upper variable
 #'rec_mat <- get_reconc_matrices(agg_levels=c(1,2), h=2)
 #'S <- rec_mat$S
+#'A <- rec_mat$A
 #'
 #'#Set the parameters of the Gaussian base forecast distributions
 #'mu1 <- 2
@@ -421,10 +420,16 @@ reconc_BUIS <- function(S,
 #'analytic_rec <- reconc_gaussian(S, base_forecasts.mu = mus,
 #'                                base_forecasts.Sigma = Sigma)
 #'
-#'bottom_means <- analytic_rec$bottom_reconciled_mean
-#'upper_means  <- analytic_rec$upper_reconciled_mean
-#'bottom_cov   <- analytic_rec$bottom_reconciled_covariance
-#'upper_cov    <- analytic_rec$upper_reconciled_covariance
+#'bottom_mu_reconc <- analytic_rec$bottom_reconciled_mean
+#'bottom_Sigma_reconc <- analytic_rec$bottom_reconciled_covariance
+#'
+#'# Obtain reconciled mu and Sigma for the upper variable
+#'upper_mu_reconc <- A %*% bottom_mu_reconc
+#'upper_Sigma_reconc <- A %*% bottom_Sigma_reconc %*% t(A)
+#'
+#'# Obtain reconciled mu and Sigma for the entire hierarchy
+#'Y_mu_reconc <- S %*% bottom_mu_reconc
+#'Y_Sigma_reconc <- S %*% bottom_Sigma_reconc %*% t(S)  # note: singular matrix
 #'
 #' @references
 #' Corani, G., Azzimonti, D., Augusto, J.P.S.C., Zaffalon, M. (2021). *Probabilistic Reconciliation of Hierarchical Forecast via Bayes' Rule*. In: Hutter, F., Kersting, K., Lijffijt, J., Valera, I. (eds) Machine Learning and Knowledge Discovery in Databases. ECML PKDD 2020. Lecture Notes in Computer Science(), vol 12459. Springer, Cham. \doi{10.1007/978-3-030-67664-3_13}.
@@ -467,15 +472,11 @@ reconc_gaussian <- function(S, base_forecasts.mu,
   Q = Sigma_u - Sigma_ub %*% t(A) - A %*% t(Sigma_ub) + A %*% Sigma_b %*% t(A)
   invQ = solve(Q)
   mu_b_tilde = mu_b + (t(Sigma_ub) - Sigma_b %*% t(A)) %*% invQ %*% (A %*% mu_b - mu_u)
-  mu_u_tilde = mu_u + (Sigma_u - Sigma_ub %*% t(A)) %*% invQ %*% (A %*% mu_b - mu_u)
   Sigma_b_tilde = Sigma_b - (t(Sigma_ub) - Sigma_b %*% t(A)) %*% invQ %*% t(t(Sigma_ub) - Sigma_b %*% t(A))
-  Sigma_u_tilde = Sigma_u - (Sigma_u - Sigma_ub %*% t(A)) %*% invQ %*% t(Sigma_u - Sigma_ub %*% t(A))
 
   out = list(
     bottom_reconciled_mean = mu_b_tilde,
-    bottom_reconciled_covariance = Sigma_b_tilde,
-    upper_reconciled_mean = mu_u_tilde,
-    upper_reconciled_covariance = Sigma_u_tilde
+    bottom_reconciled_covariance = Sigma_b_tilde
   )
   return(out)
 }
