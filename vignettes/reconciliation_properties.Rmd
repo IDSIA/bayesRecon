@@ -24,32 +24,36 @@ library(bayesRecon)
 This vignette reproduces the results of the paper *Properties of the reconciled distributions for Gaussian and count forecasts*, 
 currently submitted to IJF for review.
 
+In particular we show how to replicate the main experiment of the paper,  where we  reconcile  base forecast constituted by  negative binomial distributions. 
 
 # Data and base forecasts
 
-Credit default swaps (CDS) are financial instruments that guarantee insurance against the possible default of a given company. 
-The CDS price is a function of the probability of default estimated by the market for that company.
-An extreme market event takes place when the value of the CDS spread on a given day exceeds the 90-th percentile of its distribution in the last trading year.
-We forecast the extreme market events for the companies of the Euro Stoxx 50 index in the period 2005-2018, which includes 3508 trading days.
-We consider the 29 companies included in the index  having a regularly quoted CDS  and we divide them into five economic sectors: Financial (FIN), Information and Communication Technology (ICT), Manufacturing (MFG), Energy (ENG), and Trade (TRD). 
-We start from the CDS spread time series retrieved from Bloomberg and we count the daily number of extreme events for each sector, obtaining five daily time series with 3508 data points each.
 
-We organize the time series into a hierarchy with 5 bottom and 1 upper time series:
-the five economic sectors constitute the bottom level, while their sum constitutes the top level. 
+We consider time series of extreme market  events 
+for five economic sectors in the period 2005-2018 (3508 trading days).  The economic sectors are: Financial (FIN), Information and Communication Technology (ICT), Manufacturing (MFG), Energy (ENG), and Trade (TRD). 
+We count the number of extreme market  events in each sector,
+obtaining five daily time series of counts.
+See the paper for more details about this data set.
+
+
+We build  a hierarchy with 5 bottom time series 
+(one for each  economic sector)
+and 1 upper time series (the sum of the events over the different sectors). 
 
 ```{r out.width = '50%', echo = FALSE}
 knitr::include_graphics("img/finTS_hier.jpg")
 ```
 
-The base forecasts for the bottom time series are computed using the model of {agosto2022multivariate}, 
-whose predictive distribution is a multivariate negative binomial with a static vector 
-of dispersion parameters and a time-varying vector of location parameters following a score-driven dynamics. 
-The base forecasts for the upper time series are computed using a univariate version of this model.
+As discussed in the paper, we produce the base forecasts 
+for each sector and for the total
+using the model by {agosto2022multivariate}. **fix citation**
+All the predictive distributions
+are  negative binomial.
 
 The model parameters are estimated through in-sample maximum likelihood.
 We then compute the 1-day ahead base forecasts for time $t+1$ by conditioning on the counts observed up to time $t$. 
 
-We make available the base forecasts and the actual values via `bayesRecon::carparts_example`.
+We make available the base forecasts and the actual values via `bayesRecon::extreme_market_events`.
 
 ```{r}
 # Hierarchy composed by 6 time series: 5 bottom and 1 upper
@@ -61,10 +65,11 @@ A <- matrix(1, ncol = n_b, nrow = n_u)  # aggregating matrix
 S <- rbind(A, diag(n_b))                # summing matrix
 
 # Actual values:
-actuals <- extreme_market_events$actuals
+actuals <- extreme_market_events$actuals 
 # Base forecasts:
 base_fc <- extreme_market_events$base_fc
 
+#debug to run in shorter time
 N <- nrow(actuals)  # number of days
 ```
 
