@@ -21,7 +21,8 @@ library(bayesRecon)
 
 # Introduction
 
-This vignette reproduces the results of the paper Zambon, Agosto, Giudici, Corani (IJF, 2023) (...)
+This vignette reproduces the results of the paper *Properties of the reconciled distributions for Gaussian and count forecasts*, 
+currently submitted to IJF for review.
 
 
 # Data and base forecasts
