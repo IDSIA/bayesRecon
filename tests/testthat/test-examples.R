@@ -13,7 +13,7 @@ test_that("Monthly, in_type=='params', distr='gaussian'",{
   res.gauss = reconc_gaussian(S, base_forecasts_in[[1]], diag(base_forecasts_in[[2]]^2))
   # Test
   b_mask = rowSums(S) == 1
-  m = mean(rowMeans(res.buis$reconciled_samples)[b_mask] - as.numeric(rbind(res.gauss$upper_reconciled_mean, res.gauss$bottom_reconciled_mean)))
+  m = mean(rowMeans(res.buis$reconciled_samples)[b_mask] - as.numeric(res.gauss$bottom_reconciled_mean))
   expect_equal(abs(m) < 8e-3, TRUE)
 })
 
@@ -32,7 +32,7 @@ test_that("Weekly, in_type=='params', distr='gaussian'",{
   res.gauss = reconc_gaussian(S, base_forecasts_in[[1]], diag(base_forecasts_in[[2]]^2))
   # Test
   b_mask = rowSums(S) == 1
-  m = mean(rowMeans(res.buis$reconciled_samples)[b_mask] - as.numeric(rbind(res.gauss$upper_reconciled_mean, res.gauss$bottom_reconciled_mean)))
+  m = mean(rowMeans(res.buis$reconciled_samples)[b_mask] - as.numeric(res.gauss$bottom_reconciled_mean))
   expect_equal(abs(m) < 2e-2, TRUE)
 })
 

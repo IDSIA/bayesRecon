@@ -151,7 +151,7 @@
     distr_bottom = distr[sh.res$bottom_idxs][[bi]]
     rel_upper_i = sh.res$A[,bi]
     rel_distr_upper = unlist(distr[sh.res$upper_idxs])[rel_upper_i == 1]
-    err_message = "A continuous bottom distribution is child of a discrete one"
+    err_message = "A continuous bottom distribution is child of a discrete one."
     if (distr_bottom == .DISTR_SET2[1]) {              
       if (sum(rel_distr_upper == .DISTR_SET2[2]) | 
           sum(rel_distr_upper == .DISTR_SET[2]) | sum(rel_distr_upper == .DISTR_SET[3])) {

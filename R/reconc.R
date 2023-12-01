@@ -39,39 +39,42 @@
   return(w)
 }
 
-.check_weigths <- function(w, n_eff_min=200, p_n_eff=0.05) {
+.check_weigths <- function(w, n_eff_min=200, p_n_eff=0.01) {
   warning = FALSE
   warning_code = c()
   warning_msg = c()
   
-  # Effective sample size
   n = length(w)
-  n_eff = (sum(w)^2) / sum(w^2)
+  n_eff = n
   
-  # 1. Uniform w
-  if (mean(w) == 1) {
+  
+  # 1. w==0
+  if (all(w==0)) {
     warning = TRUE
     warning_code = c(warning_code, 1) 
     warning_msg = c(warning_msg, 
-                    paste0("Importance Sampling: all the weights are zeros. This is probably caused by a strong incoherence between bottom and upper base forecasts. An uniform distribution for the weights is used. effective_sample_size= ", round(n_eff,2),"."))
+                    "Importance Sampling: all the weights are zeros. This is probably caused by a strong incoherence between bottom and upper base forecasts.")
+  }else{
+    
+    # Effective sample size
+    n_eff = (sum(w)^2) / sum(w^2)
+    
+    # 2. n_eff < threshold
+    if (n_eff < n_eff_min) {
+      warning = TRUE
+      warning_code = c(warning_code, 2) 
+      warning_msg = c(warning_msg, 
+                      paste0("Importance Sampling: effective_sample_size= ", round(n_eff,2), " (< ", n_eff_min,")."))
+    }
+    
+    # 3. n_eff < p*n, e.g. p = 0.05
+    if (n_eff < p_n_eff*n) {
+      warning = TRUE
+      warning_code = c(warning_code, 3) 
+      warning_msg = c(warning_msg, 
+                      paste0("Importance Sampling: effective_sample_size= ", round(n_eff,2), " (< ", round(p_n_eff * 100, 2),"%)."))
+    }
   }
-  
-  # 2. n_eff < threshold
-  if (n_eff < n_eff_min) {
-    warning = TRUE
-    warning_code = c(warning_code, 2) 
-    warning_msg = c(warning_msg, 
-                    paste0("Importance Sampling: effective_sample_size= ", round(n_eff,2), " (< ", n_eff_min,")."))
-  }
-  
-  # 3. n_eff < p*n, e.g. p = 0.05
-  if (n_eff < p_n_eff*n) {
-    warning = TRUE
-    warning_code = c(warning_code, 3) 
-    warning_msg = c(warning_msg, 
-                    paste0("Importance Sampling: effective_sample_size= ", round(n_eff,2), " (< ", round(p_n_eff * 100, 2),"%)."))
-  }
-  
   res = list(warning = warning,
              warning_code = warning_code,
              warning_msg = warning_msg,
@@ -99,7 +102,7 @@
     w = .distr_pmf(b, u, distr_)   # this never returns NA
   }
   # be sure not to return all 0 weights, return ones instead
-  if (sum(w) == 0) { w = w + 1 }
+  # if (sum(w) == 0) { w = w + 1 }
   return(w)
 }
 
@@ -137,9 +140,11 @@
 #' 
 #' Warnings are triggered from the Importance Sampling step if:
 #' 
-#' * weights are all zeros;
+#' * weights are all zeros, then the upper is ignored during reconciliation;
 #' * the effective sample size is < 200;
-#' * the effective sample size is < 5% of the sample size (`num_samples` if `in_type` is 'params' or the size of the base forecast if if `in_type` is 'samples').
+#' * the effective sample size is < 1% of the sample size (`num_samples` if `in_type` is 'params' or the size of the base forecast if if `in_type` is 'samples').
+#' 
+#' Note that warnings are an indication that the base forecasts might have issues. Please check the base forecasts in case of warnings.
 #'
 #' @param S Summing matrix (n x n_bottom).
 #' @param base_forecasts A list containing the base_forecasts, see details.
@@ -331,6 +336,9 @@ reconc_BUIS <- function(S,
         warning(wmsg)
       }
     }
+    if(check_weights.res$warning & (1 %in% check_weights.res$warning_code)){
+      next
+    }
     B[, b_mask] = .resample(B[, b_mask], weights)
   }
 
@@ -361,7 +369,10 @@ reconc_BUIS <- function(S,
         warning(wmsg)
       }
     }
-    B = .resample(B, weights)
+    if(!(check_weights.res$warning & (1 %in% check_weights.res$warning_code))){
+      B = .resample(B, weights)
+    }
+    
   }
 
   B = t(B)
@@ -391,8 +402,8 @@ reconc_BUIS <- function(S,
 #' The order of the base forecast means and covariance is given by the order of the time series in the summing matrix.
 #' 
 #' The function returns only the reconciled parameters of the bottom variables.
-#' The reconciled parameters for the upper variables or reconciled samples for the entire hierarchy can be obtained from these.
-#' The Examples section shows how.
+#' The reconciled upper parameters and the reconciled samples for the entire hierarchy can be obtained from the reconciled bottom parameters. 
+#' See the example section.
 #'
 #'
 #' @return A list containing the bottom reconciled forecasts. The list has the following named elements:

@@ -27,8 +27,8 @@ Closed form computation of the reconciled forecasts in case of Gaussian base for
 The order of the base forecast means and covariance is given by the order of the time series in the summing matrix.
 
 The function returns only the reconciled parameters of the bottom variables.
-The reconciled parameters for the upper variables or reconciled samples for the entire hierarchy can be obtained from these.
-The Examples section shows how.
+The reconciled upper parameters and the reconciled samples for the entire hierarchy can be obtained from the reconciled bottom parameters.
+See the example section.
 }
 \examples{
 
