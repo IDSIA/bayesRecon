@@ -1,6 +1,10 @@
 ---
 title: "Properties of the reconciled distribution via conditioning"
+# author: "Lorenzo Zambon, Giorgio Corani"
+# date: "2023-12-05"
+lang: "en"
 output: rmarkdown::html_vignette
+bibliography: references.bib
 vignette: >
   %\VignetteIndexEntry{Properties of the reconciled distribution via conditioning}
   %\VignetteEngine{knitr::rmarkdown}
@@ -14,27 +18,30 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup}
-library(bayesRecon)
-```
-
 
 # Introduction
 
 This vignette reproduces the results of the paper *Properties of the reconciled distributions for Gaussian and count forecasts*, 
 currently submitted to IJF for review.
 
-In particular we show how to replicate the main experiment of the paper,  where we  reconcile  base forecast constituted by  negative binomial distributions. 
+In particular we show how to replicate the main experiment of the paper,  where we  reconcile  base forecasts constituted by  negative binomial distributions. 
+
+We use the R package BayesRecon.
+
+```{r setup}
+library(bayesRecon)
+```
 
 # Data and base forecasts
 
 
 We consider time series of extreme market  events 
-for five economic sectors in the period 2005-2018 (3508 trading days).  The economic sectors are: Financial (FIN), Information and Communication Technology (ICT), Manufacturing (MFG), Energy (ENG), and Trade (TRD). 
+for five economic sectors in the period 2005-2018 (3508 trading days).  
+The economic sectors are: Financial (FIN), Information and Communication Technology (ICT), 
+Manufacturing (MFG), Energy (ENG), and Trade (TRD). 
 We count the number of extreme market  events in each sector,
 obtaining five daily time series of counts.
-See the paper for more details about this data set.
-
+We refer to the paper for more details about this data set.
 
 We build  a hierarchy with 5 bottom time series 
 (one for each  economic sector)
@@ -46,12 +53,12 @@ knitr::include_graphics("img/finTS_hier.jpg")
 
 As discussed in the paper, we produce the base forecasts 
 for each sector and for the total
-using the model by {agosto2022multivariate}. **fix citation**
+using the model by [@agosto2022multivariate].
 All the predictive distributions
 are  negative binomial.
 
 The model parameters are estimated through in-sample maximum likelihood.
-We then compute the 1-day ahead base forecasts for time $t+1$ by conditioning on the counts observed up to time $t$. 
+We then compute the 1-day ahead base forecasts for time t+1 by conditioning on the counts observed up to time t. 
 
 We make available the base forecasts and the actual values via `bayesRecon::extreme_market_events`.
 
@@ -69,35 +76,40 @@ actuals <- extreme_market_events$actuals
 # Base forecasts:
 base_fc <- extreme_market_events$base_fc
 
-#debug to run in shorter time
-N <- nrow(actuals)  # number of days
+N <- nrow(actuals)  # number of days (3508)
+
+# # If you want to run a smaller number of reconciliations, decomment the following lines:
+# N <- 200
+# actuals <- actuals[1:N,]
+# base_fc$mu <- base_fc$mu[1:N,]
 ```
 
 # Reconciliation via conditioning
 
 We reconcile the base forecasts via conditioning, using importance sampling.
-We perform 3508 reconciliations, one for each day, drawing each time $100,000$ samples 
+We perform 3508 reconciliations, one for each day, drawing each time 10000 samples 
 from the reconciled distribution.
-We use the `reconc_BUIS` function, which implements the BUIS algorithm (TODO: add ref).
+We use the `reconc_BUIS` function, which implements the BUIS algorithm [@zambon2022efficient].
 Note that, since there is only one upper time series in the hierarchy, the BUIS algorithm is
 equivalent to importance sampling.
 
 For each day, we save the empirical mean, median, and quantiles of the reconciled distribution.
 
 ```{r}
-# Need to save the mean and median of the reconciled distribution
-# to compute the squared error and the absolute error:
+# We need to save the mean and median of the reconciled distribution
+# in order to compute the squared error and the absolute error:
 rec_means   <- matrix(NA, ncol = n, nrow = N)
 rec_medians <- matrix(NA, ncol = n, nrow = N)
 
-# Need to save the lower and upper quantiles of the reconciled distribution
-# to compute the interval score:
+# We need to save the lower and upper quantiles of the reconciled distribution
+# in order to compute the interval score:
 rec_L <- matrix(NA, ncol = n, nrow = N)
 rec_U <- matrix(NA, ncol = n, nrow = N)
 int_cov = 0.9   # use 90% interval         
 q1 <- (1 - int_cov) / 2
 q2 <- (1 + int_cov) / 2
 
+start <- Sys.time()
 for (j in 1:N) {
   # Base forecasts:
   base_fc_j <- c()   
@@ -106,7 +118,7 @@ for (j in 1:N) {
   }
   
   # Reconcile via importance sampling:
-  buis <- reconc_BUIS(S, base_fc_j, "params", "nbinom", num_samples = 1e5, seed = 42)
+  buis <- reconc_BUIS(S, base_fc_j, "params", "nbinom", num_samples = 1e4, seed = 42)
   samples_y <- buis$reconciled_samples
   
   # Save mean, median, and lower and upper quantiles:
@@ -115,12 +127,11 @@ for (j in 1:N) {
   rec_L[j,]       <- apply(samples_y, 1, quantile, q1)
   rec_U[j,]       <- apply(samples_y, 1, quantile, q2)
 }
-
-
+stop <- Sys.time()
+cat("Computational time for ", N, " reconciliations: ", round(stop-start, 2), "s")
 ```
 
-
-We compute the median and the quantiles of the negative binomial base forecasts:
+We compute the median and the quantiles of the negative binomial base forecasts.
 
 ```{r}
 base_means   <- base_fc$mu
@@ -129,12 +140,14 @@ base_L       <- matrix(NA, ncol = n, nrow = N)
 base_U       <- matrix(NA, ncol = n, nrow = N)
 
 for (i in 1:n) {
-  base_medians[,i] <- sapply(base_means[,i], function(mu) qnbinom(p = 0.5, size = base_fc$size[[i]], mu = mu))
-  base_L[,i]       <- sapply(base_means[,i], function(mu) qnbinom(p = q1,  size = base_fc$size[[i]], mu = mu))
-  base_U[,i]       <- sapply(base_means[,i], function(mu) qnbinom(p = q2,  size = base_fc$size[[i]], mu = mu))
+  base_medians[,i] <- sapply(base_means[,i], 
+                       function(mu) qnbinom(p = 0.5, size = base_fc$size[[i]], mu = mu))
+  base_L[,i]       <- sapply(base_means[,i], 
+                       function(mu) qnbinom(p = q1,  size = base_fc$size[[i]], mu = mu))
+  base_U[,i]       <- sapply(base_means[,i], 
+                       function(mu) qnbinom(p = q2,  size = base_fc$size[[i]], mu = mu))
 }
 ```
-
 
 For each day and for each time series, we compute the absolute error, the squared error, 
 and the interval score for the base and reconciled forecasts.
@@ -163,11 +176,9 @@ IS_rec <- mapply(int_score, rec_L, rec_U, data.matrix(actuals))
 IS_rec <- matrix(IS_rec, nrow = N)
 ```
 
-
 We compute and show the skill scores, which measure the improvement of the 
 reconciled forecasts over the base forecasts.
 The skill score is symmetric and bounded between -2 and 2.
-(add formula?)
 
 ```{r}
 SS_AE <- (AE_base - AE_rec) / (AE_base + AE_rec) * 2
@@ -177,18 +188,77 @@ SS_AE[is.na(SS_AE)] <- 0
 SS_SE[is.na(SS_SE)] <- 0
 SS_IS[is.na(SS_IS)] <- 0
 
-mean_skill_scores <- c(round(colMeans(SS_AE), 2), round(colMeans(SS_SE), 2), round(colMeans(SS_IS), 2))
+mean_skill_scores <- c(round(colMeans(SS_AE), 2), 
+                       round(colMeans(SS_SE), 2), 
+                       round(colMeans(SS_IS), 2))
 mean_skill_scores <- data.frame(t(matrix(mean_skill_scores, nrow = n)))
 colnames(mean_skill_scores) <- names(actuals)
 rownames(mean_skill_scores) <- c("Absolute error", "Squared error", "Interval score")
 print(mean_skill_scores)
 ```
 
-# Analysis of the reconciled mean and variance
+# Reconciled mean and variance
 
-TODO: Plot examples to show reconciliation effects 
+We observe two different behaviours for the reconciled upper mean:
+the concordant-shift and the combination effects.
+We show them for two different days.
 
+```{r}
+### Example of concordant-shift effect
+j <- 124
+base_fc_j <- c()   
+for (i in 1:n) base_fc_j[[i]] <- c(extreme_market_events$base_fc$mu[[j,i]], 
+                                   extreme_market_events$base_fc$size[[i]])
+# Reconcile
+buis <- reconc_BUIS(S, base_fc_j, "params", "nbinom", num_samples = 1e5, seed = 42)
+samples_y <- buis$reconciled_samples
 
+# The reconciled mean is lower than both the base and bottom-up means:
+cat("Base upper mean: ",       round(extreme_market_events$base_fc$mu[[j,1]], 2))
+cat("Bottom-up upper mean: ",  round(sum(extreme_market_events$base_fc$mu[j,2:n]), 2))
+cat("Reconciled upper mean: ", round(mean(samples_y[1,]), 2))
 
+### Example of combination effect 
+j <- 1700
+base_fc_j <- c()   
+for (i in 1:n) base_fc_j[[i]] <- c(extreme_market_events$base_fc$mu[[j,i]], 
+                                   extreme_market_events$base_fc$size[[i]])
+# Reconcile 
+buis <- reconc_BUIS(S, base_fc_j, "params", "nbinom", num_samples = 1e5, seed = 42)
+samples_y <- buis$reconciled_samples
 
+# The reconciled mean is between the base and the bottom-up mean:
+cat("Base upper mean: ",       round(extreme_market_events$base_fc$mu[[j,1]], 2))
+cat("Bottom-up upper mean: ",  round(sum(extreme_market_events$base_fc$mu[j,2:n]), 2))
+cat("Reconciled upper mean: ", round(mean(samples_y[1,]), 2))
+```
+
+Finally, we show an example in which the variance of the bottom time series increases
+after reconciliation. 
+This is a major difference with the Gaussian reconciliation, for which the reconciled 
+variance is always smaller than the base variance.
+
+```{r}
+j <- 2308
+base_fc_j <- c()   
+for (i in 1:n) base_fc_j[[i]] <- c(extreme_market_events$base_fc$mu[[j,i]], 
+                                   extreme_market_events$base_fc$size[[i]])
+# Reconcile
+buis <- reconc_BUIS(S, base_fc_j, "params", "nbinom", num_samples = 1e5, seed = 42)
+samples_y <- buis$reconciled_samples
+
+# Compute the variance of the base and reconciled bottom forecasts
+base_bottom_var <- mapply(function(mu, size) var(rnbinom(n = 1e5, size = size, mu = mu)),
+                          extreme_market_events$base_fc$mu[j,2:n], 
+                          extreme_market_events$base_fc$size[2:n])
+rec_bottom_var <- apply(samples_y[2:n,], MARGIN = 1, var) 
+
+# The reconciled variance is greater than the base variance:
+bottom_var <- rbind(base_bottom_var, rec_bottom_var)
+rownames(bottom_var) <- c("base", "reconc")
+print(round(bottom_var, 2))
+```
+
+# References
+<div id="refs"></div>
 
