@@ -23,7 +23,6 @@ knitr::opts_chunk$set(
 
 This vignette reproduces the results of the paper *Properties of the reconciled distributions for Gaussian and count forecasts*, 
 currently submitted to IJF for review.
-
 We  replicate here the main experiment of the paper,  where we  reconcile  base forecasts constituted by  negative binomial distributions. 
 
 We use the R package BayesRecon.
@@ -34,23 +33,22 @@ library(bayesRecon)
 
 # Data and base forecasts
 
-
-We release a new data set, containing time series of conuts of extreme market  events 
-in five economic sectors in the period 2005-2018 (3508 trading days).  
-The counts are computed by considering 29 companies 
-included in the Euro Stoxx 50 index 
+We release a new data set, containing time series of counts of extreme market events 
+in five economic sectors in the period 2005-2018 (3508 trading days). 
+The counts are computed by considering 29 companies included in the Euro Stoxx 50 index 
 and observing if the value of the CDS spread on a given day exceeds the 90-th percentile of its distribution in the last trading year.
-We divide the companies in the following  sectors: Financial (FIN), Information and Communication Technology (ICT), 
+The companies are divided in the following  sectors: Financial (FIN), Information and Communication Technology (ICT), 
 Manufacturing (MFG), Energy (ENG), and Trade (TRD). 
 
 We thus have five daily time series of counts, corresponding to the number of extreme market  events in each sector.
 We build  a hierarchy with 5 bottom time series 
 (one for each  sector)
-and 1 upper time series (the sum of  the different sectors). 
+and 1 upper time series (the sum of the different sectors). 
 
 ```{r out.width = '50%', echo = FALSE}
 knitr::include_graphics("img/finTS_hier.jpg")
 ```
+
 We also release  the base forecasts to be reconciled. 
 As discussed in the paper, they are  produced
 using the model by [@agosto2022multivariate];
@@ -58,8 +56,7 @@ the predictive distributions
 are  negative binomial.
 These are  in-sample base forecasts: for each training instant, they are computed for time t+1 by conditioning on the counts observed up to time t. 
 
-Base forecasts and  actual values, available for 3508 days,  are stored in: `bayesRecon::extreme_market_events`.
-We now extract the summing matrix, the aggregating matrix, the base forecasts and the actual values.
+Base forecasts and  actual values, available for 3508 days, are stored in: `bayesRecon::extreme_market_events`.
 
 ```{r}
 # Hierarchy composed by 6 time series: 5 bottom and 1 upper
@@ -77,7 +74,7 @@ base_fc <- extreme_market_events$base_fc
 
 N <- nrow(actuals)  # number of days (3508)
 
-# # If you want to run only N  reconciliations (instead of 3508), use the following approach:
+# # If you want to run only N reconciliations (instead of 3508):
 # N <- 200
 # actuals <- actuals[1:N,]
 # base_fc$mu <- base_fc$mu[1:N,]
@@ -85,9 +82,13 @@ N <- nrow(actuals)  # number of days (3508)
 
 # Reconciliation via conditioning
 
-We reconcile the base forecasts via conditioning, using
-the BUIS algorithm [@zambon2022efficient].
-Using the `reconc_BUIS` function, we perform 3508 reconciliations, one for each day, drawing each time 10000 samples  from the reconciled distribution.
+We reconcile the base forecasts via conditioning, using importance sampling.
+We use the `reconc_BUIS` function, which implements the BUIS algorithm [@zambon2022efficient];
+since there is only one upper time series in the hierarchy, the BUIS algorithm is
+equivalent to importance sampling.
+We perform 3508 reconciliations, one for each day, drawing each time 10,000 samples from the reconciled distribution.
+We use 10,000 samples instead of 100,000 (as in the paper) to speed up the computation.
+
 For each day, we save the empirical mean, median, and quantiles of the reconciled distribution.
 
 ```{r}
@@ -123,7 +124,8 @@ for (j in 1:N) {
   rec_U[j,]       <- apply(samples_y, 1, quantile, q2)
 }
 stop <- Sys.time()
-cat("Computational time for ", N, " reconciliations: ", round(stop-start, 2), "s")
+cat("Computational time for ", N, " reconciliations: ",     
+    round(difftime(stop, start, units = "secs"), 2), "s")
 ```
 
 We compute the median and the quantiles of the negative binomial base forecasts.
@@ -136,11 +138,11 @@ base_U       <- matrix(NA, ncol = n, nrow = N)
 
 for (i in 1:n) {
   base_medians[,i] <- sapply(base_means[,i], 
-                       function(mu) qnbinom(p = 0.5, size = base_fc$size[[i]], mu = mu))
+                       function(mu) qnbinom(p=0.5, size=base_fc$size[[i]], mu=mu))
   base_L[,i]       <- sapply(base_means[,i], 
-                       function(mu) qnbinom(p = q1,  size = base_fc$size[[i]], mu = mu))
+                       function(mu) qnbinom(p=q1,  size=base_fc$size[[i]], mu=mu))
   base_U[,i]       <- sapply(base_means[,i], 
-                       function(mu) qnbinom(p = q2,  size = base_fc$size[[i]], mu = mu))
+                       function(mu) qnbinom(p=q2,  size=base_fc$size[[i]], mu=mu))
 }
 ```
 
@@ -192,10 +194,14 @@ rownames(mean_skill_scores) <- c("Absolute error", "Squared error", "Interval sc
 print(mean_skill_scores)
 ```
 
+The table above reproduces Table 4 of the paper.
+To obtain the exact results, increase the number of samples drawn from the reconciled distribution.
+
 # Reconciled mean and variance
 
-We observe two different behaviours for the reconciled upper mean:
-the concordant-shift and the combination effects.
+We observe two different behaviors for the reconciled upper mean:
+it can be between the base and the bottom-up mean (*combination* effect)
+or it can be lower than both (*concordant-shift* effect).
 We show them for two different days.
 
 ```{r}
