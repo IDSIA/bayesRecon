@@ -1,6 +1,6 @@
 ---
 title: "Properties of the reconciled distribution via conditioning"
-# author: "Lorenzo Zambon, Giorgio Corani"
+author: "Lorenzo Zambon, Giorgio Corani"
 # date: "2023-12-05"
 lang: "en"
 output: rmarkdown::html_vignette
@@ -21,8 +21,9 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-This vignette reproduces the results of the paper *Properties of the reconciled distributions for Gaussian and count forecasts*, 
-currently submitted to IJF for review.
+This vignette reproduces the results of the paper *Properties of the reconciled distributions for Gaussian and count forecasts* 
+(Zambon, Agosto, Giudici & Corani), 
+accepted by the International Journal of Forecasting for publication.
 We  replicate here the main experiment of the paper,  where we  reconcile  base forecasts constituted by  negative binomial distributions. 
 
 We use the R package BayesRecon.
