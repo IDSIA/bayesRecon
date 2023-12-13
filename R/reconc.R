@@ -186,7 +186,7 @@
 #'print(rowMeans(samples_buis))
 #'
 #' @references
-#' Zambon, L., Azzimonti, D. & Corani, G. (2022). *Efficient probabilistic reconciliation of forecasts for real-valued and count time series*. \doi{10.48550/arXiv.2210.02286}.
+#' Zambon, L., Azzimonti, D. & Corani, G. (2024). *Efficient probabilistic reconciliation of forecasts for real-valued and count time series*. \doi{10.1007/s11222-023-10343-y}.
 #'
 #'
 #' @seealso

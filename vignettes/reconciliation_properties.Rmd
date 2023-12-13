@@ -25,7 +25,7 @@ This vignette reproduces the results of the paper *Properties of the reconciled 
 accepted by the International Journal of Forecasting for publication.
 We  replicate here the main experiment of the paper,  where we  reconcile  base forecasts constituted by  negative binomial distributions. 
 
-We use the R package BayesRecon.
+We use the R package `BayesRecon`.
 
 ```{r setup}
 library(bayesRecon)
@@ -40,23 +40,19 @@ and observing if the value of the CDS spread on a given day exceeds the 90-th pe
 The companies are divided in the following  sectors: Financial (FIN), Information and Communication Technology (ICT), 
 Manufacturing (MFG), Energy (ENG), and Trade (TRD). 
 
-We thus have five daily time series of counts, corresponding to the number of extreme market  events in each sector.
-We build  a hierarchy with 5 bottom time series 
-(one for each  sector)
-and 1 upper time series (the sum of the different sectors). 
+The hierarchy is composed by 5 bottom time series, the daily number of extreme market  
+events in each sector, and 1 upper time series (the sum of the different sectors). 
+Data are stored in `extr_mkt_events`.
 
 ```{r out.width = '50%', echo = FALSE}
 knitr::include_graphics("img/finTS_hier.jpg")
 ```
 
-We also release  the base forecasts to be reconciled. 
+We also make available as `extr_mkt_events_basefc` the base forecasts to be reconciled. 
 As discussed in the paper, they are  produced
 using the model by [@agosto2022multivariate];
 the predictive distributions
-are  negative binomial.
-These are  in-sample base forecasts: for each training instant, they are computed for time t+1 by conditioning on the counts observed up to time t. 
-
-Base forecasts and  actual values, available for 3508 days, are stored in: `bayesRecon::extreme_market_events`.
+are  negative binomial. 
 
 ```{r}
 # Hierarchy composed by 6 time series: 5 bottom and 1 upper
@@ -68,9 +64,9 @@ A <- matrix(1, ncol = n_b, nrow = n_u)  # aggregating matrix
 S <- rbind(A, diag(n_b))                # summing matrix
 
 # Actual values:
-actuals <- extreme_market_events$actuals 
+actuals <- data.frame(extr_mkt_events)  # convert to data frame
 # Base forecasts:
-base_fc <- extreme_market_events$base_fc
+base_fc <- extr_mkt_events_basefc
 
 N <- nrow(actuals)  # number of days (3508)
 
@@ -105,6 +101,9 @@ int_cov = 0.9   # use 90% interval
 q1 <- (1 - int_cov) / 2
 q2 <- (1 + int_cov) / 2
 
+# Set the number of samples to draw from the reconciled distribution:
+N_samples <- 1e4
+
 start <- Sys.time()
 for (j in 1:N) {
   # Base forecasts:
@@ -114,7 +113,8 @@ for (j in 1:N) {
   }
   
   # Reconcile via importance sampling:
-  buis <- reconc_BUIS(S, base_fc_j, "params", "nbinom", num_samples = 1e4, seed = 42)
+  buis <- reconc_BUIS(S, base_fc_j, "params", "nbinom", 
+                      num_samples = N_samples, seed = 42)
   samples_y <- buis$reconciled_samples
   
   # Save mean, median, and lower and upper quantiles:
@@ -191,7 +191,7 @@ mean_skill_scores <- c(round(colMeans(SS_AE), 2),
 mean_skill_scores <- data.frame(t(matrix(mean_skill_scores, nrow = n)))
 colnames(mean_skill_scores) <- names(actuals)
 rownames(mean_skill_scores) <- c("Absolute error", "Squared error", "Interval score")
-print(mean_skill_scores)
+knitr::kable(mean_skill_scores)
 ```
 
 The table above reproduces Table 4 of the paper.
@@ -199,39 +199,51 @@ To obtain the exact results, increase the number of samples drawn from the recon
 
 # Reconciled mean and variance
 
+We now show the effects of the reconciliation on the mean and variance of the
+forecast distribution. For more details, we refer to Section 3.2 of the paper.
+
 We observe two different behaviors for the reconciled upper mean:
 it can be between the base and the bottom-up mean (*combination* effect)
 or it can be lower than both (*concordant-shift* effect).
 We show them for two different days.
 
 ```{r}
+# Now we draw a larger number of samples:
+N_samples <- 1e5
+
 ### Example of concordant-shift effect
 j <- 124
 base_fc_j <- c()   
-for (i in 1:n) base_fc_j[[i]] <- c(extreme_market_events$base_fc$mu[[j,i]], 
-                                   extreme_market_events$base_fc$size[[i]])
+for (i in 1:n) base_fc_j[[i]] <- c(extr_mkt_events_basefc$mu[[j,i]], 
+                                   extr_mkt_events_basefc$size[[i]])
 # Reconcile
-buis <- reconc_BUIS(S, base_fc_j, "params", "nbinom", num_samples = 1e5, seed = 42)
+buis <- reconc_BUIS(S, base_fc_j, "params", "nbinom", 
+                    num_samples = N_samples, seed = 42)
 samples_y <- buis$reconciled_samples
 
 # The reconciled mean is lower than both the base and bottom-up means:
-cat("Base upper mean: ",       round(extreme_market_events$base_fc$mu[[j,1]], 2))
-cat("Bottom-up upper mean: ",  round(sum(extreme_market_events$base_fc$mu[j,2:n]), 2))
-cat("Reconciled upper mean: ", round(mean(samples_y[1,]), 2))
+means <- c(round(extr_mkt_events_basefc$mu[[j,1]], 2),
+           round(sum(extr_mkt_events_basefc$mu[j,2:n]), 2),
+           round(mean(samples_y[1,]), 2))
+col_names <- c("Base upper mean", "Bottom-up upper mean", "Reconciled upper mean")
+knitr::kable(matrix(means, nrow=1), col.names = col_names)
 
 ### Example of combination effect 
 j <- 1700
 base_fc_j <- c()   
-for (i in 1:n) base_fc_j[[i]] <- c(extreme_market_events$base_fc$mu[[j,i]], 
-                                   extreme_market_events$base_fc$size[[i]])
+for (i in 1:n) base_fc_j[[i]] <- c(extr_mkt_events_basefc$mu[[j,i]], 
+                                   extr_mkt_events_basefc$size[[i]])
 # Reconcile 
-buis <- reconc_BUIS(S, base_fc_j, "params", "nbinom", num_samples = 1e5, seed = 42)
+buis <- reconc_BUIS(S, base_fc_j, "params", "nbinom", 
+                    num_samples = N_samples, seed = 42)
 samples_y <- buis$reconciled_samples
 
 # The reconciled mean is between the base and the bottom-up mean:
-cat("Base upper mean: ",       round(extreme_market_events$base_fc$mu[[j,1]], 2))
-cat("Bottom-up upper mean: ",  round(sum(extreme_market_events$base_fc$mu[j,2:n]), 2))
-cat("Reconciled upper mean: ", round(mean(samples_y[1,]), 2))
+means <- c(round(extr_mkt_events_basefc$mu[[j,1]], 2),
+           round(sum(extr_mkt_events_basefc$mu[j,2:n]), 2),
+           round(mean(samples_y[1,]), 2))
+col_names <- c("Base upper mean", "Bottom-up upper mean", "Reconciled upper mean")
+knitr::kable(matrix(means, nrow=1), col.names = col_names)
 ```
 
 Finally, we show an example in which the variance of the bottom time series increases
@@ -242,22 +254,22 @@ variance is always smaller than the base variance.
 ```{r}
 j <- 2308
 base_fc_j <- c()   
-for (i in 1:n) base_fc_j[[i]] <- c(extreme_market_events$base_fc$mu[[j,i]], 
-                                   extreme_market_events$base_fc$size[[i]])
+for (i in 1:n) base_fc_j[[i]] <- c(extr_mkt_events_basefc$mu[[j,i]], 
+                                   extr_mkt_events_basefc$size[[i]])
 # Reconcile
-buis <- reconc_BUIS(S, base_fc_j, "params", "nbinom", num_samples = 1e5, seed = 42)
+buis <- reconc_BUIS(S, base_fc_j, "params", "nbinom", num_samples = N_samples, seed = 42)
 samples_y <- buis$reconciled_samples
 
 # Compute the variance of the base and reconciled bottom forecasts
 base_bottom_var <- mapply(function(mu, size) var(rnbinom(n = 1e5, size = size, mu = mu)),
-                          extreme_market_events$base_fc$mu[j,2:n], 
-                          extreme_market_events$base_fc$size[2:n])
+                          extr_mkt_events_basefc$mu[j,2:n], 
+                          extr_mkt_events_basefc$size[2:n])
 rec_bottom_var <- apply(samples_y[2:n,], MARGIN = 1, var) 
 
 # The reconciled variance is greater than the base variance:
 bottom_var <- rbind(base_bottom_var, rec_bottom_var)
 rownames(bottom_var) <- c("base", "reconc")
-print(round(bottom_var, 2))
+knitr::kable(round(bottom_var, 2))
 ```
 
 # References
