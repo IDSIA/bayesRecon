@@ -185,12 +185,12 @@ SS_AE[is.na(SS_AE)] <- 0
 SS_SE[is.na(SS_SE)] <- 0
 SS_IS[is.na(SS_IS)] <- 0
 
-mean_skill_scores <- c(round(colMeans(SS_AE), 2), 
-                       round(colMeans(SS_SE), 2), 
-                       round(colMeans(SS_IS), 2))
+mean_skill_scores <- c(round(colMeans(SS_IS), 2),
+                       round(colMeans(SS_SE), 2),
+                       round(colMeans(SS_AE), 2))
 mean_skill_scores <- data.frame(t(matrix(mean_skill_scores, nrow = n)))
 colnames(mean_skill_scores) <- names(actuals)
-rownames(mean_skill_scores) <- c("Absolute error", "Squared error", "Interval score")
+rownames(mean_skill_scores) <- c("Interval score", "Squared error", "Absolute error")
 knitr::kable(mean_skill_scores)
 ```
 
