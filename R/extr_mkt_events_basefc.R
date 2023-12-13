@@ -22,4 +22,4 @@
 #' Agosto, A. (2022). *Multivariate Score-Driven Models for Count Time Series to Assess Financial Contagion*. \doi{10.2139/ssrn.4119895}
 #' 
 #' Zambon, L., Agosto, A., Giudici, P., Corani, G. (2023). *Properties of the reconciled distributions for Gaussian and count forecasts*. \doi{10.48550/arXiv.2303.15135}.
-
+"extr_mkt_events_basefc"
