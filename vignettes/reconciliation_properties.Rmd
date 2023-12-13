@@ -21,8 +21,7 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-This vignette reproduces the results of the paper *Properties of the reconciled distributions for Gaussian and count forecasts* 
-(Zambon, Agosto, Giudici & Corani), 
+This vignette reproduces the results of the paper *Properties of the reconciled distributions for Gaussian and count forecasts* [@zambon2023properties], 
 accepted by the International Journal of Forecasting for publication.
 We  replicate here the main experiment of the paper,  where we  reconcile  base forecasts constituted by  negative binomial distributions. 
 
