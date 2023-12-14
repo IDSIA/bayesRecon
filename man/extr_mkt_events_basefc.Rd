@@ -5,9 +5,11 @@
 \alias{extr_mkt_events_basefc}
 \title{Base forecasts for the extreme market events dataset}
 \format{
-List:
--\code{extr_mkt_events_basefc$mu}: data frame of the base forecast means, for each day
--\code{extr_mkt_events_basefc$size}: data frame of the static base forecast size parameters
+A list \code{extr_mkt_events_basefc} containing
+\describe{
+\item{\code{extr_mkt_events_basefc$mu}}{data frame of the base forecast means, for each day}
+\item{\code{extr_mkt_events_basefc$size}}{data frame of the static base forecast size parameters}
+}
 }
 \source{
 Agosto, A. (2022). \emph{Multivariate Score-Driven Models for Count Time Series to Assess Financial Contagion}. \doi{10.2139/ssrn.4119895}
