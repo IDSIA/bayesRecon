@@ -194,8 +194,8 @@ rownames(mean_skill_scores) <- c("Interval score", "Squared error", "Absolute er
 knitr::kable(mean_skill_scores)
 ```
 
-The table above reproduces Table 4 of the paper.
-To obtain the exact results, increase the number of samples drawn from the reconciled distribution.
+The table closely matches Table 4 of the paper.
+In order to exactly reproduce  the paper table, it is necessary increase the number of samples  drawn from the reconciled distribution to 100,000.
 
 # Reconciled mean and variance
 
@@ -268,7 +268,7 @@ rec_bottom_var <- apply(samples_y[2:n,], MARGIN = 1, var)
 
 # The reconciled variance is greater than the base variance:
 bottom_var <- rbind(base_bottom_var, rec_bottom_var)
-rownames(bottom_var) <- c("base", "reconc")
+rownames(bottom_var) <- c("var base", "var reconc")
 knitr::kable(round(bottom_var, 2))
 ```
 
