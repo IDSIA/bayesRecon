@@ -39,7 +39,7 @@ Corani, G., Azzimonti, D., Augusto, J.P.S.C., Zaffalon, M. (2021). \emph{Probabi
 
 Corani, G., Azzimonti, D., Rubattu, N. (2023). \emph{Probabilistic reconciliation of count time series}. \doi{10.1016/j.ijforecast.2023.04.003}.
 
-Zambon, L., Azzimonti, D. & Corani, G. (2022). \emph{Efficient probabilistic reconciliation of forecasts for real-valued and count time series}. \doi{10.48550/arXiv.2210.02286}.
+Zambon, L., Azzimonti, D. & Corani, G. (2024). \emph{Efficient probabilistic reconciliation of forecasts for real-valued and count time series}. \doi{10.1007/s11222-023-10343-y}.
 
 Zambon, L., Agosto, A., Giudici, P., Corani, G. (2023). \emph{Properties of the reconciled distributions for Gaussian and count forecasts}. \doi{10.48550/arXiv.2303.15135}.
 }
