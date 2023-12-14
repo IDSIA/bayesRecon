@@ -234,8 +234,8 @@ Sigma <- diag(sigmas ^ 2)  #transform into covariance matrix
 analytic_rec <- reconc_gaussian(S,
                                 base_forecasts.mu = mus,
                                 base_forecasts.Sigma = Sigma)
-analytic_means <- c(analytic_rec$upper_reconciled_mean,
-                    analytic_rec$bottom_reconciled_mean) 
+analytic_means_bottom <- analytic_rec$bottom_reconciled_mean
+analytic_means <- S %*% analytic_means_bottom
 ```
 
 The base means of $Y$, $S_1$, and $S_2$ are 9, 2, 4.

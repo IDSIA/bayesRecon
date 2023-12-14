@@ -14,12 +14,10 @@ reconc_gaussian(S, base_forecasts.mu, base_forecasts.Sigma)
 \item{base_forecasts.Sigma}{a matrix containing the covariance matrix of the base forecasts.}
 }
 \value{
-A list containing the reconciled forecasts. The list has the following named elements:
+A list containing the bottom reconciled forecasts. The list has the following named elements:
 \itemize{
 \item \code{bottom_reconciled_mean}: reconciled mean for the bottom forecasts;
-\item \code{bottom_reconciled_covariance}: reconciled covariance for the bottom forecasts;
-\item \code{upper_reconciled_mean}: reconciled mean for the upper forecasts;
-\item \code{upper_reconciled_covariance}: reconciled covariance for the upper forecasts.
+\item \code{bottom_reconciled_covariance}: reconciled covariance for the bottom forecasts.
 }
 }
 \description{
@@ -27,6 +25,10 @@ Closed form computation of the reconciled forecasts in case of Gaussian base for
 }
 \details{
 The order of the base forecast means and covariance is given by the order of the time series in the summing matrix.
+
+The function returns only the reconciled parameters of the bottom variables.
+The reconciled upper parameters and the reconciled samples for the entire hierarchy can be obtained from the reconciled bottom parameters.
+See the example section.
 }
 \examples{
 
@@ -35,6 +37,7 @@ library(bayesRecon)
 # Create a minimal hierarchy with 2 bottom and 1 upper variable
 rec_mat <- get_reconc_matrices(agg_levels=c(1,2), h=2)
 S <- rec_mat$S
+A <- rec_mat$A
 
 #Set the parameters of the Gaussian base forecast distributions
 mu1 <- 2
@@ -51,10 +54,25 @@ Sigma <- diag(sigmas^2)  #need to transform into covariance matrix
 analytic_rec <- reconc_gaussian(S, base_forecasts.mu = mus,
                                base_forecasts.Sigma = Sigma)
 
-bottom_means <- analytic_rec$bottom_reconciled_mean
-upper_means  <- analytic_rec$upper_reconciled_mean
-bottom_cov   <- analytic_rec$bottom_reconciled_covariance
-upper_cov    <- analytic_rec$upper_reconciled_covariance
+bottom_mu_reconc <- analytic_rec$bottom_reconciled_mean
+bottom_Sigma_reconc <- analytic_rec$bottom_reconciled_covariance
+
+# Obtain reconciled mu and Sigma for the upper variable
+upper_mu_reconc <- A \%*\% bottom_mu_reconc
+upper_Sigma_reconc <- A \%*\% bottom_Sigma_reconc \%*\% t(A)
+
+# Obtain reconciled mu and Sigma for the entire hierarchy
+Y_mu_reconc <- S \%*\% bottom_mu_reconc
+Y_Sigma_reconc <- S \%*\% bottom_Sigma_reconc \%*\% t(S)  # note: singular matrix
+
+# Obtain reconciled samples for the entire hierarchy:
+# i.e., sample from the reconciled bottoms and multiply by S
+chol_decomp = chol(bottom_Sigma_reconc) # Compute the Cholesky Decomposition
+Z = matrix(rnorm(n = 2000), nrow = 2) # Sample from standard normal
+B = chol_decomp \%*\% Z + matrix(rep(bottom_mu_reconc, 1000), nrow=2) # Apply the transformation
+
+U = S \%*\% B
+Y_reconc = rbind(U, B)
 
 }
 \references{

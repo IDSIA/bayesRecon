@@ -10,15 +10,16 @@ reconc_BUIS(
   in_type,
   distr,
   num_samples = 20000,
+  suppress_warnings = FALSE,
   seed = NULL
 )
 }
 \arguments{
-\item{S}{summing matrix (n x n_bottom).}
+\item{S}{Summing matrix (n x n_bottom).}
 
-\item{base_forecasts}{a list containing the base_forecasts, see details.}
+\item{base_forecasts}{A list containing the base_forecasts, see details.}
 
-\item{in_type}{a string or a list of length n. If it is a list the i-th element is a string with two possible values:
+\item{in_type}{A string or a list of length n. If it is a list the i-th element is a string with two possible values:
 \itemize{
 \item 'samples' if the i-th base forecasts are in the form of samples;
 \item 'params'  if the i-th base forecasts are in the form of estimated parameters.
@@ -26,7 +27,7 @@ reconc_BUIS(
 
 If it \code{in_type} is a string it is assumed that all base forecasts are of the same type.}
 
-\item{distr}{a string or a list of length n describing the type of base forecasts. If it is a list the i-th element is a string with two possible values:
+\item{distr}{A string or a list of length n describing the type of base forecasts. If it is a list the i-th element is a string with two possible values:
 \itemize{
 \item 'continuous' or 'discrete' if \code{in_type[[i]]}='samples';
 \item 'gaussian', 'poisson' or 'nbinom' if \code{in_type[[i]]}='params'.
@@ -34,9 +35,12 @@ If it \code{in_type} is a string it is assumed that all base forecasts are of th
 
 If \code{distr} is a string it is assumed that all distributions are of the same type.}
 
-\item{num_samples}{number of samples drawn from the reconciled distribution.}
+\item{num_samples}{Number of samples drawn from the reconciled distribution.}
 
-\item{seed}{seed for reproducibility.}
+\item{suppress_warnings}{Logical. If \code{TRUE}, no warnings about effective sample size
+are triggered. If \code{FALSE}, warnings are generated. Default is \code{FALSE}. See Details.}
+
+\item{seed}{Seed for reproducibility.}
 }
 \value{
 A list containing the reconciled forecasts. The list has the following named elements:
@@ -58,7 +62,7 @@ If \code{in_type[[i]]}='samples', then \code{base_forecast[[i]]} is a vector con
 
 If \code{in_type[[i]]}='params', then \code{base_forecast[[i]]} is a vector containing the estimated:
 \itemize{
-\item mean and sd for the Gaussian base forecast if \code{distr[[i]]}='gaussian', see \link[stats]{Normal},;
+\item mean and sd for the Gaussian base forecast if \code{distr[[i]]}='gaussian', see \link[stats]{Normal};
 \item lambda for the Poisson base forecast if \code{distr[[i]]}='poisson', see \link[stats]{Poisson};
 \item mu and size for the negative binomial base forecast if \code{distr[[i]]}='nbinom', see \link[stats]{NegBinomial}.
 }
@@ -66,6 +70,15 @@ If \code{in_type[[i]]}='params', then \code{base_forecast[[i]]} is a vector cont
 See the description of the parameters \code{in_type} and \code{distr} for more details.
 
 The order of the \code{base_forecast} list is given by the order of the time series in the summing matrix.
+
+Warnings are triggered from the Importance Sampling step if:
+\itemize{
+\item weights are all zeros, then the upper is ignored during reconciliation;
+\item the effective sample size is < 200;
+\item the effective sample size is < 1\% of the sample size (\code{num_samples} if \code{in_type} is 'params' or the size of the base forecast if if \code{in_type} is 'samples').
+}
+
+Note that warnings are an indication that the base forecasts might have issues. Please check the base forecasts in case of warnings.
 }
 \examples{
 
@@ -108,7 +121,7 @@ analytic_rec <- reconc_gaussian(S, base_forecasts.mu = mus,
                                 base_forecasts.Sigma = Sigma)
 
 #Compare the reconciled means obtained analytically and via BUIS
-print(c(analytic_rec$upper_reconciled_mean, analytic_rec$bottom_reconciled_mean))
+print(c(S \%*\% analytic_rec$bottom_reconciled_mean))
 print(rowMeans(samples_buis))
 
 

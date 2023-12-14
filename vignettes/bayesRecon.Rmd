@@ -21,7 +21,6 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   eval=TRUE ### !!!! set to FALSE here to render only the text !!!!
-  #eval=FALSE 
 )
 set.seed(42)
 ```
@@ -52,6 +51,7 @@ The package, available at this
 install.packages('bayesRecon', dependencies = TRUE)
 ```
 
+Load the package:
 
 ```{r load}
 library(bayesRecon)
@@ -315,7 +315,7 @@ reconc.buis <- bayesRecon::reconc_BUIS(
 
 # check that the algorithms return consistent results
 round(rbind(
-  c(recon.gauss$upper_reconciled_mean, recon.gauss$bottom_reconciled_mean),
+  c(rmat$S %*% recon.gauss$bottom_reconciled_mean),
   rowMeans(reconc.buis$reconciled_samples)
 ))
 ```
@@ -436,8 +436,14 @@ recon.gauss <- bayesRecon::reconc_gaussian(S,
                                            base_forecasts.mu = mu,
                                            base_forecasts.Sigma = Sigma)
 
-# check coherence
-(A %*% recon.gauss$bottom_reconciled_mean) - recon.gauss$upper_reconciled_mean
+bottom_mu_reconc <- recon.gauss$bottom_reconciled_mean
+bottom_Sigma_reconc <- recon.gauss$bottom_reconciled_covariance
+
+# Obtain reconciled mu and Sigma for the upper variable
+upper_mu_reconc <- A %*% bottom_mu_reconc
+upper_Sigma_reconc <- A %*% bottom_Sigma_reconc %*% t(A)
+
+upper_mu_reconc
 ```
 
 # References
