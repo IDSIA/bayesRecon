@@ -33,6 +33,9 @@ The main functions are:
 
 ## News
 
+:boom: \[2023-12-19\] Added the vignette “Properties of the reconciled
+distribution via conditioning”.
+
 :boom: \[2023-08-23\] Added the vignette “Probabilistic Reconciliation
 via Conditioning with bayesRecon”. Added the `schaferStrimmer_cov`
 function.
