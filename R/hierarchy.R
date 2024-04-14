@@ -1,4 +1,6 @@
-# Function to find the best hierarchy contained in A
+# Function to find the best hierarchy contained in A; 
+# "best" means that minimizes the number of IS steps required by BUIS.
+# It is not the maximal hierarchy contained in A!
 # Returns a vector with length equal to the number of rows of A
 # Each entry is 1 if the corresponding row has to be picked, and 0 otherwise
 .get_hier_rows <- function(A, scale = 196) {
@@ -87,7 +89,7 @@
 
 # Function that extract the "best hierarchy rows" from A, and sorts them in
 # the correct order (i.e. bottom-up)
-# Also sorts accordingly the vector v (e.g. of parameters)
+# Also sorts accordingly the vectors v, d, it (e.g. of parameters)
 .get_HG <- function(A, v, d, it) {
   #get the indices of the "hierarchy rows" of A
   indices_sol <- .get_hier_rows(A)
@@ -319,3 +321,97 @@ get_reconc_matrices <- function(agg_levels, h) {
   )
   return(out)
 }
+
+# Check if A is a hierarchical matrix 
+.check_hierarchical <- function(A) {
+  
+  k <- nrow(A)
+  m <- ncol(A)
+  
+  for (i in 1:k) {
+    for (j in 1:k) {
+      if (i < j) {
+        cond1 = A[i,] %*% A[j,] != 0     # Upper i and j have some common descendants
+        cond2 = sum(A[i,] - A[j,] >= 0) < m  # Upper j is not a descendant of upper i
+        cond3 = sum(A[i,] - A[j,] <= 0) < m  # Upper i is not a descendant of upper j
+        if (cond1 & cond2 & cond3) {
+          return(FALSE)
+        }
+      }
+    }
+  }
+  
+  return(TRUE)
+  
+}
+
+# Check if A is a hierarchical matrix and if the rows are in bottom-up order
+.check_BU_matr <- function(A) {
+  
+  k <- nrow(A)
+  m <- ncol(A)
+  
+  for (i in 1:k) {
+    for (j in 1:k) {
+      if (i < j) {
+        cond1 = A[i,] %*% A[j,] != 0     # Upper i and j have some common descendants
+        cond2 = sum(A[i,] - A[j,] <= 0) < m  # Upper i is not a descendant of upper j
+        if (cond1 & cond2) {
+          return(FALSE)
+        }
+      }
+    }
+  }
+  
+  return(TRUE)
+}
+
+# Find the rows of A corresponding to the lowest level
+.lowest_lev <- function(A) {
+  
+  if (!.check_hierarchical(A)) stop("Matrix A is not hierarchical")
+  
+  k = nrow(A)
+  m = ncol(A)
+  
+  rows = c()
+  for (i in 1:k) {
+    rows = c(rows, i)
+    for (j in 1:k) {
+      cond1 = A[i,] %*% A[j,] != 0     # Upper i and j have some common descendants
+      cond2 = sum(A[i,] - A[j,] <= 0) < m  # Upper i is not a descendant of upper j
+      if (cond1 & cond2) {
+        rows = rows[-length(rows)] # remove i
+      }
+    }
+  }
+  # keep all rows except those that satisfy both the above conditions
+  
+  return(rows)
+}
+
+# Get the aggregating matrix Au of the sub-hierarchy composed just by the uppers 
+get_Au <- function(A, lowest_rows=NULL) {
+  
+  if (is.null(lowest_rows)) lowest_rows = .lowest_lev(A)
+  A_ = A[-lowest_rows,]
+  
+  n_bott = ncol(A_)
+  n_upp_u = nrow(A_)
+  n_bott_u = length(lowest_rows)
+  A_u = matrix(nrow=n_upp_u, ncol=n_bott_u)
+  for (j in 1:n_bott_u) {
+    l = lowest_rows[[j]]
+    mask = A[l,]==1
+    for (i in 1:n_upp_u) {
+      A_u[i,j] = sum(A_[i, mask]==1) == sum(mask)  # check that is a vector of 1
+    }
+  }
+  
+  return(1*A_u)  # to get numerical values instead of TRUE / FALSE
+}
+
+
+
+
+

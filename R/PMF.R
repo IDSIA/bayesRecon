@@ -1,0 +1,144 @@
+# A pmf is represented as normalized numeric vector v: 
+# for each j = 0, ..., M, the probability of j is the value v[[j+1]]
+
+
+###
+
+# Compute the tempered pmf
+# The pmf is raised to the power of 1/temp, and then normalized
+# temp must be a positive number
+PMF.tempering = function(pmf, temp) {
+  
+  if (temp <= 0) stop("temp must be positive")
+  if (temp == 1) return(pmf)
+  
+  temp_pmf = pmf**(1/temp)
+  return(temp_pmf / sum(temp_pmf))
+}
+
+# Sample (with replacement) from the probability distribution specified by the pmf
+PMF.sample = function(pmf, N_samples) {
+  s = sample(0:len(pmf), prob = pmf, replace = TRUE, size = N_samples)
+  return(s)
+}
+
+# Apply smoothing to a pmf to "cover the holes" in the support.
+# If there is no hole, it doesn't do anything.
+# If the smoothing parameter alpha is not specified, it is set to the min of pmf. 
+# If laplace is set to TRUE, add alpha to all the points. 
+# Otherwise, add alpha only to points with zero mass.
+PMF.smoothing = function(pmf, alpha = NULL, laplace=FALSE) {
+  
+  if (is.null(alpha)) alpha = min(pmf)
+  
+  # apply smoothing only if there are holes
+  if (sum(pmf==0)) {
+    if (laplace) { pmf = pmf + rep(alpha, length(pmf))
+    } else pmf[pmf==0] = alpha
+  }
+  
+  return(pmf)
+}
+
+# Compute convolution between 2 pmfs. Then, for numerical reasons: 
+# -removes small values at the end of the vector (< Rtoll)
+# -set to zero all the values to the left of the support
+# -set to zero small values (< toll)
+PMF.conv = function(pmf1, pmf2, toll=1e-16, Rtoll=1e-7) {
+  pmf = convolve(pmf1, rev(pmf2), type="open")
+  # Look for last value > Rtoll and remove all the elements after it:
+  last_pos = max(which(pmf > Rtoll))  
+  pmf = pmf[1:last_pos]
+  # Set to zero values smaller than toll:
+  pmf[pmf<toll] = 0  
+  # Set to zero elements at the left of m1 + m2, which are the minima of the supports
+  # of pmf1 and pmf2: guarantees that supp(v) is not "larger" than supp(v1) + supp(v2) 
+  m1 = min(which(pmf1>0))
+  m2 = min(which(pmf2>0))
+  m = m1 + m2 -1
+  if (m>1) pmf[1:(m-1)] = 0
+  return(pmf)
+}
+
+# Computes the pmf of the bottom-up distribution analytically
+# l_pmf: list of bottom pmfs
+# toll and Rtoll: used during convolution (see PMF.conv)
+# smoothing: whether to apply smoothing to the bottom pmfs to "cover the holes"  
+# al_smooth, lap_smooth: smoothing parameters (see PMF.smoothing)
+# Returns:
+# -the bottom-up pmf, if return_all=FALSE
+# -otherwise, a list of lists of pmfs for all the steps of the algorithm; 
+#  they correspond to the variables of the "auxiliary binary tree"
+PMF.bottom_up = function(l_pmf, toll=1e-16, Rtoll=1e-7, return_all=FALSE,
+                         smoothing=FALSE, al_smooth=NULL, lap_smooth=FALSE) {
+  
+  # Smoothing to "cover the holes" in the supports of the bottom pmfs
+  if (smoothing) l_pmf = lapply(l_pmf, PMF.smoothing, 
+                                alpha=al_smooth, laplace=lap_smooth)
+  
+  # Doesn't do convolutions sequentially 
+  # Instead, for each iteration (while) it creates a new list of vectors 
+  # by doing convolution between 1 and 2, 3 and 4, ...
+  # Then, the new list has length halved (if L is odd, just copy the last element)
+  # Ends when the list has length 1: contains just 1 vector that is the convolution 
+  # of all the vectors of the list 
+  old_v = l_pmf
+  l_l_v = list(old_v)   # list with all the step-by-step lists of pmf
+  L = length(old_v)
+  while (L > 1) {
+    new_v = c()
+    for (j in 1:(L%/%2)) {
+      new_v = c(new_v, list(PMF.conv(old_v[[2*j-1]], old_v[[2*j]], 
+                                     toll=toll, Rtoll=Rtoll)))
+    }
+    if (L%%2 == 1) new_v = c(new_v, list(old_v[[L]]))
+    old_v = new_v
+    l_l_v = c(l_l_v, list(old_v))
+    L = length(old_v)
+  }
+  
+  if (return_all) {
+    return(l_l_v)
+  } else {
+    return(new_v[[1]])
+  }
+}
+
+# Given a vector v_u and a list of bottom pmf l_pmf,
+# checks if the elements of v_u are contained in the support of the bottom-up distr 
+# Returns a vector with the same length of v_u with TRUE if it is contained and FALSE otherwise 
+PMF.check_support <- function(v_u, l_pmf, toll=1e-16, Rtoll=1e-7,
+                              smoothing=FALSE, al_smooth=NULL, lap_smooth=FALSE) {
+  pmf_u = PMF.bottom_up(l_pmf, Ltoll=Ltoll, Rtoll=Rtoll, return_all=FALSE,
+                        smoothing=smoothing, al_smooth=al_smooth, lap_smooth=lap_smooth)
+  # The elements of v_u must be in the support of pmf_u, and the mass must be positive
+  mask = v_u <= length(pmf_u)+1 & pmf_u[v_u+1] > 0  
+  return(mask)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
