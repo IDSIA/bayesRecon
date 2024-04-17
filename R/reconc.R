@@ -451,7 +451,7 @@ reconc_BUIS <- function(S,
 #'# i.e., sample from the reconciled bottoms and multiply by S
 #'chol_decomp = chol(bottom_Sigma_reconc) # Compute the Cholesky Decomposition
 #'Z = matrix(rnorm(n = 2000), nrow = 2) # Sample from standard normal
-#'B = chol_decomp %*% Z + matrix(rep(bottom_mu_reconc, 1000), nrow=2) # Apply the transformation
+#'B = t(chol_decomp) %*% Z + matrix(rep(bottom_mu_reconc, 1000), nrow=2) # Apply the transformation
 #'
 #'U = S %*% B
 #'Y_reconc = rbind(U, B)

@@ -1,19 +1,38 @@
 # A pmf is represented as normalized numeric vector v: 
 # for each j = 0, ..., M, the probability of j is the value v[[j+1]]
 
-
 ###
 
-# Compute the tempered pmf
-# The pmf is raised to the power of 1/temp, and then normalized
-# temp must be a positive number
-PMF.tempering = function(pmf, temp) {
+# Compute the empirical pmf from a vector of samples
+PMF.from_samples = function(v) {
+  pmf = tabulate(v+1)  # the support starts from 0 (tabulate only counts positive integers)
+  pmf = pmf / sum(pmf)
+  return(pmf)
+}
+
+# Compute the pmf from a parametric distribution
+PMF.from_params = function(params, distr, Rtoll = 1e-7) {
   
-  if (temp <= 0) stop("temp must be positive")
-  if (temp == 1) return(pmf)
+  if (!(distr %in% c("poisson", "nbinom"))) {
+    stop(paste0("Input error: distribution ", distr, " is not implemented"))
+  }
   
-  temp_pmf = pmf**(1/temp)
-  return(temp_pmf / sum(temp_pmf))
+  switch(
+    distr,
+    "poisson"  = {
+      lambda = params$lambda
+      M = qpois(1-Rtoll, lambda)
+      pmf = dpois(0:M, lambda)},
+    "nbinom"   = {
+      size = params$size
+      prob = params$prob
+      mu   = params$mu
+      M   = qnbinom(1-Rtoll, size=size, prob=prob, mu=mu)
+      pmf = dnbinom(0:M, size=size, prob=prob, mu=mu)},
+  )
+  
+  pmf = pmf / sum(pmf)
+  return(pmf)
 }
 
 # Sample (with replacement) from the probability distribution specified by the pmf
@@ -57,6 +76,7 @@ PMF.conv = function(pmf1, pmf2, toll=1e-16, Rtoll=1e-7) {
   m2 = min(which(pmf2>0))
   m = m1 + m2 -1
   if (m>1) pmf[1:(m-1)] = 0
+  pmf = pmf / sum(pmf)  # re-normalize
   return(pmf)
 }
 
@@ -107,31 +127,27 @@ PMF.bottom_up = function(l_pmf, toll=1e-16, Rtoll=1e-7, return_all=FALSE,
 # Given a vector v_u and a list of bottom pmf l_pmf,
 # checks if the elements of v_u are contained in the support of the bottom-up distr 
 # Returns a vector with the same length of v_u with TRUE if it is contained and FALSE otherwise 
-PMF.check_support <- function(v_u, l_pmf, toll=1e-16, Rtoll=1e-7,
-                              smoothing=FALSE, al_smooth=NULL, lap_smooth=FALSE) {
-  pmf_u = PMF.bottom_up(l_pmf, Ltoll=Ltoll, Rtoll=Rtoll, return_all=FALSE,
+PMF.check_support = function(v_u, l_pmf, toll=1e-16, Rtoll=1e-7,
+                             smoothing=FALSE, al_smooth=NULL, lap_smooth=FALSE) {
+  pmf_u = PMF.bottom_up(l_pmf, toll=toll, Rtoll=Rtoll, return_all=FALSE,
                         smoothing=smoothing, al_smooth=al_smooth, lap_smooth=lap_smooth)
-  # The elements of v_u must be in the support of pmf_u, and the mass must be positive
-  mask = v_u <= length(pmf_u)+1 & pmf_u[v_u+1] > 0  
+  # The elements of v_u must be in the support of pmf_u
+  supp_u = which(pmf_u > 0) - 1
+  mask = v_u %in% supp_u
   return(mask)
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# Compute the tempered pmf
+# The pmf is raised to the power of 1/temp, and then normalized
+# temp must be a positive number
+PMF.tempering = function(pmf, temp) {
+  
+  if (temp <= 0) stop("temp must be positive")
+  if (temp == 1) return(pmf)
+  
+  temp_pmf = pmf**(1/temp)
+  return(temp_pmf / sum(temp_pmf))
+}
 
 
 
