@@ -1,7 +1,104 @@
-# Input checks
-.DISTR_SET = c("gaussian", "poisson", "nbinom")
-.DISTR_SET2 = c("continuous", "discrete")
-.check_input <- function(S, base_forecasts, in_type, distr) {
+################################################################################
+
+.DISTR_TYPES = c("continuous", "discrete")
+.DISCR_DISTR = c("poisson", "nbinom")
+.CONT_DISTR = c("gaussian")
+
+################################################################################
+# CHECK INPUT
+
+# Function to check values allowed in S.
+.check_S <- function(S) {
+  if(!identical(sort(unique(as.vector(S))), c(0,1)) ){
+    stop("Input error: S must be a matrix containing only 0s and 1s.")
+  }
+}
+
+# Check that distr is one of the allowed values, depending on in_type 
+# (see .DISTR_TYPES, .DISCR_DISTR, .CONT_DISTR)
+.check_distr <- function(in_type, distr, i=NULL) {
+  
+  add_string = ""
+  if(!is.null(i)){
+    add_string = paste("[[",i,"]]")
+  }
+  
+  if (in_type == "params" & !(distr %in% c(.DISCR_DISTR, .CONT_DISTR))) {
+    stop(paste(
+      "Input error: if in_type='params', distr", add_string, " must be one of {",
+      paste(c(.DISCR_DISTR, .CONT_DISTR), collapse = ', '),
+      "}"
+    ))
+  }
+  if (in_type == "samples" & !(distr %in% .DISTR_TYPES)) {
+    stop(paste(
+      "Input error: if in_type='samples', distr", add_string, " must be one of {",
+      paste(.DISTR_TYPES, collapse = ', '),
+      "}"
+    ))
+  }
+}
+
+# Checks if a matrix is a covariance matrix (i.e. symmetric p.d.)
+.check_cov <- function(cov_matrix, Sigma_str) {
+  # Check if the matrix is square
+  if (!is.matrix(cov_matrix) || nrow(cov_matrix) != ncol(cov_matrix)) {
+    stop(paste0(Sigma_str, " is not square"))
+  }
+  # Check if the matrix is positive semi-definite
+  eigen_values <- eigen(cov_matrix, symmetric = TRUE)$values
+  if (any(eigen_values <= 0)) {
+    stop(paste0(Sigma_str, " is not positive semi-definite"))
+  }
+  # Check if the matrix is symmetric
+  if (!isSymmetric(cov_matrix)) {
+    stop("base_forecasts.Sigma not symmetric")
+  }
+  # Check if the diagonal elements are non-negative
+  if (any(diag(cov_matrix) <= 0)) {
+    stop(paste0(Sigma_str, ": some elements on the diagonal are non-positive"))
+  }
+  # If all checks pass, return TRUE
+  return(TRUE)
+}
+
+# Check the parameters of one of the implemented distribution
+.check_distr_params(distr, params) {
+  if (!(distr %in% c(.DISCR_DISTR, .CONT_DISTR))) {
+    # Check that the distr is implemented
+    stop(paste(
+      "Input error: the distribution must be one of {",
+      paste(c(.DISCR_DISTR, .CONT_DISTR), collapse = ', '), "}"))
+  }
+  switch(
+    distr,
+    "gaussian" = {
+      mean = params[[1]]
+      sd = params[[2]]
+      # mean must be a real number
+      if (length(mean)!=1 | !is.numeric(mean)) {
+        stop("Input error: the mean of a Gaussian must be a real number")
+      }
+      # std must be a positive number
+      if (length(sd)!=1 || !is.numeric(sd) || sd <= 0) {
+        stop("Input error: the mean of a Gaussian must be a real number")
+      }
+    },
+    "poisson"  = {
+      lambda = params[[1]]
+      # lambda must be a positive number
+      if (length(lambda)!=1 || !is.numeric(lambda) || lambda <= 0) {
+        stop("Input error: the mean of a Gaussian must be a real number")
+      }
+    },
+    "nbinom"   = {
+      # TODO
+    },
+  )
+}
+
+# Check input for BUIS (and for MH)
+.check_input_BUIS <- function(S, base_forecasts, in_type, distr) {
   
   .check_S(S)
   
@@ -60,121 +157,105 @@
   # - gaussian: 2 parameters, (mu, sd)
   # - poisson:  1 parameter,  (lambda)
   # - nbinom:   2 parameters, (n, p)
-  # TODO if distr is a list, check that entries are coherent
 }
 
-
-# Checks if a matrix is a covariance matrix (i.e. symmetric p.d.)
-.check_cov <- function(cov_matrix) {
-  # Check if the matrix is square
-  if (!is.matrix(cov_matrix) || nrow(cov_matrix) != ncol(cov_matrix)) {
-    stop("base_forecasts.Sigma not square")
-  }
-  # Check if the matrix is positive semi-definite
-  eigen_values <- eigen(cov_matrix, symmetric = TRUE)$values
-  if (any(eigen_values <= 0)) {
-    stop("base_forecasts.Sigma not positive semi-definite")
-  }
-  # Check if the matrix is symmetric
-  if (!isSymmetric(cov_matrix)) {
-    stop("base_forecasts.Sigma not symmetric")
-  }
-  # Check if the diagonal elements are non-negative
-  if (any(diag(cov_matrix) < 0)) {
-    stop("base_forecasts.Sigma, diagonal elements are non-positive")
-  }
-  # If all checks pass, return TRUE
-  return(TRUE)
-}
-
-
-# Function to check values allowed in S.
-.check_S <- function(S) {
-  if(!identical(sort(unique(as.vector(S))), c(0,1)) ){
-    stop("Input error: S must be a matrix containing only 0s and 1s.")
-  }
-}
-
-# Individual check on the parameter distr
-.check_distr <- function(in_type, distr, i=NULL) {
+# Check input for TDcond
+.check_input_TD = function(S, fc_bottom, fc_upper, 
+                           bottom_in_type, distr,
+                           return_pmf, return_samples) {
   
-  add_string = ""
-  if(!is.null(i)){
-    add_string = paste("[[",i,"]]")
-  }
+  .check_S(S)
   
-  if (in_type == "params" & !(distr %in% .DISTR_SET)) {
-    stop(paste(
-      "Input error: if in_type='params', distr", add_string, " must be {",
-      paste(.DISTR_SET, collapse = ', '),
-      "}"
-    ))
+  n_b = ncol(S)        # number of bottom TS
+  n_u = nrow(S) - n_b  # number of upper TS
+  
+  if (length(fc_bottom) != n_b) {
+    stop("Input error: length of fc_bottom does not match with S")
   }
-  if (in_type == "samples" & !(distr %in% .DISTR_SET2)) {
-    stop(paste(
-      "Input error: if in_type='samples', distr", add_string, " must be {",
-      paste(.DISTR_SET2, collapse = ', '),
-      "}"
-    ))
+  if (!(bottom_in_type %in% c("pmf", "samples", "params"))) {
+    stop("Input error: bottom_in_type must be either 'pmf', 'samples', or 'params'")
+  }
+  if (!(return_pmf | return_samples)) {
+    stop("Input error: at least one of 'return_pmf' and 'return_samples' must be TRUE")
+  } 
+  # Check the dimensions of mu and Sigma
+  if (length(fc_upper$mu) != n_u | any(dim(fc_upper$Sigma) != c(n_u, n_u))) {
+    stop("Input error: the dimensions of the upper parameters do not match with S")
+  }
+  # Check that Sigma is a covariance matrix (symmetric positive semi-definite)
+  .check_cov(fc_upper$Sigma, "Upper covariance matrix")
+  
+  # If bottom_in_type is not "params" but distr is specified, throw a warning
+  if (bottom_in_type %in% c("pmf", "samples") & !is.null(distr)) {
+    warning(paste0("Since bottom_in_type = '", bottom_in_type, "', the input distr is ignored"))
+  }
+  # If bottom_in_type is params, distr must be one of the implemented discrete distr
+  if (bottom_in_type == "params" & !(distr %in% .DISCR_DISTR)) {
+    stop(paste0("Input error: distr must be one of {",
+                paste(DISCR_DISTR, collapse = ', '), "}"))
   }
 }
 
-# Returns TRUE if A is a hierarchy matrix 
-# (according to Definition 1 in "Find Maximal Hierarchy")
-# If this returns TRUE we avoid solving the integer linear programming problem
-.check_hierarchical <- function(A) {
-  
-  k <- nrow(A)
-  m <- ncol(A)
-  
-  for (i in 1:k) {
-    for (j in 1:k) {
-      if (i < j) {
-        cond1 = A[i,] %*% A[j,] != 0     # Upper i and j have some common descendants
-        cond2 = sum(A[i,] - A[j,] >= 0) < m  # Upper j is not a descendant of upper i
-        cond3 = sum(A[i,] - A[j,] <= 0) < m  # Upper i is not a descendant of upper j
-        if (cond1 & cond2 & cond3) {
-          return(FALSE)
-        }
-      }
-    }
-  }
-  
-  return(TRUE)
-  
+################################################################################
+# SAMPLE
+
+# Sample from one of the implemented distributions
+.distr_sample <- function(params, distr, n) {
+  .check_distr_params(distr, params)
+  switch(
+    distr,
+    "gaussian" = {
+      samples = stats::rnorm(n=n, mean = params[[1]], sd = params[[2]]) },
+    "poisson"  = {
+      samples = stats::rpois(n=n, lambda = params[[1]]) },
+    "nbinom"   = {
+      samples <-if (params[[2]] == 0) {
+        stop("Parameter size=0 in nbinom, this is not a valid distribution.")
+        stats::rpois(n=n, lambda = params[[1]])
+      } else {
+        stats::rnbinom(n=n, mu = params[[1]], size = params[[2]])
+      } },
+  )
+  return(samples)
 }
 
-# Checks that there is no bottom continuous variable child of a 
-# discrete upper variable
-.check_hierfamily_rel <- function(sh.res, distr, debug=FALSE) {
-  for (bi in seq_along(distr[sh.res$bottom_idxs])) {
-    distr_bottom = distr[sh.res$bottom_idxs][[bi]]
-    rel_upper_i = sh.res$A[,bi]
-    rel_distr_upper = unlist(distr[sh.res$upper_idxs])[rel_upper_i == 1]
-    err_message = "A continuous bottom distribution is child of a discrete one."
-    if (distr_bottom == .DISTR_SET2[1]) {              
-      if (sum(rel_distr_upper == .DISTR_SET2[2]) | 
-          sum(rel_distr_upper == .DISTR_SET[2]) | sum(rel_distr_upper == .DISTR_SET[3])) {
-        if (debug) { return(-1) } else { stop(err_message) }
-      }
-    }
-    if (distr_bottom == .DISTR_SET[1]) {                
-      if (sum(rel_distr_upper == .DISTR_SET2[2]) |
-          sum(rel_distr_upper == .DISTR_SET[2]) | sum(rel_distr_upper == .DISTR_SET[3])) {
-        if (debug) { return(-1) } else { stop(err_message) }
-      }
-    }
-  }
-  if (debug) { return(0) }
+# Sample from a multivariate Gaussian distribution with specified mean and cov. matrix
+.MVN_sample = function(n_samples, mu, Sigma) {
+  n = length(mu)
+  if (any(dim(Sigma) != c(n,n))) {
+    stop("Dimension of mu and Sigma are not compatible!")
+  } 
+  .check_cov <- function(Sigma, "Sigma")
+  
+  Z = matrix(rnorm(n*n_samples), ncol = n)
+  Ch = chol(Sigma)
+  samples = Z %*% Ch + matrix(mu, nrow = n_samples, ncol = n, byrow = TRUE)
+  return(samples)
 }
 
+################################################################################
+# Miscellaneous
 
-# Misc
+.distr_pmf <- function(x, params, distr_) {
+  switch(
+    distr_,
+    "gaussian" = {
+      pmf = stats::dnorm(x=x, mean = params[[1]], sd = params[[2]]) },
+    "poisson"  = {
+      pmf = stats::dpois(x=x, lambda = params[[1]]) },
+    "nbinom"   = {
+      pmf = stats::dnbinom(x=x, mu = params[[1]], size = params[[2]]) },
+  )
+  return(pmf)
+}
+
 .shape <- function(m) {
   print(paste0("(", nrow(m), ",", ncol(m), ")"))
 }
 
+################################################################################
 # Functions for tests
+
 .gen_gaussian <- function(params_file, seed=NULL) {
   set.seed(seed)
   params = utils::read.csv(file = params_file, header = FALSE)

@@ -5,8 +5,7 @@
 
 # Compute the empirical pmf from a vector of samples
 PMF.from_samples = function(v) {
-  pmf = tabulate(v+1)  # the support starts from 0 (tabulate only counts positive integers)
-  pmf = pmf / sum(pmf)
+  pmf = tabulate(v+1) / length(v)  # the support starts from 0 (tabulate only counts positive integers)
   return(pmf)
 }
 
@@ -148,13 +147,3 @@ PMF.tempering = function(pmf, temp) {
   temp_pmf = pmf**(1/temp)
   return(temp_pmf / sum(temp_pmf))
 }
-
-
-
-
-
-
-
-
-
-

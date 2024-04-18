@@ -94,7 +94,7 @@ reconc_MCMC <- function(S,
   if (distr == "gaussian") {
     stop("MCMC for Gaussian distributions is not implemented")
   }
-  .check_input(S, base_forecasts, in_type = "params", distr = distr)
+  .check_input_BUIS(S, base_forecasts, in_type = "params", distr = distr)
   if (!is.list(distr)) {
     distr = rep(list(distr), nrow(S))
   }

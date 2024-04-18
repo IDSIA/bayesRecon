@@ -120,12 +120,15 @@ pmf_bottom = lapply(tabs_bottom, PMF.from_tab)
 fc_upper = readRDS(str_upp)
 upper_params = get_gauss_params_upp(fc_upper)
 
+N_samples = 1e4
+
 ###
 # All the upper
 
 Rprof()
 out = reconc_TD(S, pmf_bottom, upper_params,
-                bottom_in_type = "pmf", N_samples = 1e4,
+                bottom_in_type = "pmf", N_samples = N_samples,
+                toll = 1e-15,
                 return_pmf = TRUE, return_samples = TRUE)
 Rprof(NULL)
 summaryRprof()
@@ -140,7 +143,7 @@ upper_params_$Sigma = upper_params$Sigma[1,1]
 
 Rprof()
 out = reconc_TD(S_, pmf_bottom, upper_params,
-                bottom_in_type = "pmf", N_samples = 1e4,
+                bottom_in_type = "pmf", N_samples = N_samples,
                 return_pmf = FALSE, return_samples = TRUE)
 Rprof(NULL)
 summaryRprof()
@@ -155,7 +158,7 @@ upper_params_$Sigma = upper_params$Sigma[5:11,5:11]
 
 Rprof()
 out = reconc_TD(S, pmf_bottom, upper_params,
-                bottom_in_type = "pmf", N_samples = 1e4,
+                bottom_in_type = "pmf", N_samples = N_samples,
                 return_pmf = FALSE, return_samples = TRUE)
 Rprof(NULL)
 summaryRprof()

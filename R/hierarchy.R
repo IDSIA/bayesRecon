@@ -322,7 +322,9 @@ get_reconc_matrices <- function(agg_levels, h) {
   return(out)
 }
 
-# Check if A is a hierarchical matrix 
+# Returns TRUE if A is a hierarchy matrix 
+# (according to Definition 1 in "Find Maximal Hierarchy")
+# If this returns TRUE we avoid solving the integer linear programming problem
 .check_hierarchical <- function(A) {
   
   k <- nrow(A)

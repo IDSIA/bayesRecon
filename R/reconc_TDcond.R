@@ -100,26 +100,18 @@
   return(b_new)
 }
 
-# Sample from a multivariate Gaussian distribution with specified mean and cov. matrix
-.MVN_sample = function(n_samples, mu, Sigma) {
-  n = length(mu)
-  if (any(dim(Sigma) != c(n,n))) stop("Dimension of mu and Sigma are not compatible!")
-  
-  Z = matrix(rnorm(n*n_samples), ncol = n)
-  Ch = chol(Sigma)
-  samples = Z %*% Ch + matrix(mu, nrow = n_samples, ncol = n, byrow = TRUE)
-  return(samples)
-}
+
 
 # Reconciliation top-down using (...)
 # 
 # TODO: wrap check inputs in a function and reorganize checks of BUIS, etc.
+# 
 # TODO: add upper_in_type: upper forecasts may not be Gaussian
-reconc_TD = function(S, fc_bottom, fc_upper, 
+reconc_TDcond = function(S, fc_bottom, fc_upper, 
                      bottom_in_type = "pmf", distr = NULL,
                      N_samples = 2e4, return_pmf = TRUE, return_samples = FALSE, 
                      ...,
-                     seed = NULL) {
+                     suppress_warnings = FALSE, seed = NULL) {
   
   set.seed(seed)
   
@@ -130,19 +122,14 @@ reconc_TD = function(S, fc_bottom, fc_upper,
   # al_smooth=NULL
   # lap_smooth=FALSE 
   
+  # After testing the convolution parameters:
+  # remove dots, remove comment above, and set the "best parameters" as default in 
+  # PMF.check_support and .TD_sampling
+  
   # Check inputs
-  .check_S(S)
-  n_b = ncol(S)        # number of bottom TS
-  n_u = nrow(S) - n_b  # number of upper TS
-  if (length(fc_bottom) != n_b) {
-    stop("Input error: length of fc_bottom does not match with S")
-  }
-  if (!(bottom_in_type %in% c("pmf", "samples", "params"))) {
-    stop("Input error: bottom_in_type must be either 'pmf', 'samples', or 'params'")
-  }
-  if (!(return_pmf | return_samples)) {
-    stop("Input error: at least one of 'return_pmf' and 'return_samples' must be TRUE")
-  } 
+  .check_input_TD(S, fc_bottom, fc_upper, 
+                  bottom_in_type, distr,
+                  return_pmf, return_samples)
   
   # Get aggr. matrix A and find the "lowest upper" 
   A = .get_A_from_S(S)$A
@@ -162,11 +149,6 @@ reconc_TD = function(S, fc_bottom, fc_upper,
     
   } else {
     # Else, analytically reconcile the upper and then sample from the lowest-uppers
-    
-    # Check the dimensions of mu and Sigma
-    if (length(mu_u) != n_u | any(dim(Sigma_u) != c(n_u, n_u))) {
-      stop("Input error: the dimensions of the upper parameters do not match with S")
-    }
     
     # Get the aggregation matrix A_u and the summing matrix S_u for the upper sub-hierarchy
     A_u = .get_Au(A, lowest_rows)
@@ -205,10 +187,13 @@ reconc_TD = function(S, fc_bottom, fc_upper,
   samp_ok = mapply(PMF.check_support, U_js, L_pmf_js, 
                    MoreArgs = list(...))
   samp_ok = rowSums(samp_ok) == n_u_low
-  # Only keep the "good" upper samples:
+  # Only keep the "good" upper samples, and throw a warning if some samples are discarded:
   U_js = lapply(U_js, "[", samp_ok) 
-  print(paste0("Only ", round(sum(samp_ok)/N_samples, 3)*100, "% of the upper samples ",
-               "are in the support of the bottom-up distribution"))
+  if (sum(samp_ok) != N_samples & !suppress_warnings) {
+    warning(paste0("Only ", round(sum(samp_ok)/N_samples, 3)*100, "% of the upper samples ",
+                   "are in the support of the bottom-up distribution; ",
+                   "the others are discarded."))
+  }
   
   # Get bottom samples via the prob top-down
   B = list()
