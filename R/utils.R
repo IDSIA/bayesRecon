@@ -14,7 +14,7 @@
   }
 }
 
-# Checks if a matrix is a covariance matrix (i.e. symmetric p.d.)
+# Check if it is a covariance matrix (i.e. symmetric p.d.)
 .check_cov <- function(cov_matrix, Sigma_str) {
   # Check if the matrix is square
   if (!is.matrix(cov_matrix) || nrow(cov_matrix) != ncol(cov_matrix)) {
@@ -78,8 +78,8 @@
       }
     },
     "nbinom"   = {
-      size = params$size,
-      prob = params$prob,
+      size = params$size
+      prob = params$prob
       mu = params$mu
       # Check that size is specified, and that is a positive number
       if (is.null(size)) {
@@ -111,7 +111,7 @@
 
 # Check that the samples are discrete 
 .check_discrete_samples <- function(samples) {
-  if (!all.equal(x, as.integer(x))) {
+  if (!all.equal(samples, as.integer(samples))) {
     stop("Input error: samples are not all discrete")
   }
 }
@@ -157,7 +157,9 @@
           "Input error: the distribution must be one of {",
           paste(.DISTR_TYPES, collapse = ', '), "}"))
       }
-      if (distr[[i]] == "discrete")
+      if (distr[[i]] == "discrete") {
+        .check_discrete_samples(base_forecasts[[i]])
+      }
       # TODO: check sample size?
     } else {
       stop("Input error: in_type[[",i,"]] must be either 'samples' or 'params'")
@@ -175,14 +177,18 @@
   n_b = ncol(S)        # number of bottom TS
   n_u = nrow(S) - n_b  # number of upper TS
   
-  if (length(fc_bottom) != n_b) {
-    stop("Input error: length of fc_bottom does not match with S")
-  }
   if (!(bottom_in_type %in% c("pmf", "samples", "params"))) {
     stop("Input error: bottom_in_type must be either 'pmf', 'samples', or 'params'")
   }
   if (!(return_pmf | return_samples)) {
     stop("Input error: at least one of 'return_pmf' and 'return_samples' must be TRUE")
+  } 
+  if (length(fc_bottom) != n_b) {
+    stop("Input error: length of fc_bottom does not match with S")
+  }
+  # If Sigma is a number, transform into a matrix 
+  if (length(fc_upper$Sigma) == 1) { 
+    fc_upper$Sigma = as.matrix(fc_upper$Sigma)
   } 
   # Check the dimensions of mu and Sigma
   if (length(fc_upper$mu) != n_u | any(dim(fc_upper$Sigma) != c(n_u, n_u))) {
@@ -198,6 +204,9 @@
   # If bottom_in_type is params, distr must be one of the implemented discrete distr.
   # Also, check the parameters
   if (bottom_in_type == "params") {
+    if (is.null(distr)) {
+      stop("Input error: if bottom_in_type = 'params', distr must be specified")
+    }
     if (!(distr %in% .DISCR_DISTR)) {
       stop(paste0("Input error: distr must be one of {",
                   paste(DISCR_DISTR, collapse = ', '), "}"))
@@ -243,7 +252,7 @@
   if (any(dim(Sigma) != c(n,n))) {
     stop("Dimension of mu and Sigma are not compatible!")
   } 
-  .check_cov <- function(Sigma, "Sigma")
+  .check_cov(Sigma, "Sigma")
   
   Z = matrix(rnorm(n*n_samples), ncol = n)
   Ch = chol(Sigma)

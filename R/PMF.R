@@ -9,7 +9,7 @@ PMF.from_samples = function(v) {
   pmf = tabulate(v+1) / length(v)  # the support starts from 0 
   # Tabulate only counts values above 1: if sum(tabulate(v+1)) > length(v),
   # it means that there were negative samples
-  if (sum(pmf) != 1) {
+  if (!isTRUE(all.equal(sum(pmf), 1))) {
     stop("Input error: same samples are negative")
   }
   return(pmf)

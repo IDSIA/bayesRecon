@@ -248,15 +248,16 @@ reconc_BUIS <- function(S,
                    seed = NULL) {
   set.seed(seed)
 
-  # Ensure that data inputs are valid
-  .check_input_BUIS(S, base_forecasts, in_type, distr)
+  # Transform distr and in_type into lists
   if (!is.list(distr)) {
     distr = rep(list(distr), nrow(S))
   }
-  
   if (!is.list(in_type)) {
     in_type = rep(list(in_type), nrow(S))
   }
+  
+  # Ensure that data inputs are valid
+  .check_input_BUIS(S, base_forecasts, in_type, distr)
 
   # Split bottoms, uppers
   split_hierarchy.res = .split_hierarchy(S, base_forecasts)

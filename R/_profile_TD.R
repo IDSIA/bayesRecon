@@ -4,9 +4,9 @@ setwd(dir_path)
 rm( list = ls()); gc(); #clean environment
 
 source("PMF.R")
-source("reconc_TD.R")
+source("reconc_TDcond.R")
+source("reconc_gaussian.R")
 source("utils.R")
-source("reconc.R")
 source("hierarchy.R")
 source("shrink_cov.R")
 
@@ -126,7 +126,7 @@ N_samples = 1e4
 # All the upper
 
 Rprof()
-out = reconc_TD(S, pmf_bottom, upper_params,
+out = reconc_TDcond(S, pmf_bottom, upper_params,
                 bottom_in_type = "pmf", N_samples = N_samples,
                 toll = 1e-15,
                 return_pmf = TRUE, return_samples = TRUE)
@@ -142,7 +142,7 @@ upper_params_$mu = upper_params$mu[1]
 upper_params_$Sigma = upper_params$Sigma[1,1]
 
 Rprof()
-out = reconc_TD(S_, pmf_bottom, upper_params,
+out = reconc_TDcond(S_, pmf_bottom, upper_params_,
                 bottom_in_type = "pmf", N_samples = N_samples,
                 return_pmf = FALSE, return_samples = TRUE)
 Rprof(NULL)
@@ -157,7 +157,7 @@ upper_params_$mu = upper_params$mu[5:11]
 upper_params_$Sigma = upper_params$Sigma[5:11,5:11]
 
 Rprof()
-out = reconc_TD(S, pmf_bottom, upper_params,
+out = reconc_TDcond(S, pmf_bottom, upper_params,
                 bottom_in_type = "pmf", N_samples = N_samples,
                 return_pmf = FALSE, return_samples = TRUE)
 Rprof(NULL)

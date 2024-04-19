@@ -104,9 +104,6 @@
 
 # Reconciliation top-down using (...)
 # 
-# TODO: wrap check inputs in a function and reorganize checks of BUIS, etc.
-# 
-# TODO: add upper_in_type: upper forecasts may not be Gaussian
 reconc_TDcond = function(S, fc_bottom, fc_upper, 
                      bottom_in_type = "pmf", distr = NULL,
                      N_samples = 2e4, return_pmf = TRUE, return_samples = FALSE, 
@@ -133,12 +130,14 @@ reconc_TDcond = function(S, fc_bottom, fc_upper,
   
   # Get aggr. matrix A and find the "lowest upper" 
   A = .get_A_from_S(S)$A
+  n_u = nrow(A)
+  n_b = ncol(A)
   lowest_rows = .lowest_lev(A)
   n_u_low = length(lowest_rows)  # number of lowest upper
   
   # Get mean and covariance matrix of the MVN upper base forecasts
   mu_u    = fc_upper$mu
-  Sigma_u = fc_upper$Sigma
+  Sigma_u = as.matrix(fc_upper$Sigma)
   
   ### Get upper samples
   if (n_u == n_u_low) {     
@@ -222,13 +221,6 @@ reconc_TDcond = function(S, fc_bottom, fc_upper,
 
   return(out)
 }
-
-
-
-
-
-
-
 
 
 

@@ -1,8 +1,3 @@
-Finire .check_distr_params e aggiungere ai check (buis, mh, td)
-.check_distr: ricontrollare (cambiare nome in check_distr_buis?)
-.distr_pmf: riguardare e aggiungere check
-
-POI:
 commento a reconc_TD
 test e esempi
 

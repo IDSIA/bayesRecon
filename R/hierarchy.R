@@ -87,8 +87,8 @@
   return(indices_sol)
 }
 
-# Function that extract the "best hierarchy rows" from A, and sorts them in
-# the correct order (i.e. bottom-up)
+# Function that extract the "best hierarchy rows" from A (see .get_hier_rows), 
+# and sorts them in the correct order (i.e. bottom-up)
 # Also sorts accordingly the vectors v, d, it (e.g. of parameters)
 .get_HG <- function(A, v, d, it) {
   #get the indices of the "hierarchy rows" of A
