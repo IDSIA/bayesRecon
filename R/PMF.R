@@ -5,31 +5,44 @@
 
 # Compute the empirical pmf from a vector of samples
 PMF.from_samples = function(v) {
-  pmf = tabulate(v+1) / length(v)  # the support starts from 0 (tabulate only counts positive integers)
+  .check_discrete_samples(v)
+  pmf = tabulate(v+1) / length(v)  # the support starts from 0 
+  # Tabulate only counts values above 1: if sum(tabulate(v+1)) > length(v),
+  # it means that there were negative samples
+  if (sum(pmf) != 1) {
+    stop("Input error: same samples are negative")
+  }
   return(pmf)
 }
 
 # Compute the pmf from a parametric distribution
 PMF.from_params = function(params, distr, Rtoll = 1e-7) {
-  
-  if (!(distr %in% c("poisson", "nbinom"))) {
-    stop(paste0("Input error: distribution ", distr, " is not implemented"))
+  # Check that the distribution is implemented, and that the params are ok
+  if (!(distr %in% .DISCR_DISTR)) {
+    stop(paste0("Input error: distr must be one of {",
+                paste(DISCR_DISTR, collapse = ', '), "}"))
   }
-  
+  .check_distr_params(distr, params)
+  # Compute the pmf
   switch(
     distr,
     "poisson"  = {
       lambda = params$lambda
-      M = qpois(1-Rtoll, lambda)
-      pmf = dpois(0:M, lambda)},
+      M = stats::qpois(1-Rtoll, lambda)
+      pmf = stats::dpois(0:M, lambda)},
     "nbinom"   = {
       size = params$size
       prob = params$prob
       mu   = params$mu
-      M   = qnbinom(1-Rtoll, size=size, prob=prob, mu=mu)
-      pmf = dnbinom(0:M, size=size, prob=prob, mu=mu)},
+      if (!is.null(prob)) {
+        M   = stats::qnbinom(1-Rtoll, size=size, prob=prob)
+        pmf = stats::dnbinom(0:M, size=size, prob=prob)
+      } else if (!is.null(mu)) {
+        M   = stats::qnbinom(1-Rtoll, size=size, mu=mu)
+        pmf = stats::dnbinom(0:M, size=size, mu=mu)
+        }
+      },
   )
-  
   pmf = pmf / sum(pmf)
   return(pmf)
 }
