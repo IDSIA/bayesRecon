@@ -119,11 +119,11 @@
 #'
 #' If `in_type[[i]]`='samples', then `base_forecast[[i]]` is a vector containing samples from the base forecast distribution.
 #'
-#' If `in_type[[i]]`='params', then `base_forecast[[i]]` is a vector containing the estimated:
+#' If `in_type[[i]]`='params', then `base_forecast[[i]]` is a list containing the estimated:
 #'
 #' * mean and sd for the Gaussian base forecast if `distr[[i]]`='gaussian', see \link[stats]{Normal};
 #' * lambda for the Poisson base forecast if `distr[[i]]`='poisson', see \link[stats]{Poisson};
-#' * mu and size for the negative binomial base forecast if `distr[[i]]`='nbinom', see \link[stats]{NegBinomial}.
+#' * size and prob (or mu) for the negative binomial base forecast if `distr[[i]]`='nbinom', see \link[stats]{NegBinomial}.
 #' 
 #' See the description of the parameters `in_type` and `distr` for more details. 
 #'
@@ -189,7 +189,7 @@
 #'
 #'base_forecasts = list()
 #'for (i in 1:nrow(S)) {
-#' base_forecasts[[i]] = c(mus[[i]], sigmas[[i]])
+#' base_forecasts[[i]] = list(mean = mus[[i]], sd = sigmas[[i]])
 #'}
 #'
 #'
@@ -220,7 +220,7 @@
 #'
 #'base_forecasts <- list()
 #'for (i in 1:nrow(S)) {
-#'  base_forecasts[[i]] = lambdas[i]
+#'  base_forecasts[[i]] = list(lambda = lambdas[i])
 #'}
 #'
 #'#Sample from the reconciled forecast distribution using the BUIS algorithm
@@ -269,7 +269,8 @@ reconc_BUIS <- function(S,
   .check_hierfamily_rel(split_hierarchy.res, distr)
 
   # H, G
-  is.hier = .check_hierarchical(A)
+  is.hier = .check_hierarchical(A)  
+  # If A is hierarchical we do not solve the integer linear programming problem
   if(is.hier) {
     H = A
     G = NULL

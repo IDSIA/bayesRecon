@@ -6,7 +6,8 @@
 #' Uses Markov Chain Monte Carlo algorithm to draw samples from the reconciled
 #' forecast distribution, which is obtained via conditioning.
 #'
-#' This is a bare-bones implementation of the Metropolis-Hastings algorithm, we suggest the usage of tools to check the convergence.
+#' This is a bare-bones implementation of the Metropolis-Hastings algorithm, 
+#' we suggest the usage of tools to check the convergence.
 #' The function only works with Poisson or Negative Binomial base forecasts.
 #'
 #' The function [reconc_BUIS()] is generally faster on most hierarchies.
@@ -25,11 +26,11 @@
 #' @details
 #'
 #' The parameter `base_forecast` is a list containing n elements.
-#' Each element is a vector containing the estimated:
+#' Each element is a list containing the estimated:
 #'
 #' * mean and sd for the Gaussian base forecast, see \link[stats]{Normal}, if `distr`='gaussian';
 #' * lambda for the Poisson base forecast, see \link[stats]{Poisson}, if `distr`='poisson';
-#' * mu and size for the negative binomial base forecast, see \link[stats]{NegBinomial}, if `distr`='nbinom'.
+#' * size and prob (or mu) for the negative binomial base forecast, see \link[stats]{NegBinomial}, if `distr`='nbinom'.
 #'
 #' The order of the `base_forecast` list is given by the order of the time series in the summing matrix.
 #'
@@ -55,7 +56,7 @@
 #'
 #'base_forecasts = list()
 #'for (i in 1:nrow(S)) {
-#'  base_forecasts[[i]] = lambdas[i]
+#'  base_forecasts[[i]] = list(lambda = lambdas[i])
 #'}
 #'
 #'#Sample from the reconciled forecast distribution using MCMC

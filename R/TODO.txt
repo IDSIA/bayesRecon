@@ -1,5 +1,5 @@
 commento a reconc_TD
-test e esempi
+aggiungere test
 
 Prima della submission a CRAN:
 ... solo temporeanei, poi mettere i valori di default nelle funzioni

@@ -120,7 +120,7 @@ pmf_bottom = lapply(tabs_bottom, PMF.from_tab)
 fc_upper = readRDS(str_upp)
 upper_params = get_gauss_params_upp(fc_upper)
 
-N_samples = 1e4
+N_samples = 1e5
 
 ###
 # All the upper
@@ -164,9 +164,6 @@ Rprof(NULL)
 summaryRprof()
 
 
-# Possible speed-up:
-# -vectorize .cond_biv_sampling
-# Rcpp?
 
 
 

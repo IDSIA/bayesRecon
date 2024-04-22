@@ -1,41 +1,3 @@
-# # Sample from the distribution p(B_1, B_2 | B_1 + B_2 = u)
-# # B_1 and B_2 are distributed as pmf1 and pmf2
-# # u can be a vector!
-# .cond_biv_sampling_old = function(u, pmf1, pmf2) {
-#   
-#   # In this way then we iterate over the one with shorter support:
-#   sw = FALSE
-#   if (length(pmf1) > length(pmf2)) {
-#     pmf_ = pmf1
-#     pmf1 = pmf2
-#     pmf2 = pmf_
-#     sw = TRUE
-#   }
-#   
-#   len_u = length(u)
-#   len_supp1 = length(pmf1)
-#   supp1 = 0:(len_supp1-1)
-#   
-#   W1 = t(matrix(pmf1, ncol=len_u, nrow=len_supp1))
-#   supp2 = outer(u, supp1, `-`)
-#   supp2[supp2<0] = Inf  # trick to get NA when we access pmf2 outside the support
-#   W2 = pmf2[supp2+1]    # add 1 because support starts from 0
-#   W2[is.na(W2)] = 0     # set NA to zero
-#   W2 = matrix(W2, nrow = len_u)  # back to matrix shape
-#   W = W1 * W2
-#   W = W / rowSums(W)  # normalize
-#   cumW = W %*% upper.tri(diag(len_supp1), diag = TRUE)  # cumulative sum on each row
-#   
-#   unif = runif(len_u)
-#   idxs = rowSums(unif > cumW) + 1
-#   b1 = supp1[idxs]
-#   if (sw) b1 = u - b1   # if we have switched, switch back
-#   
-#   return(list(b1, u-b1))
-# }
-
-# OPTIMIZED IMPLEMENTATION: LOOP ON DIFFERENT VALUES OF U
-#
 # Sample from the distribution p(B_1, B_2 | B_1 + B_2 = u),
 # where B_1 and B_2 are distributed as pmf1 and pmf2.
 # u is a vector
@@ -221,12 +183,6 @@ reconc_TDcond = function(S, fc_bottom, fc_upper,
 
   return(out)
 }
-
-
-
-
-
-
 
 
 
