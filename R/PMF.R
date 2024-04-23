@@ -53,6 +53,20 @@ PMF.sample = function(pmf, N_samples) {
   return(s)
 }
 
+# Get the mean of a pmf
+PMF.get_mean = function(pmf) {
+  supp = 0:(length(pmf)-1)
+  m = pmf %*% supp
+  return(m)
+}
+
+# Get the variance of a pmf
+PMF.get_var = function(pmf) {
+  supp = 0:(length(pmf)-1)
+  v = pmf^2 %*% supp - PMF.get_mean(pmf)^2
+  return(v)
+}
+
 # Apply smoothing to a pmf to "cover the holes" in the support.
 # If there is no hole, it doesn't do anything.
 # If the smoothing parameter alpha is not specified, it is set to the min of pmf. 
@@ -60,7 +74,7 @@ PMF.sample = function(pmf, N_samples) {
 # Otherwise, add alpha only to points with zero mass.
 PMF.smoothing = function(pmf, alpha = NULL, laplace=FALSE) {
   
-  if (is.null(alpha)) alpha = min(pmf)
+  if (is.null(alpha)) alpha = min(pmf[pmf!=0])
   
   # apply smoothing only if there are holes
   if (sum(pmf==0)) {
@@ -68,7 +82,7 @@ PMF.smoothing = function(pmf, alpha = NULL, laplace=FALSE) {
     } else pmf[pmf==0] = alpha
   }
   
-  return(pmf)
+  return(pmf / sum(pmf))
 }
 
 # Compute convolution between 2 pmfs. Then, for numerical reasons: 
@@ -102,7 +116,7 @@ PMF.conv = function(pmf1, pmf2, toll=1e-16, Rtoll=1e-7) {
 # -otherwise, a list of lists of pmfs for all the steps of the algorithm; 
 #  they correspond to the variables of the "auxiliary binary tree"
 PMF.bottom_up = function(l_pmf, toll=1e-16, Rtoll=1e-7, return_all=FALSE,
-                         smoothing=FALSE, al_smooth=NULL, lap_smooth=FALSE) {
+                         smoothing=TRUE, al_smooth=NULL, lap_smooth=FALSE) {
   
   # Smoothing to "cover the holes" in the supports of the bottom pmfs
   if (smoothing) l_pmf = lapply(l_pmf, PMF.smoothing, 
