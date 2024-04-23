@@ -11,7 +11,8 @@ test_that("Test shrinkage estimator", {
   # we run 100 shrinkage estimators
   lambdas <- rep(0, 100)
   for(i in seq(100)){
-    rr <- replicate(nSamples, trueMean) +  t(chol_trueSigma)%*%matrix(rnorm(pTrue*nSamples), nrow=pTrue,ncol=nSamples)
+    rr <- replicate(nSamples, trueMean) +  
+      t(chol_trueSigma)%*%matrix(stats::rnorm(pTrue*nSamples), nrow=pTrue,ncol=nSamples)
     # Estimate mean and covariance from samples
     mean_est <- rowMeans(rr)
     Sigma_est <- cov(t(rr))

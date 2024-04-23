@@ -89,10 +89,9 @@
         stop("Input error: size of nbinom must be a positive number")
       }
       # Check that exactly one of prob, mu is specified
-      n_prob_mu = !is.null(prob) + !is.null(mu)
-      if (n_prob_mu == 2) {
+      if (!is.null(prob) & !is.null(mu)) {
         stop("Input error: prob and mu for the nbinom distribution are both specified ")
-      } else if (n_prob_mu == 0) {
+      } else if (is.null(prob) & is.null(mu)) {
         stop("Input error: either prob or mu must be specified")
       } else {
         if (!is.null(prob)) {
@@ -209,7 +208,7 @@
     }
     if (!(distr %in% .DISCR_DISTR)) {
       stop(paste0("Input error: distr must be one of {",
-                  paste(DISCR_DISTR, collapse = ', '), "}"))
+                  paste(.DISCR_DISTR, collapse = ', '), "}"))
     }
     for (i in 1:n_b) {
       .check_distr_params(distr, fc_bottom[[i]])
@@ -237,9 +236,9 @@
       prob = params$prob
       mu   = params$mu
       if (!is.null(prob)) {
-        samples = rnbinom(n = n, size = size, prob = prob)
+        samples = stats::rnbinom(n = n, size = size, prob = prob)
       } else if (!is.null(mu)) {
-        samples = rnbinom(n = n, size = size, mu = mu)
+        samples = stats::rnbinom(n = n, size = size, mu = mu)
       } 
       },
   )
@@ -254,7 +253,7 @@
   } 
   .check_cov(Sigma, "Sigma")
   
-  Z = matrix(rnorm(n*n_samples), ncol = n)
+  Z = matrix(stats::rnorm(n*n_samples), ncol = n)
   Ch = chol(Sigma)
   samples = Z %*% Ch + matrix(mu, nrow = n_samples, ncol = n, byrow = TRUE)
   return(samples)
@@ -280,9 +279,9 @@
       prob = params$prob
       mu   = params$mu
       if (!is.null(prob)) {
-        pmf = dnbinom(x = x, size = size, prob = prob)
+        pmf = stats::dnbinom(x = x, size = size, prob = prob)
       } else if (!is.null(mu)) {
-        pmf = dnbinom(x = x, size = size, mu = mu)
+        pmf = stats::dnbinom(x = x, size = size, mu = mu)
       } 
     },
   )

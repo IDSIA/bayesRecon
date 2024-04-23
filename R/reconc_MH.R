@@ -60,8 +60,8 @@
 #'}
 #'
 #'#Sample from the reconciled forecast distribution using MCMC
-#'mcmc = reconc_MCMC(S,base_forecasts=lambdas,distr="poisson",
-#'                   num_samples=30000, seed=42)
+#'mcmc = reconc_MCMC(S, base_forecasts, distr = "poisson",
+#'                   num_samples = 30000, seed = 42)
 #'samples_mcmc <- mcmc$reconciled_samples
 #'
 #'#Compare the reconciled means with those obtained via BUIS

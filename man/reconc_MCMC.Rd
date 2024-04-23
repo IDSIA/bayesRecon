@@ -44,18 +44,19 @@ A list containing the reconciled forecasts. The list has the following named ele
 Uses Markov Chain Monte Carlo algorithm to draw samples from the reconciled
 forecast distribution, which is obtained via conditioning.
 
-This is a bare-bones implementation of the Metropolis-Hastings algorithm, we suggest the usage of tools to check the convergence.
+This is a bare-bones implementation of the Metropolis-Hastings algorithm,
+we suggest the usage of tools to check the convergence.
 The function only works with Poisson or Negative Binomial base forecasts.
 
 The function \code{\link[=reconc_BUIS]{reconc_BUIS()}} is generally faster on most hierarchies.
 }
 \details{
 The parameter \code{base_forecast} is a list containing n elements.
-Each element is a vector containing the estimated:
+Each element is a list containing the estimated:
 \itemize{
 \item mean and sd for the Gaussian base forecast, see \link[stats]{Normal}, if \code{distr}='gaussian';
 \item lambda for the Poisson base forecast, see \link[stats]{Poisson}, if \code{distr}='poisson';
-\item mu and size for the negative binomial base forecast, see \link[stats]{NegBinomial}, if \code{distr}='nbinom'.
+\item size and prob (or mu) for the negative binomial base forecast, see \link[stats]{NegBinomial}, if \code{distr}='nbinom'.
 }
 
 The order of the \code{base_forecast} list is given by the order of the time series in the summing matrix.
@@ -76,12 +77,12 @@ lambdas <- c(lambdaY,lambda1,lambda2)
 
 base_forecasts = list()
 for (i in 1:nrow(S)) {
- base_forecasts[[i]] = lambdas[i]
+ base_forecasts[[i]] = list(lambda = lambdas[i])
 }
 
 #Sample from the reconciled forecast distribution using MCMC
-mcmc = reconc_MCMC(S,base_forecasts=lambdas,distr="poisson",
-                  num_samples=30000, seed=42)
+mcmc = reconc_MCMC(S, base_forecasts, distr = "poisson",
+                  num_samples = 30000, seed = 42)
 samples_mcmc <- mcmc$reconciled_samples
 
 #Compare the reconciled means with those obtained via BUIS

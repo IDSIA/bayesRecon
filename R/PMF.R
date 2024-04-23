@@ -20,7 +20,7 @@ PMF.from_params = function(params, distr, Rtoll = 1e-7) {
   # Check that the distribution is implemented, and that the params are ok
   if (!(distr %in% .DISCR_DISTR)) {
     stop(paste0("Input error: distr must be one of {",
-                paste(DISCR_DISTR, collapse = ', '), "}"))
+                paste(.DISCR_DISTR, collapse = ', '), "}"))
   }
   .check_distr_params(distr, params)
   # Compute the pmf
@@ -49,7 +49,7 @@ PMF.from_params = function(params, distr, Rtoll = 1e-7) {
 
 # Sample (with replacement) from the probability distribution specified by the pmf
 PMF.sample = function(pmf, N_samples) {
-  s = sample(0:len(pmf), prob = pmf, replace = TRUE, size = N_samples)
+  s = sample(0:length(pmf), prob = pmf, replace = TRUE, size = N_samples)
   return(s)
 }
 
@@ -76,7 +76,7 @@ PMF.smoothing = function(pmf, alpha = NULL, laplace=FALSE) {
 # -set to zero all the values to the left of the support
 # -set to zero small values (< toll)
 PMF.conv = function(pmf1, pmf2, toll=1e-16, Rtoll=1e-7) {
-  pmf = convolve(pmf1, rev(pmf2), type="open")
+  pmf = stats::convolve(pmf1, rev(pmf2), type="open")
   # Look for last value > Rtoll and remove all the elements after it:
   last_pos = max(which(pmf > Rtoll))  
   pmf = pmf[1:last_pos]

@@ -92,11 +92,11 @@ lambdas <- c(lambdaY, lambdaS1, lambdaS2)
 
 base_forecasts = list()
 for (i in 1:nrow(S)) {
-  base_forecasts[[i]] = lambdas[i]
+  base_forecasts[[i]] = list(lambda = lambdas[i])
 }
 ```
 
-We recommend using the BUIS algorithm (Zambon et al., 2022) to sample from the reconciled distribution.
+We recommend using the BUIS algorithm (Zambon et al., 2024) to sample from the reconciled distribution.
 
 ```{r}
 buis <- reconc_BUIS(
@@ -157,7 +157,7 @@ plot(
 ```
 
 
-We also provide a function for sampling using Markov Chain Monte Carlo (Corani et al., 2022). 
+We also provide a function for sampling using Markov Chain Monte Carlo (Corani et al., 2023). 
 
 ```{r}
 mcmc = reconc_MCMC(
@@ -192,7 +192,7 @@ sigmas <- c(sigmaY, sigmaS1, sigmaS2)
 
 base_forecasts = list()
 for (i in 1:nrow(S)) {
-  base_forecasts[[i]] = c(mus[[i]], sigmas[[i]])
+  base_forecasts[[i]] = c(mean = mus[[i]], sd = sigmas[[i]])
 }
 ```
 
@@ -241,7 +241,7 @@ time series*. [DOI](https://doi.org/10.1016/j.ijforecast.2023.04.003)
 Zambon, L., Azzimonti, D. & Corani, G. (2024). *Efficient probabilistic reconciliation of forecasts
 for real-valued and count time series*. [DOI](https://doi.org/10.1007/s11222-023-10343-y)
 
-Zambon, L., Agosto, A., Giudici, P., Corani, G. (2023). *Properties of the reconciled distributions for Gaussian and count forecasts*. [DOI](https://doi.org/10.48550/arXiv.2303.15135)
+Zambon, L., Agosto, A., Giudici, P., Corani, G. (2024). *Properties of the reconciled distributions for Gaussian and count forecasts*. [DOI](https://doi.org/10.1016/j.ijforecast.2023.12.004)
 
 ## Contributors
 

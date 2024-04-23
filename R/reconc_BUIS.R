@@ -316,7 +316,7 @@ reconc_BUIS <- function(S,
     weights = .compute_weights(
       b = (B %*% c),
       # (num_samples x 1)
-      u = unlist(upper_base_forecasts_H[[hi]]),
+      u = upper_base_forecasts_H[[hi]],
       in_type_ = in_typeH[[hi]],
       distr_ = distr_H[[hi]]
     )
@@ -343,7 +343,7 @@ reconc_BUIS <- function(S,
       c = G[gi, ]
       weights = weights * .compute_weights(
         b = (B %*% c),
-        u = unlist(upper_base_forecasts_G[[gi]]),
+        u = upper_base_forecasts_G[[gi]],
         in_type_ = in_typeG[[gi]],
         distr_ = distr_G[[gi]]
       )

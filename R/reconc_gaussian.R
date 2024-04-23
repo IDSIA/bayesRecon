@@ -60,7 +60,7 @@
 #'# Obtain reconciled samples for the entire hierarchy:
 #'# i.e., sample from the reconciled bottoms and multiply by S
 #'chol_decomp = chol(bottom_Sigma_reconc) # Compute the Cholesky Decomposition
-#'Z = matrix(rnorm(n = 2000), nrow = 2) # Sample from standard normal
+#'Z = matrix(stats::rnorm(n = 2000), nrow = 2) # Sample from standard normal
 #'B = t(chol_decomp) %*% Z + matrix(rep(bottom_mu_reconc, 1000), nrow=2) # Apply the transformation
 #'
 #'U = S %*% B

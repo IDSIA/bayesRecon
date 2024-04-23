@@ -3,9 +3,9 @@ test_that("Test effective sample size", {
   
   # -----------
   n = 200
-  b1 = rpois(n=n, lambda = 3)
-  b2 = rpois(n=n, lambda = 4)
-  u = rnorm(n=n, mean = 30, sd = 1)
+  b1 = stats::rpois(n=n, lambda = 3)
+  b2 = stats::rpois(n=n, lambda = 4)
+  u = stats::rnorm(n=n, mean = 30, sd = 1)
   B = cbind(b1,b2)
   c = matrix(S[1,])
   b = (B %*% c)
@@ -23,9 +23,9 @@ test_that("Test effective sample size", {
   
   # -----------
   n = 199
-  b1 = rpois(n=n, lambda = 3)
-  b2 = rpois(n=n, lambda = 4)
-  u = rnorm(n=n, mean = 30, sd = 1)
+  b1 = stats::rpois(n=n, lambda = 3)
+  b2 = stats::rpois(n=n, lambda = 4)
+  u = stats::rnorm(n=n, mean = 30, sd = 1)
   B = cbind(b1,b2)
   c = matrix(S[1,])
   b = (B %*% c)
@@ -43,9 +43,9 @@ test_that("Test effective sample size", {
 
   # -----------
   n = 2000
-  b1 = rpois(n=n, lambda = 3)
-  b2 = rpois(n=n, lambda = 4)
-  u = rnorm(n=n, mean = 18, sd = 1)
+  b1 = stats::rpois(n=n, lambda = 3)
+  b2 = stats::rpois(n=n, lambda = 4)
+  u = stats::rnorm(n=n, mean = 18, sd = 1)
   B = cbind(b1,b2)
   c = matrix(S[1,])
   b = (B %*% c)
