@@ -382,6 +382,7 @@ get_reconc_matrices <- function(agg_levels, h) {
       cond2 = sum(A[i,] - A[j,] <= 0) < m  # Upper i is not a descendant of upper j
       if (cond1 & cond2) {
         rows = rows[-length(rows)] # remove i
+        break
       }
     }
   }
@@ -400,7 +401,8 @@ get_reconc_matrices <- function(agg_levels, h) {
     return(NULL)
   }
   
-  A_ = A[-lowest_rows,]
+  #A_ = A[-lowest_rows,]
+  A_ = A[-lowest_rows,,drop=FALSE]
   n_bott = ncol(A_)
   n_upp_u = nrow(A_)
   n_bott_u = length(lowest_rows)

@@ -63,7 +63,7 @@ PMF.get_mean = function(pmf) {
 # Get the variance of a pmf
 PMF.get_var = function(pmf) {
   supp = 0:(length(pmf)-1)
-  v = pmf^2 %*% supp - PMF.get_mean(pmf)^2
+  v = pmf %*% supp^2 - PMF.get_mean(pmf)^2
   return(v)
 }
 
