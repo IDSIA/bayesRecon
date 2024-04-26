@@ -331,9 +331,9 @@ get_reconc_matrices <- function(agg_levels, h) {
   for (i in 1:k) {
     for (j in 1:k) {
       if (i < j) {
-        cond1 = A[i,] %*% A[j,] != 0     # Upper i and j have some common descendants
-        cond2 = sum(A[i,] - A[j,] >= 0) < m  # Upper j is not a descendant of upper i
-        cond3 = sum(A[i,] - A[j,] <= 0) < m  # Upper i is not a descendant of upper j
+        cond1 = A[i,] %*% A[j,] != 0  # Upper i and j have some common descendants
+        cond2 = any(A[j,] > A[i,])    # Upper j is not a descendant of upper i
+        cond3 = any(A[i,] > A[j,])    # Upper i is not a descendant of upper j
         if (cond1 & cond2 & cond3) {
           return(FALSE)
         }
@@ -354,8 +354,8 @@ get_reconc_matrices <- function(agg_levels, h) {
   for (i in 1:k) {
     for (j in 1:k) {
       if (i < j) {
-        cond1 = A[i,] %*% A[j,] != 0     # Upper i and j have some common descendants
-        cond2 = sum(A[i,] - A[j,] <= 0) < m  # Upper i is not a descendant of upper j
+        cond1 = A[i,] %*% A[j,] != 0  # Upper i and j have some common descendants
+        cond2 = any(A[i,] > A[j,])    # Upper i is not a descendant of upper j
         if (cond1 & cond2) {
           return(FALSE)
         }
@@ -378,15 +378,16 @@ get_reconc_matrices <- function(agg_levels, h) {
   for (i in 1:k) {
     rows = c(rows, i)
     for (j in 1:k) {
-      cond1 = A[i,] %*% A[j,] != 0     # Upper i and j have some common descendants
-      cond2 = sum(A[i,] - A[j,] <= 0) < m  # Upper i is not a descendant of upper j
-      if (cond1 & cond2) {
-        rows = rows[-length(rows)] # remove i
-        break
+      if (i < j) {
+        # If upper j is a descendant of upper i, remove i and exit loop
+        if (all(A[j,] <= A[i,])) {
+          rows = rows[-length(rows)] 
+          break
+        }
       }
     }
   }
-  # keep all rows except those that satisfy both the above conditions
+  # keep all rows except those that have no descendants among the uppers
   
   return(rows)
 }
@@ -396,12 +397,16 @@ get_reconc_matrices <- function(agg_levels, h) {
   
   if (is.null(lowest_rows)) lowest_rows = .lowest_lev(A)
   
+  # The sum of the rows corresponding to the lowest level should be a vector of 1 
+  if (any(colSums(A[lowest_rows,,drop=FALSE])!=1)) {
+    stop("The hierarchy is not balanced")
+  }
+  
   if (length(lowest_rows) == nrow(A)) {
     warning("All the upper are lowest-upper. Return NULL")
     return(NULL)
   }
   
-  #A_ = A[-lowest_rows,]
   A_ = A[-lowest_rows,,drop=FALSE]
   n_bott = ncol(A_)
   n_upp_u = nrow(A_)
@@ -418,7 +423,8 @@ get_reconc_matrices <- function(agg_levels, h) {
   return(1*A_u)  # to get numerical values instead of TRUE / FALSE
 }
 
-
-
+# TODO:
+# -check that there are no duplicates in the rows of A
+# -check that there are no columns of A with all zeros (bottom without any upper) 
 
 
