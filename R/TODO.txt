@@ -1,7 +1,0 @@
-esperimenti per parametri smoothing
-commento a reconc_TD (io o Dario)
-aggiungere test (Dario)
-
-Prima della submission a CRAN:
-... solo temporeanei, poi mettere i valori di default nelle funzioni
-

@@ -10,8 +10,25 @@
 # Function to check values allowed in S.
 .check_S <- function(S) {
   if(!identical(sort(unique(as.vector(S))), c(0,1)) ){
-    stop("Input error: S must be a matrix containing only 0s and 1s.")
+    stop("Input error in S: S must be a matrix containing only 0s and 1s.")
   }
+  
+  
+  if(!all(colSums(S)>1)){
+    stop("Input error in S: all bottom level forecasts must aggregate into an upper.")
+  }
+  
+  
+  if(nrow(unique(S))!=nrow(S)){
+    stop("Input error in S: S has a repeated row.")
+  }
+  
+  # Check that each bottom has a corresponding row with with one 1 and the rest 0s.
+  if(sum(rowSums(S) ==1) != ncol(S)){
+    stop("Input error in S: there is at least one bottom that does not have a row with one 1 and the rest 0s.")
+  }
+  
+  
 }
 
 # Check if it is a covariance matrix (i.e. symmetric p.d.)

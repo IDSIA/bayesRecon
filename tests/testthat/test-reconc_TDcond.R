@@ -23,16 +23,17 @@ test_that("reconc_TDcond simple example", {
   vars  <- c(20,4,4,4,4,4,4,8,8,8,rep(2,12))^2
   
   # create the lists for reconciliation
-  # upper 
+  ## upper 
   fc_upper <- list(mu = means[1:10],
                    Sigma = diag(vars[1:10]))
   
-  # bottom
+  ## bottom
   fc_bottom <- list()
   for(i in seq(ncol(S))){
     fc_bottom[[i]] <-as.integer(.distr_sample(list(mean=means[i+10],sd = vars[i+10]), "gaussian", 2e4))
     fc_bottom[[i]][which(fc_bottom[[i]]<0)] <- 0 # set-negative-to-zero
   }
+  
 
   # reconciliation with TDcond
   res.TDcond <- reconc_TDcond(S, fc_bottom, fc_upper,
@@ -41,9 +42,11 @@ test_that("reconc_TDcond simple example", {
                 seed = NULL)
   
   # Compute the reconciliation analytically (everything Gaussian)
+  ## Save bottom forecast parameters
   fc_bott_gauss <- list(mu = means[11:22],
                         Sigma = diag(vars[11:22]))
   
+  # Compute the reconciled precision  
   inv_B <- diag(1/diag(fc_bott_gauss$Sigma))
   inv_U <- diag(1/diag(fc_upper$Sigma))
   At_inv_U_A <- crossprod(A,inv_U)%*%A

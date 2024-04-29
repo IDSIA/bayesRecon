@@ -378,7 +378,7 @@ get_reconc_matrices <- function(agg_levels, h) {
   for (i in 1:k) {
     rows = c(rows, i)
     for (j in 1:k) {
-      if (i < j) {
+      if (i != j) {
         # If upper j is a descendant of upper i, remove i and exit loop
         if (all(A[j,] <= A[i,])) {
           rows = rows[-length(rows)] 
@@ -389,18 +389,19 @@ get_reconc_matrices <- function(agg_levels, h) {
   }
   # keep all rows except those that have no descendants among the uppers
   
+  # The sum of the rows corresponding to the lowest level should be a vector of 1 
+  if (any(colSums(A[rows,,drop=FALSE])!=1)) {
+    stop("The hierarchy is not balanced")
+  }
+  
   return(rows)
 }
+
 
 # Get the aggregating matrix Au of the sub-hierarchy composed just by the uppers 
 .get_Au <- function(A, lowest_rows=NULL) {
   
   if (is.null(lowest_rows)) lowest_rows = .lowest_lev(A)
-  
-  # The sum of the rows corresponding to the lowest level should be a vector of 1 
-  if (any(colSums(A[lowest_rows,,drop=FALSE])!=1)) {
-    stop("The hierarchy is not balanced")
-  }
   
   if (length(lowest_rows) == nrow(A)) {
     warning("All the upper are lowest-upper. Return NULL")
@@ -423,8 +424,17 @@ get_reconc_matrices <- function(agg_levels, h) {
   return(1*A_u)  # to get numerical values instead of TRUE / FALSE
 }
 
-# TODO:
-# -check that there are no duplicates in the rows of A
-# -check that there are no columns of A with all zeros (bottom without any upper) 
+# Check if the rows of A are ordered
+.check_ordered_A <- function(A){
+  aggregates_sum <- rowSums(A)
+  ordered_aggreg <- order(aggregates_sum,decreasing = TRUE)
+  if(all(aggregates_sum == aggregates_sum[ordered_aggreg]) ){
+    return(list(value=TRUE))
+  }else{
+    return(list(value=FALSE, order=ordered_aggreg))
+  }
+  
+}
+
 
 
