@@ -54,3 +54,17 @@ test_that("PMF.bottom_up", {
   # Check if true var is close enough to bottom up pmf var
   expect_lt(abs(PMF.get_var(bottom_up_pmf)-true_bu_var)/true_bu_var,6e-5)
 })
+
+test_that("PMF.quantile",{
+  n_samples = 1e5
+  size = 10
+  prob = 0.6
+  p = 0.01
+  
+  x = rnbinom(n_samples, size = size, prob = prob)
+  pmf = PMF.from_samples(x)
+  q = PMF.get_quantile(pmf, p)
+  qq = qnbinom(p, size = size, prob = prob)
+  
+  expect_equal(q,qq)
+})

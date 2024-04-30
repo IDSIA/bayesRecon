@@ -38,8 +38,22 @@ test_that("reconc_TDcond simple example", {
   # reconciliation with TDcond
   res.TDcond <- reconc_TDcond(S, fc_bottom, fc_upper,
                 bottom_in_type = "samples",
-                N_samples = 2e4, return_pmf = TRUE, return_samples = FALSE,
-                seed = NULL)
+                num_samples = 2e4, return_type = "pmf",
+                seed = 42)
+  
+  res.TDcond2 <- reconc_TDcond(S, fc_bottom, fc_upper,
+                              bottom_in_type = "samples",
+                              num_samples = 2e4, return_type = "samples",
+                              seed = 42)
+  
+  res.TDcond3 <- reconc_TDcond(S, fc_bottom, fc_upper,
+                              bottom_in_type = "samples",
+                              num_samples = 2e4, return_type = "all",
+                              seed = 42)
+  
+  # Check if all return_type return identical results
+  expect_identical(res.TDcond$bottom_reconciled$pmf,res.TDcond3$bottom_reconciled$pmf)
+  expect_identical(res.TDcond2$bottom_reconciled$samples,res.TDcond3$bottom_reconciled$samples)
   
   # Compute the reconciliation analytically (everything Gaussian)
   ## Save bottom forecast parameters
@@ -60,7 +74,7 @@ test_that("reconc_TDcond simple example", {
   bott_reconc_mean <- fc_bott_gauss$mu + tcrossprod(bott_reconc_cov,A)%*%inv_U%*%(fc_upper$mu-A%*%fc_bott_gauss$mu)
   
   # compute the difference between empirical and analytical
-  m_diff <- unlist(lapply(res.TDcond$pmf$bottom,PMF.get_mean)) - bott_reconc_mean
+  m_diff <- unlist(lapply(res.TDcond$bottom_reconciled$pmf,PMF.get_mean)) - bott_reconc_mean
   
   expect_true(all(abs(m_diff/bott_reconc_mean)<8e-3))
   

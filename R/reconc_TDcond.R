@@ -64,11 +64,89 @@
 
 
 
-# Reconciliation top-down using (...)
-# 
+#' @title Probabilistic Reconciliation of forecasts via top-down conditioning
+#'
+#' @description
+#'
+#' Uses the Top-down conditioning algorithm to draw samples from the reconciled
+#' forecast distribution. Reconciliation is performed in two steps: 
+#' first, the upper base forecasts are reconciled via conditioning, 
+#' using only the hierarchical constraints between the upper variables; then,
+#' the bottom distributions are updated via a probabilistic top-down procedure
+#'
+#' @details
+#' 
+#' The base (unreconciled) forecasts are passed with the parameters
+#' 
+#' * `fc_bottom`: a list of length n_bottom where each element is either a pmf object (`bottom_in_type='pmf'`),
+#'    a vector of samples (`bottom_in_type='samples'`) or the parameters (`bottom_in_type='params'`) of the 
+#'    parametric distribution specified in `distr`.
+#' * `fc_upper`: a list containing the parameters of the multivariate Gaussian distribution of the upper forecasts. 
+#'    The list must contain only the named elements `mu` (vector of length n_upper) and `Sigma` (n_upper x n_upper matrix) 
+#'
+#' 
+#' A PMF object is a numerical vector containing the probability mass function for a forecast. 
+#' The first element of a PMF vector for the variable X always contains the probability P(X=0) and 
+#' there is one element for each integer. 
+#' The last element of the PMF corresponds to the probability of the last value in the support of X.
+#' See also \link{PMF.get_mean}, \link{PMF.get_var}, \link{PMF.sample}, \link{PMF.get_quantile} for functions that handle PMF objects. 
+#' 
+#' 
+#' A warnings is triggered if the intersection of the support for the reconciled uppers 
+#' and the support of the bottom-up distribution is too small. In this case only 
+#' few samples from the reconciled upper are kept. The warning reports the percentage
+#' of samples kept. 
+#' 
+#' Note that warnings are an indication that the base forecasts might have issues. Please check the base forecasts in case of warnings.
+#'
+#' @param S Summing matrix (n x n_bottom).   return_pmf = TRUE, return_samples = FALSE, suppress_warnings = FALSE, seed = NULL
+#' @param fc_bottom A list containing the bottom base forecasts, see details.
+#' @param fc_upper A list containing the bottom base forecasts, see details.
+#' @param bottom_in_type A string with three possible values:
+#'
+#' * 'pmf' if the bottom base forecasts are in the form of pmf, see details;
+#' * 'samples' if the bottom base forecasts are in the form of samples;
+#' * 'params'  if the bottom base forecasts are in the form of estimated parameters.
+#'
+#' @param distr A string describing the type of bottom base forecasts ('gaussian', 'poisson' or 'nbinom').
+#' 
+#' This is only used if `bottom_in_type=='params'`.
+#'
+#' @param num_samples Number of samples drawn from the reconciled distribution.
+#' @param return_type The return type of the reconciled distributions. A string with three possible values:
+#' 
+#' * 'pmf' returns a list containing reconciled pmf objects;
+#' * 'samples' returns a list containing reconciled samples;
+#' * 'all' returns a list with both pmf objects and samples.
+#' 
+#' @param ... additional parameters to be passed to the smoothing functions for PMF objects.
+#' 
+#' @param suppress_warnings Logical. If \code{TRUE}, no warnings about samples
+#'        are triggered. If \code{FALSE}, warnings are generated. Default is \code{FALSE}. See Details.
+#' @param seed Seed for reproducibility.
+#'
+#' @return A list containing the reconciled forecasts. The list has the following named elements:
+#'
+#' * `bottom_reconciled`: a list containing the pmf, the samples (matrix n_bottom x `num_samples`) or both, depending on the value of `return_type`;
+#' * `upper_reconciled`: a list containing the pmf, the samples (matrix n_upper x `num_samples`) or both, depending on the value of `return_type`.
+#'
+#' @examples
+#'
+#' library(bayesRecon)
+#' # TO DO
+#' @references
+#' Corani, G., Azzimonti, D., Augusto, J.P.S.C., Zaffalon, M. (2021). *Probabilistic Reconciliation of Hierarchical Forecast via Bayes' Rule*. In: Hutter, F., Kersting, K., Lijffijt, J., Valera, I. (eds) Machine Learning and Knowledge Discovery in Databases. ECML PKDD 2020. Lecture Notes in Computer Science(), vol 12459. Springer, Cham. \doi{10.1007/978-3-030-67664-3_13}.
+#'
+#' Zambon, L., Agosto, A., Giudici, P., Corani, G. (2023). *Properties of the reconciled distributions for Gaussian and count forecasts*. \doi{10.48550/arXiv.2303.15135}.
+#'
+#' Zambon, L., Azzimonti, D., Rubattu, N., Corani, G. (2024). *Probabilistic reconciliation of mixed-type hierarchical time series* The 40th Conference on Uncertainty in Artificial Intelligence, accepted.
+#'
+#' @seealso [reconc_BUIS()]
+#'
+#' @export
 reconc_TDcond = function(S, fc_bottom, fc_upper, 
                      bottom_in_type = "pmf", distr = NULL,
-                     N_samples = 2e4, return_pmf = TRUE, return_samples = FALSE, 
+                     num_samples = 2e4, return_type = "pmf", 
                      ...,
                      suppress_warnings = FALSE, seed = NULL) {
   
@@ -88,7 +166,7 @@ reconc_TDcond = function(S, fc_bottom, fc_upper,
   # Check inputs
   .check_input_TD(S, fc_bottom, fc_upper, 
                   bottom_in_type, distr,
-                  return_pmf, return_samples)
+                  return_type)
   
   # Get aggr. matrix A and find the "lowest upper" 
   A = .get_A_from_S(S)$A
@@ -104,7 +182,7 @@ reconc_TDcond = function(S, fc_bottom, fc_upper,
   ### Get upper samples
   if (n_u == n_u_low) {     
     # If all the upper are lowest-upper, just sample from the base distribution
-    U = .MVN_sample(N_samples, mu_u, Sigma_u)   # (dim: N_samples x n_u_low)
+    U = .MVN_sample(num_samples, mu_u, Sigma_u)   # (dim: num_samples x n_u_low)
     U = round(U)                 # round to integer
     U_js = asplit(U, MARGIN = 2) # split into list of column vectors
     
@@ -120,8 +198,8 @@ reconc_TDcond = function(S, fc_bottom, fc_upper,
     # Analytically reconcile the upper
     rec_gauss_u = reconc_gaussian(S_u, mu_u, Sigma_u)
     
-    # Sample from reconciled MVN on the lowest level of the upper (dim: N_samples x n_u_low)
-    U = .MVN_sample(n_samples = N_samples,
+    # Sample from reconciled MVN on the lowest level of the upper (dim: num_samples x n_u_low)
+    U = .MVN_sample(n_samples = num_samples,
                     mu    = rec_gauss_u$bottom_reconciled_mean, 
                     Sigma = rec_gauss_u$bottom_reconciled_covariance)  
     U = round(U)                 # round to integer
@@ -150,8 +228,8 @@ reconc_TDcond = function(S, fc_bottom, fc_upper,
   samp_ok = rowSums(samp_ok) == n_u_low
   # Only keep the "good" upper samples, and throw a warning if some samples are discarded:
   U_js = lapply(U_js, "[", samp_ok) 
-  if (sum(samp_ok) != N_samples & !suppress_warnings) {
-    warning(paste0("Only ", round(sum(samp_ok)/N_samples, 3)*100, "% of the upper samples ",
+  if (sum(samp_ok) != num_samples & !suppress_warnings) {
+    warning(paste0("Only ", round(sum(samp_ok)/num_samples, 3)*100, "% of the upper samples ",
                    "are in the support of the bottom-up distribution; ",
                    "the others are discarded."))
   }
@@ -161,24 +239,24 @@ reconc_TDcond = function(S, fc_bottom, fc_upper,
   for (j in 1:n_u_low) {
     B[[j]] = .TD_sampling(U_js[[j]], L_pmf_js[[j]], ...)
   }
-  B = do.call("rbind", B)  # dim: n_bottom x N_samples
-  U = A %*% B              # dim: n_upper x N_samples
+  B = do.call("rbind", B)  # dim: n_bottom x num_samples
+  U = A %*% B              # dim: n_upper x num_samples
   
   # Prepare output: include the marginal pmfs and/or the samples (depending on "return" inputs)
-  out = list()
-  if (return_pmf) {
+  out = list(bottom_reconciled=list(), upper_reconciled=list())
+  if (return_type %in% c('pmf', 'all')) {
     upper_pmf  = lapply(1:n_u, function(i) PMF.from_samples(U[i,]))
     bottom_pmf = lapply(1:n_b, function(i) PMF.from_samples(B[i,]))
-    out$pmf = list(
-      upper  = upper_pmf,
-      bottom = bottom_pmf
-    )
+    
+    out$bottom_reconciled$pmf = bottom_pmf
+    out$upper_reconciled$pmf = upper_pmf
+    
   }
-  if (return_samples) {
-    out$samples = list(
-      upper = U,
-      bottom = B
-    )
+  if (return_type %in% c('samples','all')) {
+    
+    out$bottom_reconciled$samples = B
+    out$upper_reconciled$samples = U
+    
   } 
 
   return(out)

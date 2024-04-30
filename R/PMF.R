@@ -47,24 +47,97 @@ PMF.from_params = function(params, distr, Rtoll = 1e-7) {
   return(pmf)
 }
 
-# Sample (with replacement) from the probability distribution specified by the pmf
+#' @title Sample from the distribution given as a PMF object
+#'
+#' @description
+#' 
+#' Samples (with replacement) from the probability distribution specified by `pmf`.
+#' 
+#' @param pmf the PMF object.
+#' @param N_samples number of samples. 
+#' 
+#' @examples 
+#' library(bayesRecon)
+#' 
+#' # To do
+#' 
+#' @return `N_samples` drawn from the distribution specified by `pmf`.  
+#' @seealso [PMF.get_mean()], [PMF.get_var()], [PMF.get_quantile()]
+#' @export
 PMF.sample = function(pmf, N_samples) {
   s = sample(0:length(pmf), prob = pmf, replace = TRUE, size = N_samples)
   return(s)
 }
 
-# Get the mean of a pmf
+#' @title Get the mean of the distribution from a PMF object
+#'
+#' @description
+#' 
+#' Returns the mean from the PMF specified by `pmf`.
+#' 
+#' @param pmf the PMF object.
+#' 
+#' @examples
+#' library(bayesRecon)
+#' 
+#' # To do
+#' 
+#' @return A numerical value for mean of the distribution.  
+#' @seealso [PMF.get_var()], [PMF.get_quantile()], [PMF.sample()]
+#' @export
 PMF.get_mean = function(pmf) {
   supp = 0:(length(pmf)-1)
   m = pmf %*% supp
   return(m)
 }
 
-# Get the variance of a pmf
+#' @title Get the variance of the distribution from a PMF object
+#'
+#' @description
+#' 
+#' Returns the variance from the PMF specified by `pmf`.
+#' 
+#' @param pmf the PMF object.
+#' 
+#' @examples 
+#' library(bayesRecon)
+#' 
+#' # To do
+#' 
+#' @return A numerical value for variance.  
+#' @seealso [PMF.get_mean()], [PMF.get_quantile()], [PMF.sample()]
+#' @export
 PMF.get_var = function(pmf) {
   supp = 0:(length(pmf)-1)
   v = pmf %*% supp^2 - PMF.get_mean(pmf)^2
   return(v)
+}
+
+
+#' @title Get quantile from a PMF object
+#'
+#' @description
+#' 
+#' Returns the `p` quantile from the PMF specified by `pmf`.
+#' 
+#' @param pmf the PMF object.
+#' @param p the probability of the required quantile.
+#' 
+#' @examples 
+#' library(bayesRecon)
+#' 
+#' # To do
+#' 
+#' @return A numeric value for the quantile.  
+#' @seealso [PMF.get_mean()], [PMF.get_var()], [PMF.sample()]
+#' @export
+PMF.get_quantile = function(pmf, p) {
+  if (p <= 0 | p >= 1) {
+    stop("Input error: probability p must be between 0 and 1")
+  }
+  cdf = cumsum(pmf)
+  x = min(which(cdf >= p))
+  return(x-1)
 }
 
 # Apply smoothing to a pmf to "cover the holes" in the support.

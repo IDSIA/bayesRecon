@@ -127,7 +127,7 @@
 
 # Check that the samples are discrete 
 .check_discrete_samples <- function(samples) {
-  if (!all.equal(samples, as.integer(samples))) {
+  if (!isTRUE(all.equal(samples, as.integer(samples)))) {
     stop("Input error: samples are not all discrete")
   }
 }
@@ -186,7 +186,7 @@
 # Check input for TDcond
 .check_input_TD <- function(S, fc_bottom, fc_upper, 
                            bottom_in_type, distr,
-                           return_pmf, return_samples) {
+                           return_type) {
   
   .check_S(S)
   
@@ -196,8 +196,8 @@
   if (!(bottom_in_type %in% c("pmf", "samples", "params"))) {
     stop("Input error: bottom_in_type must be either 'pmf', 'samples', or 'params'")
   }
-  if (!(return_pmf | return_samples)) {
-    stop("Input error: at least one of 'return_pmf' and 'return_samples' must be TRUE")
+  if (!(return_type %in% c("pmf", "samples", "all"))) {
+    stop("Input error: return_type must be either 'pmf', 'samples', or 'all'")
   } 
   if (length(fc_bottom) != n_b) {
     stop("Input error: length of fc_bottom does not match with S")
