@@ -18,9 +18,18 @@ Returns the mean from the PMF specified by \code{pmf}.
 \examples{
 library(bayesRecon)
 
-# To do
+# Let's build the pmf of a Binomial distribution with parameters n and p
+n <- 10
+p <- 0.6 
+pmf_binomial <- apply(matrix(seq(0,10)),MARGIN=1,FUN=function(x) dbinom(x,size=n,prob=p))
+
+
+# The true mean corresponds to n*p
+true_mean <- n*p
+mean_from_PMF <- PMF.get_mean(pmf=pmf_binomial)
+cat("True mean:", true_mean, "\nMean from PMF:", mean_from_PMF)
 
 }
 \seealso{
-\code{\link[=PMF.get_var]{PMF.get_var()}}, \code{\link[=PMF.get_quantile]{PMF.get_quantile()}}, \code{\link[=PMF.sample]{PMF.sample()}}
+\code{\link[=PMF.get_var]{PMF.get_var()}}, \code{\link[=PMF.get_quantile]{PMF.get_quantile()}}, \code{\link[=PMF.sample]{PMF.sample()}}, \code{\link[=PMF.summary]{PMF.summary()}}
 }

@@ -18,9 +18,17 @@ Returns the variance from the PMF specified by \code{pmf}.
 \examples{
 library(bayesRecon)
 
-# To do
+# Let's build the pmf of a Binomial distribution with parameters n and p
+n <- 10
+p <- 0.6 
+pmf_binomial <- apply(matrix(seq(0,10)),MARGIN=1,FUN=function(x) dbinom(x,size=n,prob=p))
+
+# The true variance corresponds to n*p*(1-p)
+true_var <- n*p*(1-p)
+var_from_PMF <- PMF.get_var(pmf=pmf_binomial)
+cat("True variance:", true_var, "\nVariance from PMF:", var_from_PMF)
 
 }
 \seealso{
-\code{\link[=PMF.get_mean]{PMF.get_mean()}}, \code{\link[=PMF.get_quantile]{PMF.get_quantile()}}, \code{\link[=PMF.sample]{PMF.sample()}}
+\code{\link[=PMF.get_mean]{PMF.get_mean()}}, \code{\link[=PMF.get_quantile]{PMF.get_quantile()}}, \code{\link[=PMF.sample]{PMF.sample()}}, \code{\link[=PMF.summary]{PMF.summary()}}
 }

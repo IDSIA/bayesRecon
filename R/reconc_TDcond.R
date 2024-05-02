@@ -89,7 +89,7 @@
 #' The first element of a PMF vector for the variable X always contains the probability P(X=0) and 
 #' there is one element for each integer. 
 #' The last element of the PMF corresponds to the probability of the last value in the support of X.
-#' See also \link{PMF.get_mean}, \link{PMF.get_var}, \link{PMF.sample}, \link{PMF.get_quantile} for functions that handle PMF objects. 
+#' See also \link{PMF.get_mean}, \link{PMF.get_var}, \link{PMF.sample}, \link{PMF.get_quantile}, \link{PMF.summary} for functions that handle PMF objects. 
 #' 
 #' 
 #' A warnings is triggered if the intersection of the support for the reconciled uppers 
@@ -133,7 +133,34 @@
 #' @examples
 #'
 #' library(bayesRecon)
-#' # TO DO
+#' 
+#' # Consider a simple hierarchy with two bottom and one upper
+#' A <- matrix(c(1,1),nrow=1)
+#' S <- rbind(A,diag(nrow=2))
+#' # The bottom forecasts are Poisson with lambda=15
+#' lambda <- 15
+#' n_tot <- 60
+#' fc_bottom <- list()
+#' fc_bottom[[1]] <- apply(matrix(seq(0,n_tot)),MARGIN=1,FUN=function(x) dpois(x,lambda=lambda))
+#' fc_bottom[[2]] <- apply(matrix(seq(0,n_tot)),MARGIN=1,FUN=function(x) dpois(x,lambda=lambda))
+#' 
+#' # The upper forecast is a Normal with mean 40 and std 5
+#' fc_upper<- list(mu=40, Sigma=matrix(c(5^2)))
+#' 
+#' # We can reconcile with reconc_TDcond
+#' res.TDcond <- reconc_TDcond(S, fc_bottom, fc_upper)
+#' 
+#' # Note that the bottom distributions are shifted to the right
+#' PMF.summary(res.TDcond$bottom_reconciled$pmf[[1]])
+#' PMF.summary(fc_bottom[[1]])
+#' 
+#' PMF.summary(res.TDcond$bottom_reconciled$pmf[[2]])
+#' PMF.summary(fc_bottom[[2]])
+#' 
+#' # The upper distribution remains similar
+#' PMF.summary(res.TDcond$upper_reconciled$pmf[[1]])
+#' PMF.get_var(res.TDcond$upper_reconciled$pmf[[1]])
+#' 
 #' @references
 #' Corani, G., Azzimonti, D., Augusto, J.P.S.C., Zaffalon, M. (2021). *Probabilistic Reconciliation of Hierarchical Forecast via Bayes' Rule*. In: Hutter, F., Kersting, K., Lijffijt, J., Valera, I. (eds) Machine Learning and Knowledge Discovery in Databases. ECML PKDD 2020. Lecture Notes in Computer Science(), vol 12459. Springer, Cham. \doi{10.1007/978-3-030-67664-3_13}.
 #'
