@@ -98,3 +98,25 @@ test_that("sampling from multivariate normal", {
   
   expect_equal(all(m < 8e-3), TRUE)
 })
+
+test_that("MVN density works", {
+  
+  # Create 3x3 covariance matrix
+  L <- matrix(0,nrow=3,ncol=3)
+  L[lower.tri(L,diag=TRUE)] <- c(0.9,0.8,0.5,0.9,0.2,0.6)
+  Sigma <- L%*%t(L)
+  
+  # create mean vector
+  mu <- c(0,1,-1)
+  
+  # matrix where to evaluate the MVN
+  xx <- matrix(c(0,2,1,
+                 2,3,4,
+                 0.5,0.5,0.5,
+                 0,1,-1), ncol=3,byrow=TRUE)
+  
+  res <- .MVN_density(x=xx,mu=mu,Sigma=Sigma)
+  
+  true_val <- c(8.742644e-04, 1.375497e-11, 3.739985e-03, 1.306453e-01)
+  expect_equal(res,true_val,tolerance = "3e")
+})

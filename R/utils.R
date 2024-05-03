@@ -276,6 +276,32 @@
   return(samples)
 }
 
+# Compute the MVN density
+.MVN_density <- function(x, mu, Sigma) {
+  n = length(mu)
+  if (any(dim(Sigma) != c(n,n))) {
+    stop("Dimension of mu and Sigma are not compatible!")
+  } 
+  .check_cov(Sigma, "Sigma")
+  
+  if(is.vector(x)){
+    x <- matrix(x, ncol=length(x))
+  }
+  
+  if (is.matrix(x)) {
+    mu <- matrix(rep(mu, nrow(x)), ncol = n, byrow = TRUE)
+  }
+  
+  chol_S <- tryCatch(base::chol(Sigma), error = function(e) e)
+  tmp <- backsolve(chol_S, t(x - mu), transpose = TRUE)
+  rss <- colSums(tmp^2)
+  
+  logval <- -sum(log(diag(chol_S))) - 0.5 * n * log(2 *pi) - 0.5 * rss
+  
+  return(exp(logval))
+}
+  
+
 ################################################################################
 # Miscellaneous
 
