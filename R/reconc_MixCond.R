@@ -51,7 +51,6 @@
 #'
 #' @param num_samples Number of samples drawn from the reconciled distribution.
 #' @param num_resample Number of importance sampling resamples. 
-#' @param our_sampler TO BE REMOVED AFTER THE TESTS.
 #' @param return_type The return type of the reconciled distributions. A string with three possible values:
 #' 
 #' * 'pmf' returns a list containing reconciled pmf objects;
@@ -115,7 +114,7 @@ reconc_MixCond = function(S, fc_bottom, fc_upper,
                          num_samples = 2e4, num_resample = 2e4,
                          return_type = "pmf", 
                          ...,
-                         suppress_warnings = FALSE, seed = NULL,our_sampler=TRUE) {
+                         suppress_warnings = FALSE, seed = NULL) {
   
   set.seed(seed)
   
@@ -160,11 +159,7 @@ reconc_MixCond = function(S, fc_bottom, fc_upper,
   
   # IS using MVN
   U = B %*% t(A)
-  if(our_sampler){
-    weights = .MVN_density(x=U, mu = mu_u, Sigma = Sigma_u)
-  }else{
-    weights = emdbook::dmvnorm(U, mu = mu_u, Sigma = Sigma_u)
-  }
+  weights = .MVN_density(x=U, mu = mu_u, Sigma = Sigma_u)
   
   
   check_weights.res = .check_weigths(weights)

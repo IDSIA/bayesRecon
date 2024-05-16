@@ -15,8 +15,7 @@ reconc_MixCond(
   return_type = "pmf",
   ...,
   suppress_warnings = FALSE,
-  seed = NULL,
-  our_sampler = TRUE
+  seed = NULL
 )
 }
 \arguments{
@@ -54,8 +53,6 @@ This is only used if \code{bottom_in_type=='params'}.}
 are triggered. If \code{FALSE}, warnings are generated. Default is \code{FALSE}. See Details.}
 
 \item{seed}{Seed for reproducibility.}
-
-\item{our_sampler}{TO BE REMOVED AFTER THE TESTS.}
 }
 \value{
 A list containing the reconciled forecasts. The list has the following named elements:
