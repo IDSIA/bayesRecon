@@ -311,7 +311,7 @@ PMF.bottom_up = function(l_pmf, toll=1e-16, Rtoll=1e-7, return_all=FALSE,
 # checks if the elements of v_u are contained in the support of the bottom-up distr 
 # Returns a vector with the same length of v_u with TRUE if it is contained and FALSE otherwise 
 PMF.check_support = function(v_u, l_pmf, toll=1e-16, Rtoll=1e-7,
-                             smoothing=FALSE, al_smooth=NULL, lap_smooth=FALSE) {
+                             smoothing=TRUE, al_smooth=NULL, lap_smooth=FALSE) {
   pmf_u = PMF.bottom_up(l_pmf, toll=toll, Rtoll=Rtoll, return_all=FALSE,
                         smoothing=smoothing, al_smooth=al_smooth, lap_smooth=lap_smooth)
   # The elements of v_u must be in the support of pmf_u

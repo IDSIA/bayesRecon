@@ -119,4 +119,13 @@ test_that("MVN density works", {
   
   true_val <- c(8.742644e-04, 1.375497e-11, 3.739985e-03, 1.306453e-01)
   expect_equal(res,true_val,tolerance = "3e")
+  
+  # Check if block-evaluation works
+  xx <- matrix(runif(3*1e4),ncol=3,byrow=TRUE)
+  
+  res_chuncks <- .MVN_density(x=xx,mu=mu,Sigma=Sigma)
+  res_all <- .MVN_density(x=xx,mu=mu,Sigma=Sigma,max_size_x = 1e4)
+  
+  expect_equal(res_chuncks,res_all)
+  
 })

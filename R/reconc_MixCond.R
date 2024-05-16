@@ -173,12 +173,11 @@ reconc_MixCond = function(S, fc_bottom, fc_upper,
     warning(warning_msg)
   }
   if(!(check_weights.res$warning & (1 %in% check_weights.res$warning_code))){
-    B = .resample(B, weights)
+    B = .resample(B, weights, num_resample)
   }
   
   ESS = sum(weights)**2/sum(weights**2)
   
-  B = .resample(B, weights, num_resample)
   B = t(B)
   U = A %*% B
   

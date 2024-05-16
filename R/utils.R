@@ -32,23 +32,27 @@
 }
 
 # Check if it is a covariance matrix (i.e. symmetric p.d.)
-.check_cov <- function(cov_matrix, Sigma_str) {
+.check_cov <- function(cov_matrix, Sigma_str,pd_check=FALSE) {
   # Check if the matrix is square
   if (!is.matrix(cov_matrix) || nrow(cov_matrix) != ncol(cov_matrix)) {
     stop(paste0(Sigma_str, " is not square"))
   }
+  
   # Check if the matrix is positive semi-definite
-  eigen_values <- eigen(cov_matrix, symmetric = TRUE)$values
-  if (any(eigen_values <= 0)) {
-    stop(paste0(Sigma_str, " is not positive semi-definite"))
-  }
-  # Check if the matrix is symmetric
-  if (!isSymmetric(cov_matrix)) {
-    stop("base_forecasts.Sigma not symmetric")
+  if(pd_check){
+    eigen_values <- eigen(cov_matrix, symmetric = TRUE)$values
+    if (any(eigen_values <= 0)) {
+      stop(paste0(Sigma_str, " is not positive semi-definite"))
+    }
+  }else{
+    # Check if the matrix is symmetric
+    if (!isSymmetric(cov_matrix)) {
+      stop(paste0(Sigma_str, " is not symmetric"))
+    }
   }
   # Check if the diagonal elements are non-negative
-  if (any(diag(cov_matrix) <= 0)) {
-    stop(paste0(Sigma_str, ": some elements on the diagonal are non-positive"))
+  if (any(diag(cov_matrix) < 0)) {
+    stop(paste0(Sigma_str, ": some elements on the diagonal are negative"))
   }
   # If all checks pass, return TRUE
   return(TRUE)
@@ -277,7 +281,7 @@
 }
 
 # Compute the MVN density
-.MVN_density <- function(x, mu, Sigma) {
+.MVN_density <- function(x, mu, Sigma, max_size_x=5e3, suppress_warnings=TRUE) {
   n = length(mu)
   if (any(dim(Sigma) != c(n,n))) {
     stop("Dimension of mu and Sigma are not compatible!")
@@ -293,10 +297,46 @@
   }
   
   chol_S <- tryCatch(base::chol(Sigma), error = function(e) e)
-  tmp <- backsolve(chol_S, t(x - mu), transpose = TRUE)
-  rss <- colSums(tmp^2)
   
-  logval <- -sum(log(diag(chol_S))) - 0.5 * n * log(2 *pi) - 0.5 * rss
+  # Constant of the loglikelihood (computed here because it is always the same)
+  const <- -sum(log(diag(chol_S))) - 0.5 * n * log(2 *pi)
+  
+  # This part breaks down the density eval into small chucks, for memory
+  rows_x <- nrow(x)
+  if(is.matrix(x) && rows_x > max_size_x){
+    
+    logval <- rep(0, rows_x)
+    num_backsolves <- rows_x %/% max_size_x 
+    
+    if(!suppress_warnings){
+      warning_msg <- paste0("x has ",rows_x," rows, the density evaluation is broken down into ",num_backsolves," pieces for memory preservation.")
+      warning(warning_msg)
+    }
+    
+    for(j in seq(num_backsolves)){
+      idx_to_select <- (1+(j-1)*max_size_x):((j)*5e3)
+      tmp <- backsolve(chol_S, t(x[idx_to_select,] - mu[idx_to_select,]), transpose = TRUE)
+      rss <- colSums(tmp^2)
+      
+      logval[idx_to_select] <- const - 0.5 * rss
+    }
+    
+    # Last indices 
+    remainder <- rows_x %% max_size_x 
+    if(remainder !=0){
+      idx_to_select <- (1+(num_backsolves)*5e3):(remainder+(num_backsolves)*5e3)
+      tmp <- backsolve(chol_S, t(x[idx_to_select,] - mu[idx_to_select,]), transpose = TRUE)
+      rss <- colSums(tmp^2)
+      
+      logval[idx_to_select] <- const - 0.5 * rss
+    }
+    
+  }else{
+    tmp <- backsolve(chol_S, t(x - mu), transpose = TRUE)
+    rss <- colSums(tmp^2)
+    
+    logval <- const - 0.5 * rss
+  }
   
   return(exp(logval))
 }

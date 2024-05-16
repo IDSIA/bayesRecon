@@ -101,7 +101,11 @@
   if (is.na(num_samples)) {
     num_samples = length(weights)
   }
-  tmp_idx = sample(x = 1:num_samples, num_samples, replace = TRUE, prob = weights)
+  
+  if(nrow(S_)!=length(weights))
+    stop("Error in .resample: nrow(S_) != length(weights)")
+  
+  tmp_idx = sample(x = 1:nrow(S_), num_samples, replace = TRUE, prob = weights)
   return(S_[tmp_idx, ])
 }
 
