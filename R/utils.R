@@ -32,7 +32,7 @@
 }
 
 # Check if it is a covariance matrix (i.e. symmetric p.d.)
-.check_cov <- function(cov_matrix, Sigma_str,pd_check=FALSE) {
+.check_cov <- function(cov_matrix, Sigma_str,pd_check=FALSE,symm_check=FALSE) {
   # Check if the matrix is square
   if (!is.matrix(cov_matrix) || nrow(cov_matrix) != ncol(cov_matrix)) {
     stop(paste0(Sigma_str, " is not square"))
@@ -44,7 +44,8 @@
     if (any(eigen_values <= 0)) {
       stop(paste0(Sigma_str, " is not positive semi-definite"))
     }
-  }else{
+  }
+  if(symm_check){
     # Check if the matrix is symmetric
     if (!isSymmetric(cov_matrix)) {
       stop(paste0(Sigma_str, " is not symmetric"))
@@ -215,7 +216,7 @@
     stop("Input error: the dimensions of the upper parameters do not match with S")
   }
   # Check that Sigma is a covariance matrix (symmetric positive semi-definite)
-  .check_cov(fc_upper$Sigma, "Upper covariance matrix")
+  .check_cov(fc_upper$Sigma, "Upper covariance matrix", symm_check=TRUE)
   
   # If bottom_in_type is not "params" but distr is specified, throw a warning
   if (bottom_in_type %in% c("pmf", "samples") & !is.null(distr)) {
@@ -272,21 +273,26 @@
   if (any(dim(Sigma) != c(n,n))) {
     stop("Dimension of mu and Sigma are not compatible!")
   } 
-  .check_cov(Sigma, "Sigma")
+  .check_cov(Sigma, "Sigma", pd_check = FALSE, symm_check = FALSE)
   
   Z = matrix(stats::rnorm(n*n_samples), ncol = n)
-  Ch = chol(Sigma)
+  
+  Ch <- tryCatch(base::chol(Sigma),
+                 error = function(e) stop(paste0(e,"check the covariance in .MVN_sample, the Cholesky fails.")))
+  
   samples = Z %*% Ch + matrix(mu, nrow = n_samples, ncol = n, byrow = TRUE)
   return(samples)
 }
 
 # Compute the MVN density
 .MVN_density <- function(x, mu, Sigma, max_size_x=5e3, suppress_warnings=TRUE) {
+  
+  # save dimension of mu
   n = length(mu)
   if (any(dim(Sigma) != c(n,n))) {
     stop("Dimension of mu and Sigma are not compatible!")
   } 
-  .check_cov(Sigma, "Sigma")
+  .check_cov(Sigma, "Sigma", pd_check = FALSE, symm_check = FALSE)
   
   if(is.vector(x)){
     x <- matrix(x, ncol=length(x))
@@ -296,16 +302,21 @@
     mu <- matrix(rep(mu, nrow(x)), ncol = n, byrow = TRUE)
   }
   
-  chol_S <- tryCatch(base::chol(Sigma), error = function(e) e)
+  # Compute Cholesky of Sigma
+  chol_S <- tryCatch(base::chol(Sigma),
+                     error = function(e) stop(paste0(e,"check the covariance in .MVN_density, the Cholesky fails.")))
   
   # Constant of the loglikelihood (computed here because it is always the same)
   const <- -sum(log(diag(chol_S))) - 0.5 * n * log(2 *pi)
   
-  # This part breaks down the density eval into small chucks, for memory
+  # This part breaks down the evaluation of the density eval into batches, for memory
   rows_x <- nrow(x)
+  
   if(is.matrix(x) && rows_x > max_size_x){
     
     logval <- rep(0, rows_x)
+    
+    # Compute how many batches we need
     num_backsolves <- rows_x %/% max_size_x 
     
     if(!suppress_warnings){
@@ -313,18 +324,22 @@
       warning(warning_msg)
     }
     
+    
     for(j in seq(num_backsolves)){
-      idx_to_select <- (1+(j-1)*max_size_x):((j)*5e3)
+      idx_to_select <- (1+(j-1)*max_size_x):((j)*max_size_x)
+      # Do one backsolve for each batch
       tmp <- backsolve(chol_S, t(x[idx_to_select,] - mu[idx_to_select,]), transpose = TRUE)
       rss <- colSums(tmp^2)
       
+      # Update the logval for those indices
       logval[idx_to_select] <- const - 0.5 * rss
     }
     
-    # Last indices 
+    # Last indices: if the number of rows of x is not exactly divided by the size of the batches 
     remainder <- rows_x %% max_size_x 
     if(remainder !=0){
-      idx_to_select <- (1+(num_backsolves)*5e3):(remainder+(num_backsolves)*5e3)
+      idx_to_select <- (1+(num_backsolves)*max_size_x):(remainder+(num_backsolves)*max_size_x)
+      # Do backsolve on the remaining indices
       tmp <- backsolve(chol_S, t(x[idx_to_select,] - mu[idx_to_select,]), transpose = TRUE)
       rss <- colSums(tmp^2)
       

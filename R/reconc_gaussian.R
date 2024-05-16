@@ -92,7 +92,7 @@ reconc_gaussian <- function(S, base_forecasts.mu,
   if (!(k + m == n)) {
     stop("Input error: the shape of S is not correct")
   }
-  .check_cov(base_forecasts.Sigma, "Sigma", pd_check=FALSE)
+  .check_cov(base_forecasts.Sigma, "Sigma", pd_check=FALSE, symm_check=TRUE)
   Sigma_u = base_forecasts.Sigma[hier$upper_idxs, hier$upper_idxs]
   Sigma_b = base_forecasts.Sigma[hier$bottom_idxs, hier$bottom_idxs]
   Sigma_ub = matrix(base_forecasts.Sigma[hier$upper_idxs, hier$bottom_idxs],
@@ -105,7 +105,7 @@ reconc_gaussian <- function(S, base_forecasts.mu,
   # Gaussian and count forecasts." (2023)
   Q = Sigma_u - Sigma_ub %*% t(A) - A %*% t(Sigma_ub) + A %*% Sigma_b %*% t(A)
   # we only need to check if Q is p.d.
-  .check_cov(Q, "Q", pd_check=TRUE)
+  .check_cov(Q, "Q", pd_check=TRUE, symm_check=FALSE)
   invQ = solve(Q)
   mu_b_tilde = mu_b + (t(Sigma_ub) - Sigma_b %*% t(A)) %*% invQ %*% (A %*% mu_b - mu_u)
   Sigma_b_tilde = Sigma_b - (t(Sigma_ub) - Sigma_b %*% t(A)) %*% invQ %*% t(t(Sigma_ub) - Sigma_b %*% t(A))
