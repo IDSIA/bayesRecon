@@ -89,7 +89,7 @@ reconc_MCMC <- function(S,
                         burn_in = 1000,
                         seed = NULL) {
 
-  set.seed(seed)
+  if (!is.null(seed)) set.seed(seed)
 
   # Ensure that data inputs are valid
   if (distr == "gaussian") {

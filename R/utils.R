@@ -289,17 +289,22 @@
   
   # save dimension of mu
   n = length(mu)
+  
+  # Check Sigma
   if (any(dim(Sigma) != c(n,n))) {
     stop("Dimension of mu and Sigma are not compatible!")
   } 
   .check_cov(Sigma, "Sigma", pd_check = FALSE, symm_check = FALSE)
   
+  # x must be a matrix with ncol = n (nrow is the number of points to evaluate)
+  # or a vector with length n (in which case it is transformed into a matrix)
   if(is.vector(x)){
+    if (length(x)!=n) stop("Length of x must be the same of mu")
     x <- matrix(x, ncol=length(x))
-  }
-  
-  if (is.matrix(x)) {
-    mu <- matrix(rep(mu, nrow(x)), ncol = n, byrow = TRUE)
+  } else if (is.matrix(x)) {
+    if (ncol(x)!=n) stop("The number of columns of x must be equal to the length of mu")
+  } else {
+    stop("x must be either a vector or a matrix")
   }
   
   # Compute Cholesky of Sigma
@@ -312,7 +317,7 @@
   # This part breaks down the evaluation of the density eval into batches, for memory
   rows_x <- nrow(x)
   
-  if(is.matrix(x) && rows_x > max_size_x){
+  if(rows_x > max_size_x){
     
     logval <- rep(0, rows_x)
     
@@ -324,11 +329,10 @@
       warning(warning_msg)
     }
     
-    
     for(j in seq(num_backsolves)){
       idx_to_select <- (1+(j-1)*max_size_x):((j)*max_size_x)
       # Do one backsolve for each batch
-      tmp <- backsolve(chol_S, t(x[idx_to_select,] - mu[idx_to_select,]), transpose = TRUE)
+      tmp <- backsolve(chol_S, t(x[idx_to_select,]) - mu, transpose = TRUE)
       rss <- colSums(tmp^2)
       
       # Update the logval for those indices
@@ -340,14 +344,14 @@
     if(remainder !=0){
       idx_to_select <- (1+(num_backsolves)*max_size_x):(remainder+(num_backsolves)*max_size_x)
       # Do backsolve on the remaining indices
-      tmp <- backsolve(chol_S, t(x[idx_to_select,] - mu[idx_to_select,]), transpose = TRUE)
+      tmp <- backsolve(chol_S, t(x[idx_to_select,]) - mu, transpose = TRUE)
       rss <- colSums(tmp^2)
       
       logval[idx_to_select] <- const - 0.5 * rss
     }
     
   }else{
-    tmp <- backsolve(chol_S, t(x - mu), transpose = TRUE)
+    tmp <- backsolve(chol_S, t(x) - mu, transpose = TRUE)
     rss <- colSums(tmp^2)
     
     logval <- const - 0.5 * rss
@@ -394,7 +398,7 @@
 # Functions for tests
 
 .gen_gaussian <- function(params_file, seed=NULL) {
-  set.seed(seed)
+  if (!is.null(seed)) set.seed(seed)
   params = utils::read.csv(file = params_file, header = FALSE)
   out = list()
   for (i in 1:nrow(params)) {
@@ -404,7 +408,7 @@
 }
 
 .gen_poisson <- function(params_file, seed=NULL) {
-  set.seed(seed)
+  if (!is.null(seed)) set.seed(seed)
   params = utils::read.csv(file = params_file, header = FALSE)
   out = list()
   for (i in 1:nrow(params)) {

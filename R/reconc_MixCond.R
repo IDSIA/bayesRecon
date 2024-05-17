@@ -116,7 +116,7 @@ reconc_MixCond = function(S, fc_bottom, fc_upper,
                          ...,
                          suppress_warnings = FALSE, seed = NULL) {
   
-  set.seed(seed)
+  if (!is.null(seed)) set.seed(seed)
   
   # Parameters for convolution
   # toll=1e-16

@@ -250,7 +250,8 @@ reconc_BUIS <- function(S,
                    num_samples = 2e4,
                    suppress_warnings = FALSE,
                    seed = NULL) {
-  set.seed(seed)
+  
+  if (!is.null(seed)) set.seed(seed)
 
   # Transform distr and in_type into lists
   if (!is.list(distr)) {

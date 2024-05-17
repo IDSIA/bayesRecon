@@ -1,0 +1,104 @@
+#' Example of a time series from carparts 
+#'
+#' A monthly time series from the `carparts` dataset, 51 observations, Jan 1998 - Mar 2002.
+#'
+#' @format
+#' Univariate time series of class \link[stats]{ts}.
+#' 
+#' @references
+#' Hyndman, R.J., Koehler, A.B., Ord, J.K., and Snyder, R.D., (2008) Forecasting with exponential 
+#' smoothing: the state space approach, Springer
+#' 
+#' Godahewa, Rakshitha, Bergmeir, Christoph, Webb, Geoff, Hyndman, Rob, & Montero-Manso, Pablo. (2020). Car Parts Dataset (without Missing Values) (Version 2) \doi{10.5281/zenodo.4656021}
+#' 
+#' @source 
+#' Godahewa, Rakshitha, Bergmeir, Christoph, Webb, Geoff, Hyndman, Rob, & Montero-Manso, Pablo. (2020). Car Parts Dataset (without Missing Values) (Version 2) \doi{10.5281/zenodo.4656021}
+"carparts_example"
+
+
+#' Infant Mortality grouped time series dataset
+#'
+#' A yearly grouped time series dataset, from 1901 to 2003, of infant mortality counts (deaths) in Australia; 
+#' disaggregated by state (see below), and sex (male and female).
+#' 
+#' States: New South Wales (NSW), Victoria (VIC), Queensland (QLD), South Australia (SA), Western Australia 
+#' (WA), Northern Territory (NT), Australian Capital Territory (ACT), and Tasmania (TAS).
+#'
+#' @format
+#' List of time series of class \link[stats]{ts}.
+#' 
+#' @source 
+#' hts package [CRAN](https://cran.r-project.org/package=hts)
+#' 
+#' @references 
+#' R. J. Hyndman, R. A. Ahmed, G. Athanasopoulos and H.L. Shang (2011) Optimal combination forecasts for hierarchical time series. Computational Statistics and Data Analysis, 55(9), 2579-2589.
+"infantMortality"
+
+
+#' Example of a time series from the M3 forecasting competition
+#'
+#' A monthly time series, from the M3 forecasting competition ("N1485").
+#'
+#' @format
+#' List of time series of class \link[stats]{ts}.
+#' 
+#' 
+#' @source [https://forecasters.org/resources/time-series-data/m3-competition/](https://forecasters.org/resources/time-series-data/m3-competition/)
+"M3_example"
+
+
+#' Extreme market events dataset
+#'
+#' Count time series of extreme market events in five economic sectors.
+#' The data refer to the trading days between 2004/12/31 and 2018/12/19 (3508 trading days in total).
+#' 
+#' The counts are computed by considering 29 companies included in the Euro Stoxx 
+#' 50 index and observing if the value of the CDS spread on a given day exceeds 
+#' the 90-th percentile of its distribution in the last trading year.
+#' The companies are divided in the following  sectors: Financial (FIN), Information 
+#' and Communication Technology (ICT), Manufacturing (MFG), Energy (ENG), and Trade (TRD). 
+#' 
+#' There are 6 time series: 
+#' - 5 bottom time series, corresponding to the daily counts for each sector
+#' - 1 upper time series, which is the sum of all the bottom (ALL)
+#'
+#' @format
+#' A multivariate time series of class \link[stats]{ts}.
+#' 
+#' @source 
+#' Zambon, L., Agosto, A., Giudici, P., Corani, G. (2023). *Properties of the reconciled distributions for Gaussian and count forecasts*. \doi{10.48550/arXiv.2303.15135}.
+#' 
+#' @references 
+#' Zambon, L., Agosto, A., Giudici, P., Corani, G. (2023). *Properties of the reconciled distributions for Gaussian and count forecasts*. \doi{10.48550/arXiv.2303.15135}.
+#'
+#' Agosto, A. (2022). *Multivariate Score-Driven Models for Count Time Series to Assess Financial Contagion*. \doi{10.2139/ssrn.4119895}
+"extr_mkt_events"
+
+
+#' Base forecasts for the extreme market events dataset 
+#'
+#' Base forecasts for the `extr_mkt_events` dataset, computed using the model by 
+#' Agosto, A. (2022). *Multivariate Score-Driven Models for Count Time Series to Assess Financial Contagion*. \doi{10.2139/ssrn.4119895}. 
+#' 
+#' The predictive distribution for the bottom time series is a multivariate negative 
+#' binomial with a static vector of dispersion parameters and a time-varying vector 
+#' of location parameters following a score-driven dynamics. 
+#' The base forecasts for the upper time series are computed using a univariate version of this model.
+#' They are in-sample forecasts: for each training instant, they are computed for 
+#' time t+1 by conditioning on the counts observed up to time t. 
+#'
+#' @format
+#' A list `extr_mkt_events_basefc` containing
+#' \describe{
+#'    \item{`extr_mkt_events_basefc$mu`}{data frame of the base forecast means, for each day}
+#'    \item{`extr_mkt_events_basefc$size`}{data frame of the static base forecast size parameters}
+#' }
+#' 
+#' @source 
+#' Agosto, A. (2022). *Multivariate Score-Driven Models for Count Time Series to Assess Financial Contagion*. \doi{10.2139/ssrn.4119895}
+#' 
+#' @references 
+#' Agosto, A. (2022). *Multivariate Score-Driven Models for Count Time Series to Assess Financial Contagion*. \doi{10.2139/ssrn.4119895}
+#' 
+#' Zambon, L., Agosto, A., Giudici, P., Corani, G. (2023). *Properties of the reconciled distributions for Gaussian and count forecasts*. \doi{10.48550/arXiv.2303.15135}.
+"extr_mkt_events_basefc"
