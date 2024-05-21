@@ -35,10 +35,8 @@ reconc_MixCond(
 This is only used if \code{bottom_in_type='params'}.}
 
 \item{num_samples}{Number of samples drawn from the reconciled distribution.
-
-\if{html}{\out{<div class="sourceCode">}}\preformatted{   This is ignored if `bottom_in_type='samples'`; in this case, the number of
-   reconciled samples is equal to the number of samples of the base forecasts.
-}\if{html}{\out{</div>}}}
+This is ignored if \code{bottom_in_type='samples'}; in this case, the number of
+reconciled samples is equal to the number of samples of the base forecasts.}
 
 \item{return_type}{The return type of the reconciled distributions.
 A string with three possible values:
@@ -139,5 +137,5 @@ Zambon, L., Agosto, A., Giudici, P., Corani, G. (2023). \emph{Properties of the 
 Zambon, L., Azzimonti, D., Rubattu, N., Corani, G. (2024). \emph{Probabilistic reconciliation of mixed-type hierarchical time series} The 40th Conference on Uncertainty in Artificial Intelligence, accepted.
 }
 \seealso{
-\link{reconc_TDcond}, \link{reconc_BUIS}
+\code{\link[=reconc_TDcond]{reconc_TDcond()}}, \code{\link[=reconc_BUIS]{reconc_BUIS()}}
 }

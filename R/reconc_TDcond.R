@@ -112,7 +112,6 @@
 #' This is only used if `bottom_in_type=='params'`.
 #'
 #' @param num_samples Number of samples drawn from the reconciled distribution.
-#' 
 #'        This is ignored if `bottom_in_type='samples'`; in this case, the number of
 #'        reconciled samples is equal to the number of samples of the base forecasts. 
 #'        
@@ -122,6 +121,8 @@
 #' * 'pmf' returns a list containing the reconciled marginal pmf objects;
 #' * 'samples' returns a list containing the reconciled multivariate samples;
 #' * 'all' returns a list with both pmf objects and samples.
+#' 
+#' @param ... additional parameters for pmf convolution
 #' 
 #' @param suppress_warnings Logical. If \code{TRUE}, no warnings about samples
 #'        are triggered. If \code{FALSE}, warnings are generated. Default is \code{FALSE}. See Details.
@@ -172,7 +173,7 @@
 #'
 #' Zambon, L., Azzimonti, D., Rubattu, N., Corani, G. (2024). *Probabilistic reconciliation of mixed-type hierarchical time series* The 40th Conference on Uncertainty in Artificial Intelligence, accepted.
 #'
-#' @seealso [reconc_MixCond], [reconc_BUIS]
+#' @seealso [reconc_MixCond()], [reconc_BUIS()]
 #'
 #' @export
 reconc_TDcond = function(S, fc_bottom, fc_upper, 

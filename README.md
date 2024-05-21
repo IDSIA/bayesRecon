@@ -18,20 +18,28 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 3)](https://img.shields.io/badge/license-LGPL%20(%3E=%203)-yellow.svg)](https://www.gnu.org/licences/lgpl-3.0)
 <!-- badges: end -->
 
-The package `bayesRecon` implements probabilistic reconciliation of
-hierarchical time series forecasts via conditioning.
+The package `bayesRecon` implements several methods for probabilistic
+reconciliation of hierarchical time series forecasts.
 
 The main functions are:
 
-- `reconc_gaussian`: implements analytic formulae for the reconciliation
-  of Gaussian base forecasts;
-- `reconc_BUIS`: a generic tool for the reconciliation of any
-  probabilistic time series forecast via importance sampling; this is
-  the recommended option for non-Gaussian base forecasts;
-- `reconc_MCMC`: a generic tool for the reconciliation of probabilistic
-  count time series forecasts via Markov Chain Monte Carlo.
+- `reconc_gaussian`: reconciliation via conditioning of multivariate
+  Gaussian base forecasts; this is done analytically;
+- `reconc_BUIS`: reconciliation via conditioning of any probabilistic
+  forecast via importance sampling; this is the recommended option for
+  non-Gaussian base forecasts;
+- `reconc_MCMC`: reconciliation via conditioning of discrete
+  probabilistic forecasts via Markov Chain Monte Carlo;
+- `reconc_MixCond`: reconciliation via conditioning of mixed
+  hierarchies, where the upper forecasts are multivariate Gaussian and
+  the bottom forecasts are discrete distributions;
+- `reconc_TDcond`: reconciliation via top-down conditioning of mixed
+  hierarchies, where the upper forecasts are multivariate Gaussian and
+  the bottom forecasts are discrete distributions.
 
 ## News
+
+:boom: \[2024-05-24\] Added `reconc_MixCond` and `reconc_TDcond`.
 
 :boom: \[2023-12-19\] Added the vignette “Properties of the reconciled
 distribution via conditioning”.
@@ -97,11 +105,11 @@ lambdas <- c(lambdaY, lambdaS1, lambdaS2)
 
 base_forecasts = list()
 for (i in 1:nrow(S)) {
-  base_forecasts[[i]] = lambdas[i]
+  base_forecasts[[i]] = list(lambda = lambdas[i])
 }
 ```
 
-We recommend using the BUIS algorithm (Zambon et al., 2022) to sample
+We recommend using the BUIS algorithm (Zambon et al., 2024) to sample
 from the reconciled distribution.
 
 ``` r
@@ -175,7 +183,7 @@ plot(
 <img src="man/figures/README-unnamed-chunk-7-1.png" width="80%" style="display: block; margin: auto;" />
 
 We also provide a function for sampling using Markov Chain Monte Carlo
-(Corani et al., 2022).
+(Corani et al., 2023).
 
 ``` r
 mcmc = reconc_MCMC(
@@ -210,7 +218,7 @@ sigmas <- c(sigmaY, sigmaS1, sigmaS2)
 
 base_forecasts = list()
 for (i in 1:nrow(S)) {
-  base_forecasts[[i]] = c(mus[[i]], sigmas[[i]])
+  base_forecasts[[i]] = list(mean = mus[[i]], sd = sigmas[[i]])
 }
 ```
 
@@ -229,7 +237,7 @@ samples_buis <- buis$reconciled_samples
 buis_means <- rowMeans(samples_buis)
 ```
 
-In the base forecasts are Gaussian, the reconciled distribution is still
+If the base forecasts are Gaussian, the reconciled distribution is still
 Gaussian and can be computed in closed form:
 
 ``` r
@@ -263,9 +271,9 @@ Zambon, L., Azzimonti, D. & Corani, G. (2024). *Efficient probabilistic
 reconciliation of forecasts for real-valued and count time series*.
 [DOI](https://doi.org/10.1007/s11222-023-10343-y)
 
-Zambon, L., Agosto, A., Giudici, P., Corani, G. (2023). *Properties of
+Zambon, L., Agosto, A., Giudici, P., Corani, G. (2024). *Properties of
 the reconciled distributions for Gaussian and count forecasts*.
-[DOI](https://doi.org/10.48550/arXiv.2303.15135)
+[DOI](https://doi.org/10.1016/j.ijforecast.2023.12.004)
 
 ## Contributors
 

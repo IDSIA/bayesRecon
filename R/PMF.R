@@ -205,7 +205,7 @@ PMF.get_quantile = function(pmf, p) {
 #' @return A summary data.frame
 #' @seealso [PMF.get_mean()], [PMF.get_var()], [PMF.get_quantile()], [PMF.sample()]
 #' @export
-PMF.summary = function(pmf, toll=1e-16, Rtoll=1e-7) {
+PMF.summary = function(pmf, Ltoll=1e-16, Rtoll=1e-7) {
   min_pmf = min(which(pmf > Ltoll)) - 1
   max_pmf = max(which(pmf > Rtoll)) - 1
   all_summaries <- data.frame("Min."    = min_pmf,

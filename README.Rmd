@@ -199,7 +199,7 @@ sigmas <- c(sigmaY, sigmaS1, sigmaS2)
 
 base_forecasts = list()
 for (i in 1:nrow(S)) {
-  base_forecasts[[i]] = c(mean = mus[[i]], sd = sigmas[[i]])
+  base_forecasts[[i]] = list(mean = mus[[i]], sd = sigmas[[i]])
 }
 ```
 
@@ -218,7 +218,7 @@ samples_buis <- buis$reconciled_samples
 buis_means <- rowMeans(samples_buis)
 ```
 
-In the base forecasts are Gaussian, the reconciled distribution is still Gaussian and can be computed in closed form:
+If the base forecasts are Gaussian, the reconciled distribution is still Gaussian and can be computed in closed form:
 
 ```{r}
 Sigma <- diag(sigmas ^ 2)  #transform into covariance matrix

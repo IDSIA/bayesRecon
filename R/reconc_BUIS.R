@@ -106,6 +106,7 @@
 #' @param num_samples Number of samples drawn from the reconciled distribution. 
 #'        This is ignored if `bottom_in_type='samples'`; in this case, the number of reconciled samples is equal to 
 #'        the number of samples of the base forecasts. 
+#'        
 #' @param suppress_warnings Logical. If \code{TRUE}, no warnings about effective sample size
 #'        are triggered. If \code{FALSE}, warnings are generated. Default is \code{FALSE}. See Details.
 #' @param seed Seed for reproducibility.

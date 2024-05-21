@@ -54,7 +54,6 @@
 #' This is only used if `bottom_in_type='params'`.
 #'
 #' @param num_samples Number of samples drawn from the reconciled distribution. 
-#' 
 #'        This is ignored if `bottom_in_type='samples'`; in this case, the number of
 #'        reconciled samples is equal to the number of samples of the base forecasts.
 #'        
@@ -114,7 +113,7 @@
 #'
 #' Zambon, L., Azzimonti, D., Rubattu, N., Corani, G. (2024). *Probabilistic reconciliation of mixed-type hierarchical time series* The 40th Conference on Uncertainty in Artificial Intelligence, accepted.
 #'
-#' @seealso [reconc_TDcond], [reconc_BUIS]
+#' @seealso [reconc_TDcond()], [reconc_BUIS()]
 #'
 #' @export
 reconc_MixCond = function(S, fc_bottom, fc_upper, 

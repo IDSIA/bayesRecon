@@ -81,6 +81,9 @@
 # Check the parameters of distr
 .check_distr_params <- function(distr, params) {
   .check_implemented_distr(distr)
+  if (!is.list(params)) {
+    stop("Input error: the parameters of the distribution must be given as a list.")
+  }
   switch(
     distr,
     "gaussian" = {
