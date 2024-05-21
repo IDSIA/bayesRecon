@@ -30,50 +30,6 @@
   return(w)
 }
 
-.check_weigths <- function(w, n_eff_min=200, p_n_eff=0.01) {
-  warning = FALSE
-  warning_code = c()
-  warning_msg = c()
-  
-  n = length(w)
-  n_eff = n
-  
-  
-  # 1. w==0
-  if (all(w==0)) {
-    warning = TRUE
-    warning_code = c(warning_code, 1) 
-    warning_msg = c(warning_msg, 
-                    "Importance Sampling: all the weights are zeros. This is probably caused by a strong incoherence between bottom and upper base forecasts.")
-  }else{
-    
-    # Effective sample size
-    n_eff = (sum(w)^2) / sum(w^2)
-    
-    # 2. n_eff < threshold
-    if (n_eff < n_eff_min) {
-      warning = TRUE
-      warning_code = c(warning_code, 2) 
-      warning_msg = c(warning_msg, 
-                      paste0("Importance Sampling: effective_sample_size= ", round(n_eff,2), " (< ", n_eff_min,")."))
-    }
-    
-    # 3. n_eff < p*n, e.g. p = 0.05
-    if (n_eff < p_n_eff*n) {
-      warning = TRUE
-      warning_code = c(warning_code, 3) 
-      warning_msg = c(warning_msg, 
-                      paste0("Importance Sampling: effective_sample_size= ", round(n_eff,2), " (< ", round(p_n_eff * 100, 2),"%)."))
-    }
-  }
-  res = list(warning = warning,
-             warning_code = warning_code,
-             warning_msg = warning_msg,
-             n_eff = n_eff)
-  
-  return(res)
-}
-
 .compute_weights <- function(b, u, in_type_, distr_) {
   if (in_type_ == "samples") {
     if (distr_ == "discrete") {
@@ -97,24 +53,12 @@
   return(w)
 }
 
-.resample <- function(S_, weights, num_samples = NA) {
-  if (is.na(num_samples)) {
-    num_samples = length(weights)
-  }
-  
-  if(nrow(S_)!=length(weights))
-    stop("Error in .resample: nrow(S_) != length(weights)")
-  
-  tmp_idx = sample(x = 1:nrow(S_), num_samples, replace = TRUE, prob = weights)
-  return(S_[tmp_idx, ])
-}
-
 #' @title BUIS for Probabilistic Reconciliation of forecasts via conditioning
 #'
 #' @description
 #'
 #' Uses the Bottom-Up Importance Sampling algorithm to draw samples from the reconciled
-#' forecast distribution, which is obtained via conditioning.
+#' forecast distribution, obtained via conditioning.
 #'
 #' @details
 #'
@@ -139,7 +83,8 @@
 #' * the effective sample size is < 200;
 #' * the effective sample size is < 1% of the sample size (`num_samples` if `in_type` is 'params' or the size of the base forecast if if `in_type` is 'samples').
 #' 
-#' Note that warnings are an indication that the base forecasts might have issues. Please check the base forecasts in case of warnings.
+#' Note that warnings are an indication that the base forecasts might have issues. 
+#' Please check the base forecasts in case of warnings.
 #'
 #' @param S Summing matrix (n x n_bottom).
 #' @param base_forecasts A list containing the base_forecasts, see details.
@@ -158,7 +103,9 @@
 #' 
 #' If `distr` is a string it is assumed that all distributions are of the same type.
 #'
-#' @param num_samples Number of samples drawn from the reconciled distribution.
+#' @param num_samples Number of samples drawn from the reconciled distribution. 
+#'        This is ignored if `bottom_in_type='samples'`; in this case, the number of reconciled samples is equal to 
+#'        the number of samples of the base forecasts. 
 #' @param suppress_warnings Logical. If \code{TRUE}, no warnings about effective sample size
 #'        are triggered. If \code{FALSE}, warnings are generated. Default is \code{FALSE}. See Details.
 #' @param seed Seed for reproducibility.

@@ -25,9 +25,6 @@ n <- 10
 p <- 0.6 
 pmf_binomial <- apply(matrix(seq(0,10)),MARGIN=1,FUN=function(x) dbinom(x,size=n,prob=p))
 
-# We can obtain the quantile of this PMF with the function PMF.get_quantile()
-quant_90 <- PMF.get_quantile(pmf=pmf_binomial,p=0.9)
-
 # The true median is ceiling(n*p)
 quant_50 <- PMF.get_quantile(pmf=pmf_binomial,p=0.5)
 cat("True median:", ceiling(n*p), "\nMedian from PMF:", quant_50)

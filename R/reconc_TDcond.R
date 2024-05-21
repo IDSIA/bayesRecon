@@ -64,62 +64,64 @@
 
 
 
-#' @title Probabilistic Reconciliation of forecasts via top-down conditioning
+#' @title Probabilistic forecast reconciliation of mixed hierarchies via top-down conditioning
 #'
 #' @description
 #'
-#' Uses the Top-down conditioning algorithm to draw samples from the reconciled
+#' Uses the top-down conditioning algorithm to draw samples from the reconciled
 #' forecast distribution. Reconciliation is performed in two steps: 
 #' first, the upper base forecasts are reconciled via conditioning, 
 #' using only the hierarchical constraints between the upper variables; then,
-#' the bottom distributions are updated via a probabilistic top-down procedure
+#' the bottom distributions are updated via a probabilistic top-down procedure.
 #'
 #' @details
 #' 
-#' The base (unreconciled) forecasts are passed with the parameters
+#' The base bottom forecasts `fc_bottom` must be a list of length n_bottom, where each element is either
+#' * a PMF object (see details below), if `bottom_in_type='pmf'`;
+#' * a vector of samples, if `bottom_in_type='samples'`;
+#' * a list of parameters, if `bottom_in_type='params'`:
+#'    * lambda for the Poisson base forecast if `distr`='poisson', see \link[stats]{Poisson};
+#'    * size and prob (or mu) for the negative binomial base forecast if `distr`='nbinom', 
+#'      see \link[stats]{NegBinomial}.
 #' 
-#' * `fc_bottom`: a list of length n_bottom where each element is either a pmf object (`bottom_in_type='pmf'`),
-#'    a vector of samples (`bottom_in_type='samples'`) or the parameters (`bottom_in_type='params'`) of the 
-#'    parametric distribution specified in `distr`.
-#' * `fc_upper`: a list containing the parameters of the multivariate Gaussian distribution of the upper forecasts. 
-#'    The list must contain only the named elements `mu` (vector of length n_upper) and `Sigma` (n_upper x n_upper matrix) 
+#' The base upper forecasts `fc_upper` must be a list containing the parameters of 
+#' the multivariate Gaussian distribution of the upper forecasts.
+#' The list must contain only the named elements `mu` (vector of length n_upper) 
+#' and `Sigma` (n_upper x n_upper matrix) 
+#'  
+#' A PMF object is a numerical vector containing the probability mass function of a discrete distribution.
+#' Each element corresponds to the probability of the integers from 0 to the last value of the support.
+#' See also \link{PMF.get_mean}, \link{PMF.get_var}, \link{PMF.sample}, \link{PMF.get_quantile}, 
+#' \link{PMF.summary} for functions that handle PMF objects. 
+#' 
+#' If some of the reconciled upper samples lie outside the support of the bottom-up distribution, 
+#' those samples are discarded and a warning is triggered.
+#' The warning reports the percentage of samples kept. 
 #'
-#' 
-#' A PMF object is a numerical vector containing the probability mass function for a forecast. 
-#' The first element of a PMF vector for the variable X always contains the probability P(X=0) and 
-#' there is one element for each integer. 
-#' The last element of the PMF corresponds to the probability of the last value in the support of X.
-#' See also \link{PMF.get_mean}, \link{PMF.get_var}, \link{PMF.sample}, \link{PMF.get_quantile}, \link{PMF.summary} for functions that handle PMF objects. 
-#' 
-#' 
-#' A warnings is triggered if the intersection of the support for the reconciled uppers 
-#' and the support of the bottom-up distribution is too small. In this case only 
-#' few samples from the reconciled upper are kept. The warning reports the percentage
-#' of samples kept. 
-#' 
-#' Note that warnings are an indication that the base forecasts might have issues. Please check the base forecasts in case of warnings.
-#'
-#' @param S Summing matrix (n x n_bottom).   return_pmf = TRUE, return_samples = FALSE, suppress_warnings = FALSE, seed = NULL
+#' @param S Summing matrix (n x n_bottom).   
 #' @param fc_bottom A list containing the bottom base forecasts, see details.
-#' @param fc_upper A list containing the bottom base forecasts, see details.
+#' @param fc_upper A list containing the upper base forecasts, see details.
 #' @param bottom_in_type A string with three possible values:
 #'
 #' * 'pmf' if the bottom base forecasts are in the form of pmf, see details;
 #' * 'samples' if the bottom base forecasts are in the form of samples;
 #' * 'params'  if the bottom base forecasts are in the form of estimated parameters.
 #'
-#' @param distr A string describing the type of bottom base forecasts ('gaussian', 'poisson' or 'nbinom').
+#' @param distr A string describing the type of bottom base forecasts ('poisson' or 'nbinom').
 #' 
 #' This is only used if `bottom_in_type=='params'`.
 #'
 #' @param num_samples Number of samples drawn from the reconciled distribution.
-#' @param return_type The return type of the reconciled distributions. A string with three possible values:
 #' 
-#' * 'pmf' returns a list containing reconciled pmf objects;
-#' * 'samples' returns a list containing reconciled samples;
+#'        This is ignored if `bottom_in_type='samples'`; in this case, the number of
+#'        reconciled samples is equal to the number of samples of the base forecasts. 
+#'        
+#' @param return_type The return type of the reconciled distributions. 
+#'        A string with three possible values:
+#' 
+#' * 'pmf' returns a list containing the reconciled marginal pmf objects;
+#' * 'samples' returns a list containing the reconciled multivariate samples;
 #' * 'all' returns a list with both pmf objects and samples.
-#' 
-#' @param ... additional parameters to be passed to the smoothing functions for PMF objects.
 #' 
 #' @param suppress_warnings Logical. If \code{TRUE}, no warnings about samples
 #'        are triggered. If \code{FALSE}, warnings are generated. Default is \code{FALSE}. See Details.
@@ -127,8 +129,10 @@
 #'
 #' @return A list containing the reconciled forecasts. The list has the following named elements:
 #'
-#' * `bottom_reconciled`: a list containing the pmf, the samples (matrix n_bottom x `num_samples`) or both, depending on the value of `return_type`;
-#' * `upper_reconciled`: a list containing the pmf, the samples (matrix n_upper x `num_samples`) or both, depending on the value of `return_type`.
+#' * `bottom_reconciled`: a list containing the pmf, the samples (matrix n_bottom x `num_samples`) or both, 
+#'    depending on the value of `return_type`;
+#' * `upper_reconciled`: a list containing the pmf, the samples (matrix n_upper x `num_samples`) or both, 
+#'    depending on the value of `return_type`.
 #'
 #' @examples
 #'
@@ -168,14 +172,14 @@
 #'
 #' Zambon, L., Azzimonti, D., Rubattu, N., Corani, G. (2024). *Probabilistic reconciliation of mixed-type hierarchical time series* The 40th Conference on Uncertainty in Artificial Intelligence, accepted.
 #'
-#' @seealso [reconc_MixCond], [reconc_BUIS()]
+#' @seealso [reconc_MixCond], [reconc_BUIS]
 #'
 #' @export
 reconc_TDcond = function(S, fc_bottom, fc_upper, 
-                     bottom_in_type = "pmf", distr = NULL,
-                     num_samples = 2e4, return_type = "pmf", 
-                     ...,
-                     suppress_warnings = FALSE, seed = NULL) {
+                         bottom_in_type = "pmf", distr = NULL,
+                         num_samples = 2e4, return_type = "pmf", 
+                         ...,
+                         suppress_warnings = FALSE, seed = NULL) {
   
   if (!is.null(seed)) set.seed(seed)
   
@@ -188,7 +192,7 @@ reconc_TDcond = function(S, fc_bottom, fc_upper,
   
   # After testing the convolution parameters:
   # remove dots, remove comment above, and set the "best parameters" as default in 
-  # PMF.check_support and .TD_sampling
+  # PMF.check_support, .TD_sampling, PMF.summary
   
   # Check inputs
   .check_input_TD(S, fc_bottom, fc_upper, 

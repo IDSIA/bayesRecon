@@ -56,7 +56,7 @@ PMF.from_params = function(params, distr, Rtoll = 1e-7) {
 #' @param pmf the PMF object.
 #' @param N_samples number of samples. 
 #' 
-#' @return `N_samples` drawn from the distribution specified by `pmf`.  
+#' @return Samples drawn from the distribution specified by `pmf`.  
 #' @seealso [PMF.get_mean()], [PMF.get_var()], [PMF.get_quantile()], [PMF.summary()]
 #' 
 #' @examples 
@@ -160,9 +160,6 @@ PMF.get_var = function(pmf) {
 #' p <- 0.6 
 #' pmf_binomial <- apply(matrix(seq(0,10)),MARGIN=1,FUN=function(x) dbinom(x,size=n,prob=p))
 #' 
-#' # We can obtain the quantile of this PMF with the function PMF.get_quantile()
-#' quant_90 <- PMF.get_quantile(pmf=pmf_binomial,p=0.9)
-#' 
 #' # The true median is ceiling(n*p)
 #' quant_50 <- PMF.get_quantile(pmf=pmf_binomial,p=0.5)
 #' cat("True median:", ceiling(n*p), "\nMedian from PMF:", quant_50)
@@ -185,12 +182,13 @@ PMF.get_quantile = function(pmf, p) {
 #'
 #' @description
 #' 
-#' Returns the summary (min,max, IQR, median, mean) of the PMF specified by `pmf`.
+#' Returns the summary (min, max, IQR, median, mean) of the PMF specified by `pmf`.
 #' 
 #' @param pmf the PMF object.
-#' @param toll lowest possible probability mass on the left 
-#' @param Rtoll lowest possible probability mass on the right
-#'
+#' @param Ltoll used for computing the min of the PMF: the min is the smallest value
+#'        with probability greater than Ltoll (default: 1e-16) 
+#' @param Rtoll used for computing the max of the PMF: the max is the largest value
+#'        with probability greater than Rtoll (default: 1e-7)
 #' 
 #' @examples 
 #' library(bayesRecon)
@@ -208,17 +206,15 @@ PMF.get_quantile = function(pmf, p) {
 #' @seealso [PMF.get_mean()], [PMF.get_var()], [PMF.get_quantile()], [PMF.sample()]
 #' @export
 PMF.summary = function(pmf, toll=1e-16, Rtoll=1e-7) {
-  # Max is the last position with enough mass
-  last_pos = max(which(pmf > Rtoll))  
-  pmf = pmf[1:last_pos]
-  # Set to zero values smaller than toll:
-  pmf[pmf<toll] = 0  
-  all_summaries <- data.frame("Min."=(min(which(pmf>0))-1),
-                              `1st Qu.`=PMF.get_quantile(pmf,0.25),
-                              "Median"=PMF.get_quantile(pmf,0.5),
-                              "Mean"=PMF.get_mean(pmf), 
-                              `3rd Qu.`=PMF.get_quantile(pmf,0.75),
-                              "Max"=(last_pos-1),check.names = FALSE)
+  min_pmf = min(which(pmf > Ltoll)) - 1
+  max_pmf = max(which(pmf > Rtoll)) - 1
+  all_summaries <- data.frame("Min."    = min_pmf,
+                              `1st Qu.` = PMF.get_quantile(pmf,0.25),
+                              "Median"  = PMF.get_quantile(pmf,0.5),
+                              "Mean"    = PMF.get_mean(pmf), 
+                              `3rd Qu.` = PMF.get_quantile(pmf,0.75),
+                              "Max"     = max_pmf,
+                              check.names = FALSE)
   return(all_summaries)
 }
 

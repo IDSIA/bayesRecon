@@ -238,6 +238,50 @@
   }
 }
 
+# Check importance sampling weights
+.check_weigths <- function(w, n_eff_min=200, p_n_eff=0.01) {
+  warning = FALSE
+  warning_code = c()
+  warning_msg = c()
+  
+  n = length(w)
+  n_eff = n
+  
+  # 1. w==0
+  if (all(w==0)) {
+    warning = TRUE
+    warning_code = c(warning_code, 1) 
+    warning_msg = c(warning_msg, 
+                    "Importance Sampling: all the weights are zeros. This is probably caused by a strong incoherence between bottom and upper base forecasts.")
+  }else{
+    
+    # Effective sample size
+    n_eff = (sum(w)^2) / sum(w^2)
+    
+    # 2. n_eff < threshold
+    if (n_eff < n_eff_min) {
+      warning = TRUE
+      warning_code = c(warning_code, 2) 
+      warning_msg = c(warning_msg, 
+                      paste0("Importance Sampling: effective_sample_size= ", round(n_eff,2), " (< ", n_eff_min,")."))
+    }
+    
+    # 3. n_eff < p*n, e.g. p = 0.05
+    if (n_eff < p_n_eff*n) {
+      warning = TRUE
+      warning_code = c(warning_code, 3) 
+      warning_msg = c(warning_msg, 
+                      paste0("Importance Sampling: effective_sample_size= ", round(n_eff,2), " (< ", round(p_n_eff * 100, 2),"%)."))
+    }
+  }
+  res = list(warning = warning,
+             warning_code = warning_code,
+             warning_msg = warning_msg,
+             n_eff = n_eff)
+  
+  return(res)
+}
+
 ################################################################################
 # SAMPLE
 
@@ -360,6 +404,18 @@
   return(exp(logval))
 }
   
+# Resample from weighted sample
+.resample <- function(S_, weights, num_samples = NA) {
+  if (is.na(num_samples)) {
+    num_samples = length(weights)
+  }
+  
+  if(nrow(S_)!=length(weights))
+    stop("Error in .resample: nrow(S_) != length(weights)")
+  
+  tmp_idx = sample(x = 1:nrow(S_), num_samples, replace = TRUE, prob = weights)
+  return(S_[tmp_idx, ])
+}
 
 ################################################################################
 # Miscellaneous

@@ -12,7 +12,7 @@ PMF.sample(pmf, N_samples)
 \item{N_samples}{number of samples.}
 }
 \value{
-\code{N_samples} drawn from the distribution specified by \code{pmf}.
+Samples drawn from the distribution specified by \code{pmf}.
 }
 \description{
 Samples (with replacement) from the probability distribution specified by \code{pmf}.

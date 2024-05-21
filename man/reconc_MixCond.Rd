@@ -2,7 +2,7 @@
 % Please edit documentation in R/reconc_MixCond.R
 \name{reconc_MixCond}
 \alias{reconc_MixCond}
-\title{Probabilistic Reconciliation of forecasts via mixed conditioning}
+\title{Probabilistic forecast reconciliation of mixed hierarchies via conditioning}
 \usage{
 reconc_MixCond(
   S,
@@ -11,19 +11,17 @@ reconc_MixCond(
   bottom_in_type = "pmf",
   distr = NULL,
   num_samples = 20000,
-  num_resample = 20000,
   return_type = "pmf",
-  ...,
   suppress_warnings = FALSE,
   seed = NULL
 )
 }
 \arguments{
-\item{S}{Summing matrix (n x n_bottom).   return_pmf = TRUE, return_samples = FALSE, suppress_warnings = FALSE, seed = NULL}
+\item{S}{Summing matrix (n x n_bottom).}
 
 \item{fc_bottom}{A list containing the bottom base forecasts, see details.}
 
-\item{fc_upper}{A list containing the bottom base forecasts, see details.}
+\item{fc_upper}{A list containing the upper base forecasts, see details.}
 
 \item{bottom_in_type}{A string with three possible values:
 \itemize{
@@ -32,22 +30,23 @@ reconc_MixCond(
 \item 'params'  if the bottom base forecasts are in the form of estimated parameters.
 }}
 
-\item{distr}{A string describing the type of bottom base forecasts ('gaussian', 'poisson' or 'nbinom').
+\item{distr}{A string describing the type of bottom base forecasts ('poisson' or 'nbinom').
 
-This is only used if \code{bottom_in_type=='params'}.}
+This is only used if \code{bottom_in_type='params'}.}
 
-\item{num_samples}{Number of samples drawn from the reconciled distribution.}
+\item{num_samples}{Number of samples drawn from the reconciled distribution.
 
-\item{num_resample}{Number of importance sampling resamples.}
+\if{html}{\out{<div class="sourceCode">}}\preformatted{   This is ignored if `bottom_in_type='samples'`; in this case, the number of
+   reconciled samples is equal to the number of samples of the base forecasts.
+}\if{html}{\out{</div>}}}
 
-\item{return_type}{The return type of the reconciled distributions. A string with three possible values:
+\item{return_type}{The return type of the reconciled distributions.
+A string with three possible values:
 \itemize{
-\item 'pmf' returns a list containing reconciled pmf objects;
-\item 'samples' returns a list containing reconciled samples;
+\item 'pmf' returns a list containing the reconciled marginal pmf objects;
+\item 'samples' returns a list containing the reconciled multivariate samples;
 \item 'all' returns a list with both pmf objects and samples.
 }}
-
-\item{...}{additional parameters to be passed to the smoothing functions for PMF objects.}
 
 \item{suppress_warnings}{Logical. If \code{TRUE}, no warnings about samples
 are triggered. If \code{FALSE}, warnings are generated. Default is \code{FALSE}. See Details.}
@@ -57,36 +56,48 @@ are triggered. If \code{FALSE}, warnings are generated. Default is \code{FALSE}.
 \value{
 A list containing the reconciled forecasts. The list has the following named elements:
 \itemize{
-\item \code{bottom_reconciled}: a list containing the pmf, the samples (matrix n_bottom x \code{num_samples}) or both, depending on the value of \code{return_type};
-\item \code{upper_reconciled}: a list containing the pmf, the samples (matrix n_upper x \code{num_samples}) or both, depending on the value of \code{return_type}.
+\item \code{bottom_reconciled}: a list containing the pmf, the samples (matrix n_bottom x \code{num_samples}) or both,
+depending on the value of \code{return_type};
+\item \code{upper_reconciled}: a list containing the pmf, the samples (matrix n_upper x \code{num_samples}) or both,
+depending on the value of \code{return_type}.
 }
 }
 \description{
-Uses the mixed conditioning algorithm to draw samples from the reconciled
-forecast distribution.
+Uses importance sampling to draw samples from the reconciled
+forecast distribution, obtained via conditioning, in the case of a mixed hierarchy.
 }
 \details{
-The base (unreconciled) forecasts are passed with the parameters
+The base bottom forecasts \code{fc_bottom} must be a list of length n_bottom, where each element is either
 \itemize{
-\item \code{fc_bottom}: a list of length n_bottom where each element is either a pmf object (\code{bottom_in_type='pmf'}),
-a vector of samples (\code{bottom_in_type='samples'}) or the parameters (\code{bottom_in_type='params'}) of the
-parametric distribution specified in \code{distr}.
-\item \code{fc_upper}: a list containing the parameters of the multivariate Gaussian distribution of the upper forecasts.
-The list must contain only the named elements \code{mu} (vector of length n_upper) and \code{Sigma} (n_upper x n_upper matrix)
+\item a PMF object (see details below), if \code{bottom_in_type='pmf'};
+\item a vector of samples, if \code{bottom_in_type='samples'};
+\item a list of parameters, if \code{bottom_in_type='params'}:
+\itemize{
+\item lambda for the Poisson base forecast if \code{distr}='poisson', see \link[stats]{Poisson};
+\item size and prob (or mu) for the negative binomial base forecast if \code{distr}='nbinom',
+see \link[stats]{NegBinomial}.
+}
 }
 
-A PMF object is a numerical vector containing the probability mass function for a forecast.
-The first element of a PMF vector for the variable X always contains the probability P(X=0) and
-there is one element for each integer.
-The last element of the PMF corresponds to the probability of the last value in the support of X.
-See also \link{PMF.get_mean}, \link{PMF.get_var}, \link{PMF.sample}, \link{PMF.get_quantile}, \link{PMF.summary} for functions that handle PMF objects.
+The base upper forecasts \code{fc_upper} must be a list containing the parameters of
+the multivariate Gaussian distribution of the upper forecasts.
+The list must contain only the named elements \code{mu} (vector of length n_upper)
+and \code{Sigma} (n_upper x n_upper matrix)
 
-A warnings is triggered if the intersection of the support for the reconciled uppers
-and the support of the bottom-up distribution is too small. In this case only
-few samples from the reconciled upper are kept. The warning reports the percentage
-of samples kept.
+A PMF object is a numerical vector containing the probability mass function of a discrete distribution.
+Each element corresponds to the probability of the integers from 0 to the last value of the support.
+See also \link{PMF.get_mean}, \link{PMF.get_var}, \link{PMF.sample}, \link{PMF.get_quantile},
+\link{PMF.summary} for functions that handle PMF objects.
 
-Note that warnings are an indication that the base forecasts might have issues. Please check the base forecasts in case of warnings.
+Warnings are triggered from the Importance Sampling step if:
+\itemize{
+\item weights are all zeros, then the upper forecast is ignored during reconciliation;
+\item the effective sample size is < 200;
+\item the effective sample size is < 1\% of the sample size.
+}
+
+Note that warnings are an indication that the base forecasts might have issues.
+Please check the base forecasts in case of warnings.
 }
 \examples{
 
@@ -103,9 +114,9 @@ fc_bottom[[1]] <- apply(matrix(seq(0,n_tot)),MARGIN=1,FUN=function(x) dpois(x,la
 fc_bottom[[2]] <- apply(matrix(seq(0,n_tot)),MARGIN=1,FUN=function(x) dpois(x,lambda=lambda))
 
 # The upper forecast is a Normal with mean 40 and std 5
-fc_upper<- list(mu=40, Sigma=matrix(c(5^2)))
+fc_upper<- list(mu=40, Sigma=matrix(5^2))
 
-# We can reconcile with reconc_TDcond
+# We can reconcile with reconc_MixCond
 res.mixCond <- reconc_MixCond(S, fc_bottom, fc_upper)
 
 # Note that the bottom distributions are slightly shifted to the right
@@ -128,5 +139,5 @@ Zambon, L., Agosto, A., Giudici, P., Corani, G. (2023). \emph{Properties of the 
 Zambon, L., Azzimonti, D., Rubattu, N., Corani, G. (2024). \emph{Probabilistic reconciliation of mixed-type hierarchical time series} The 40th Conference on Uncertainty in Artificial Intelligence, accepted.
 }
 \seealso{
-\link{reconc_TDcond}, \code{\link[=reconc_BUIS]{reconc_BUIS()}}
+\link{reconc_TDcond}, \link{reconc_BUIS}
 }

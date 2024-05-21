@@ -36,7 +36,9 @@ If it is a list the i-th element is a string with two possible values:
 
 If \code{distr} is a string it is assumed that all distributions are of the same type.}
 
-\item{num_samples}{Number of samples drawn from the reconciled distribution.}
+\item{num_samples}{Number of samples drawn from the reconciled distribution.
+This is ignored if \code{bottom_in_type='samples'}; in this case, the number of reconciled samples is equal to
+the number of samples of the base forecasts.}
 
 \item{suppress_warnings}{Logical. If \code{TRUE}, no warnings about effective sample size
 are triggered. If \code{FALSE}, warnings are generated. Default is \code{FALSE}. See Details.}
@@ -53,7 +55,7 @@ A list containing the reconciled forecasts. The list has the following named ele
 }
 \description{
 Uses the Bottom-Up Importance Sampling algorithm to draw samples from the reconciled
-forecast distribution, which is obtained via conditioning.
+forecast distribution, obtained via conditioning.
 }
 \details{
 The parameter \code{base_forecast} is a list containing n elements where the i-th element depends on
@@ -79,7 +81,8 @@ Warnings are triggered from the Importance Sampling step if:
 \item the effective sample size is < 1\% of the sample size (\code{num_samples} if \code{in_type} is 'params' or the size of the base forecast if if \code{in_type} is 'samples').
 }
 
-Note that warnings are an indication that the base forecasts might have issues. Please check the base forecasts in case of warnings.
+Note that warnings are an indication that the base forecasts might have issues.
+Please check the base forecasts in case of warnings.
 }
 \examples{
 

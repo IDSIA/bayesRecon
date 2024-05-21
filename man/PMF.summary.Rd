@@ -9,15 +9,17 @@ PMF.summary(pmf, toll = 1e-16, Rtoll = 1e-07)
 \arguments{
 \item{pmf}{the PMF object.}
 
-\item{toll}{lowest possible probability mass on the left}
+\item{Rtoll}{used for computing the max of the PMF: the max is the largest value
+with probability greater than Rtoll (default: 1e-7)}
 
-\item{Rtoll}{lowest possible probability mass on the right}
+\item{Ltoll}{used for computing the min of the PMF: the min is the smallest value
+with probability greater than Ltoll (default: 1e-16)}
 }
 \value{
 A summary data.frame
 }
 \description{
-Returns the summary (min,max, IQR, median, mean) of the PMF specified by \code{pmf}.
+Returns the summary (min, max, IQR, median, mean) of the PMF specified by \code{pmf}.
 }
 \examples{
 library(bayesRecon)

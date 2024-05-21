@@ -26,16 +26,23 @@ knitr::opts_chunk$set(
 [![License: LGPL (>= 3)](https://img.shields.io/badge/license-LGPL (>= 3)-yellow.svg)](https://www.gnu.org/licences/lgpl-3.0)
 <!-- badges: end -->
 
-The package `bayesRecon` implements probabilistic reconciliation of hierarchical time series forecasts via conditioning.
+The package `bayesRecon` implements several methods for probabilistic reconciliation of hierarchical time series forecasts.
 
 The main functions are:
 
- * `reconc_gaussian`: implements analytic formulae for the reconciliation of Gaussian base forecasts;
- * `reconc_BUIS`: a generic tool for the reconciliation of any probabilistic time series forecast via importance sampling;
+ * `reconc_gaussian`: reconciliation via conditioning of multivariate Gaussian base forecasts; 
+    this is done analytically;
+ * `reconc_BUIS`: reconciliation via conditioning of any probabilistic forecast via importance sampling;
     this is the recommended option for non-Gaussian base forecasts;
- * `reconc_MCMC`: a generic tool for the reconciliation of probabilistic count time series forecasts via Markov Chain Monte Carlo.
+ * `reconc_MCMC`: reconciliation via conditioning of discrete probabilistic forecasts via Markov Chain Monte Carlo;
+ * `reconc_MixCond`: reconciliation via conditioning of mixed hierarchies, where the upper forecasts are
+    multivariate Gaussian and the bottom forecasts are discrete distributions;
+ * `reconc_TDcond`: reconciliation via top-down conditioning of mixed hierarchies, where the upper forecasts are
+    multivariate Gaussian and the bottom forecasts are discrete distributions.
  
 ## News
+:boom: [2024-05-24] Added `reconc_MixCond` and `reconc_TDcond`. 
+
 :boom: [2023-12-19] Added the vignette "Properties of the reconciled distribution via conditioning".
 
 :boom: [2023-08-23] Added the vignette "Probabilistic Reconciliation via Conditioning with bayesRecon". Added the `schaferStrimmer_cov` function.
