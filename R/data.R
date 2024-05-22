@@ -6,13 +6,18 @@
 #' Univariate time series of class \link[stats]{ts}.
 #' 
 #' @references
-#' Hyndman, R.J., Koehler, A.B., Ord, J.K., and Snyder, R.D., (2008) Forecasting with exponential 
-#' smoothing: the state space approach, Springer
+#' Hyndman, R.J., Koehler, A.B., Ord, J.K., and Snyder, R.D., (2008).
+#' Forecasting with exponential smoothing: the state space approach.
+#' Springer Science & Business Media.
 #' 
-#' Godahewa, Rakshitha, Bergmeir, Christoph, Webb, Geoff, Hyndman, Rob, & Montero-Manso, Pablo. (2020). Car Parts Dataset (without Missing Values) (Version 2) \doi{10.5281/zenodo.4656021}
+#' Godahewa, R., Bergmeir, C., Webb, G., Hyndman, R., & Montero-Manso, P. (2020). 
+#' Car Parts Dataset (without Missing Values) (Version 2) 
+#' \doi{10.5281/zenodo.4656021}
 #' 
 #' @source 
-#' Godahewa, Rakshitha, Bergmeir, Christoph, Webb, Geoff, Hyndman, Rob, & Montero-Manso, Pablo. (2020). Car Parts Dataset (without Missing Values) (Version 2) \doi{10.5281/zenodo.4656021}
+#' Godahewa, R., Bergmeir, C., Webb, G., Hyndman, R.J., & Montero-Manso, P. (2020). 
+#' Car Parts Dataset (without Missing Values) (Version 2) 
+#' \doi{10.5281/zenodo.4656021}
 "carparts_example"
 
 
@@ -31,7 +36,9 @@
 #' hts package [CRAN](https://cran.r-project.org/package=hts)
 #' 
 #' @references 
-#' R. J. Hyndman, R. A. Ahmed, G. Athanasopoulos and H.L. Shang (2011) Optimal combination forecasts for hierarchical time series. Computational Statistics and Data Analysis, 55(9), 2579-2589.
+#' Hyndman, R.J., Ahmed, R.A., Athanasopoulos, G., Shang, H.L. (2011).
+#' Optimal combination forecasts for hierarchical time series. 
+#' Computational Statistics and Data Analysis, 55(9), 2579-2589.
 "infantMortality"
 
 
@@ -66,19 +73,29 @@
 #' A multivariate time series of class \link[stats]{ts}.
 #' 
 #' @source 
-#' Zambon, L., Agosto, A., Giudici, P., Corani, G. (2023). *Properties of the reconciled distributions for Gaussian and count forecasts*. \doi{10.48550/arXiv.2303.15135}.
+#' Zambon, L., Agosto, A., Giudici, P., Corani, G. (2024). 
+#' *Properties of the reconciled distributions for Gaussian and count forecasts*. 
+#' International Journal of Forecasting (in press).
+#' \doi{10.1016/j.ijforecast.2023.12.004}.
 #' 
 #' @references 
-#' Zambon, L., Agosto, A., Giudici, P., Corani, G. (2023). *Properties of the reconciled distributions for Gaussian and count forecasts*. \doi{10.48550/arXiv.2303.15135}.
+#' Zambon, L., Agosto, A., Giudici, P., Corani, G. (2024). 
+#' *Properties of the reconciled distributions for Gaussian and count forecasts*. 
+#' International Journal of Forecasting (in press).
+#' \doi{10.1016/j.ijforecast.2023.12.004}.
 #'
-#' Agosto, A. (2022). *Multivariate Score-Driven Models for Count Time Series to Assess Financial Contagion*. \doi{10.2139/ssrn.4119895}
+#' Agosto, A. (2022). 
+#' *Multivariate Score-Driven Models for Count Time Series to Assess Financial Contagion*. 
+#' \doi{10.2139/ssrn.4119895}
 "extr_mkt_events"
 
 
 #' Base forecasts for the extreme market events dataset 
 #'
 #' Base forecasts for the `extr_mkt_events` dataset, computed using the model by 
-#' Agosto, A. (2022). *Multivariate Score-Driven Models for Count Time Series to Assess Financial Contagion*. \doi{10.2139/ssrn.4119895}. 
+#' Agosto, A. (2022). 
+#' *Multivariate Score-Driven Models for Count Time Series to Assess Financial Contagion*. 
+#' \doi{10.2139/ssrn.4119895}. 
 #' 
 #' The predictive distribution for the bottom time series is a multivariate negative 
 #' binomial with a static vector of dispersion parameters and a time-varying vector 
@@ -95,10 +112,17 @@
 #' }
 #' 
 #' @source 
-#' Agosto, A. (2022). *Multivariate Score-Driven Models for Count Time Series to Assess Financial Contagion*. \doi{10.2139/ssrn.4119895}
+#' Agosto, A. (2022). 
+#' *Multivariate Score-Driven Models for Count Time Series to Assess Financial Contagion*. 
+#' \doi{10.2139/ssrn.4119895}
 #' 
 #' @references 
-#' Agosto, A. (2022). *Multivariate Score-Driven Models for Count Time Series to Assess Financial Contagion*. \doi{10.2139/ssrn.4119895}
+#' Agosto, A. (2022). 
+#' *Multivariate Score-Driven Models for Count Time Series to Assess Financial Contagion*. 
+#' \doi{10.2139/ssrn.4119895}
 #' 
-#' Zambon, L., Agosto, A., Giudici, P., Corani, G. (2023). *Properties of the reconciled distributions for Gaussian and count forecasts*. \doi{10.48550/arXiv.2303.15135}.
+#' Zambon, L., Agosto, A., Giudici, P., Corani, G. (2024). 
+#' *Properties of the reconciled distributions for Gaussian and count forecasts*. 
+#' International Journal of Forecasting (in press).
+#' \doi{10.1016/j.ijforecast.2023.12.004}. 
 "extr_mkt_events_basefc"

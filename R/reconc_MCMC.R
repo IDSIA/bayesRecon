@@ -73,8 +73,9 @@
 #'print(rowMeans(samples_buis))
 #'
 #' @references
-#' Corani, G., Azzimonti, D., Rubattu, N. (2023). 
+#' Corani, G., Azzimonti, D., Rubattu, N. (2024). 
 #' *Probabilistic reconciliation of count time series*. 
+#' International Journal of Forecasting 40 (2), 457-469.
 #' \doi{10.1016/j.ijforecast.2023.04.003}.
 #'
 #' @seealso

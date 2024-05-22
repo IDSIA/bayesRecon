@@ -130,11 +130,19 @@ PMF.get_var(res.TDcond$upper_reconciled$pmf[[1]])
 
 }
 \references{
-Corani, G., Azzimonti, D., Augusto, J.P.S.C., Zaffalon, M. (2021). \emph{Probabilistic Reconciliation of Hierarchical Forecast via Bayes' Rule}. In: Hutter, F., Kersting, K., Lijffijt, J., Valera, I. (eds) Machine Learning and Knowledge Discovery in Databases. ECML PKDD 2020. Lecture Notes in Computer Science(), vol 12459. Springer, Cham. \doi{10.1007/978-3-030-67664-3_13}.
+Corani, G., Azzimonti, D., Augusto, J.P.S.C., Zaffalon, M. (2021).
+\emph{Probabilistic Reconciliation of Hierarchical Forecast via Bayes' Rule}.
+ECML PKDD 2020. Lecture Notes in Computer Science, vol 12459.
+\doi{10.1007/978-3-030-67664-3_13}.
 
-Zambon, L., Agosto, A., Giudici, P., Corani, G. (2023). \emph{Properties of the reconciled distributions for Gaussian and count forecasts}. \doi{10.48550/arXiv.2303.15135}.
+Zambon, L., Agosto, A., Giudici, P., Corani, G. (2024).
+\emph{Properties of the reconciled distributions for Gaussian and count forecasts}.
+International Journal of Forecasting (in press).
+\doi{10.1016/j.ijforecast.2023.12.004}.
 
-Zambon, L., Azzimonti, D., Rubattu, N., Corani, G. (2024). \emph{Probabilistic reconciliation of mixed-type hierarchical time series} The 40th Conference on Uncertainty in Artificial Intelligence, accepted.
+Zambon, L., Azzimonti, D., Rubattu, N., Corani, G. (2024).
+\emph{Probabilistic reconciliation of mixed-type hierarchical time series}.
+The 40th Conference on Uncertainty in Artificial Intelligence, accepted.
 }
 \seealso{
 \code{\link[=reconc_MixCond]{reconc_MixCond()}}, \code{\link[=reconc_BUIS]{reconc_BUIS()}}

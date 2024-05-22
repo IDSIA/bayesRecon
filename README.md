@@ -258,22 +258,27 @@ the reconciled means obtained via BUIS are 7.41, 2.71, 4.71.
 
 Corani, G., Azzimonti, D., Augusto, J.P.S.C., Zaffalon, M. (2021).
 *Probabilistic Reconciliation of Hierarchical Forecast via Bayes’ Rule*.
-In: Hutter, F., Kersting, K., Lijffijt, J., Valera, I. (eds) Machine
-Learning and Knowledge Discovery in Databases. ECML PKDD 2020. Lecture
-Notes in Computer Science(), vol 12459. Springer, Cham.
+ECML PKDD 2020. Lecture Notes in Computer Science, vol 12459.
 [DOI](https://doi.org/10.1007/978-3-030-67664-3_13)
 
-Corani, G., Azzimonti, D., Rubattu, N. (2023). *Probabilistic
-reconciliation of count time series*.
+Corani, G., Azzimonti, D., Rubattu, N. (2024). *Probabilistic
+reconciliation of count time series*. International Journal of
+Forecasting 40 (2), 457-469.
 [DOI](https://doi.org/10.1016/j.ijforecast.2023.04.003)
 
 Zambon, L., Azzimonti, D. & Corani, G. (2024). *Efficient probabilistic
 reconciliation of forecasts for real-valued and count time series*.
+Statistics and Computing 34 (1), 21.
 [DOI](https://doi.org/10.1007/s11222-023-10343-y)
 
 Zambon, L., Agosto, A., Giudici, P., Corani, G. (2024). *Properties of
 the reconciled distributions for Gaussian and count forecasts*.
+International Journal of Forecasting (in press).
 [DOI](https://doi.org/10.1016/j.ijforecast.2023.12.004)
+
+Zambon, L., Azzimonti, D., Rubattu, N., Corani, G. (2024).
+*Probabilistic reconciliation of mixed-type hierarchical time series*.
+The 40th Conference on Uncertainty in Artificial Intelligence, accepted.
 
 ## Contributors
 

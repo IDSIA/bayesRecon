@@ -24,24 +24,28 @@
 #' * [get_reconc_matrices()]: aggregation and summing matrices for a temporal hierarchy 
 #'    of time series from user-selected list of aggregation levels;
 #' * [schaferStrimmer_cov()]: computes the Schäfer-Strimmer shrinkage estimator for the covariance matrix;
-#' * [PMF.get_mean(), PMF.get_var(), PMF.get_quantile(), PMF.summary(), PMF.sample()]: 
+#' * [PMF.get_mean()], [PMF.get_var()], [PMF.get_quantile()], [PMF.summary()], [PMF.sample()]: 
 #'    functions for handling PMF objects.
 #'
 #' @references
 #' Corani, G., Azzimonti, D., Augusto, J.P.S.C., Zaffalon, M. (2021). 
 #' *Probabilistic Reconciliation of Hierarchical Forecast via Bayes' Rule*. 
+#' ECML PKDD 2020. Lecture Notes in Computer Science, vol 12459.
 #' \doi{10.1007/978-3-030-67664-3_13}.
 #' 
-#' Corani, G., Azzimonti, D., Rubattu, N. (2023). 
+#' Corani, G., Azzimonti, D., Rubattu, N. (2024). 
 #' *Probabilistic reconciliation of count time series*. 
+#' International Journal of Forecasting 40 (2), 457-469.
 #' \doi{10.1016/j.ijforecast.2023.04.003}.
 #' 
 #' Zambon, L., Azzimonti, D. & Corani, G. (2024). 
 #' *Efficient probabilistic reconciliation of forecasts for real-valued and count time series*. 
+#' Statistics and Computing 34 (1), 21.
 #' \doi{10.1007/s11222-023-10343-y}.
 #'
 #' Zambon, L., Agosto, A., Giudici, P., Corani, G. (2024). 
 #' *Properties of the reconciled distributions for Gaussian and count forecasts*. 
+#' International Journal of Forecasting (in press).
 #' \doi{10.1016/j.ijforecast.2023.12.004}.
 #'
 #' Zambon, L., Azzimonti, D., Rubattu, N., Corani, G. (2024). 

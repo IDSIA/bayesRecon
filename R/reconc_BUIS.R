@@ -186,6 +186,7 @@
 #' @references
 #' Zambon, L., Azzimonti, D. & Corani, G. (2024). 
 #' *Efficient probabilistic reconciliation of forecasts for real-valued and count time series*. 
+#' Statistics and Computing 34 (1), 21.
 #' \doi{10.1007/s11222-023-10343-y}.
 #'
 #'
