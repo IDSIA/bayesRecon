@@ -1,8 +1,17 @@
 ################################################################################
+# IMPLEMENTED DISTRIBUTIONS
 
 .DISTR_TYPES = c("continuous", "discrete")
 .DISCR_DISTR = c("poisson", "nbinom")
 .CONT_DISTR = c("gaussian")
+
+################################################################################
+# PARAMETERS FOR PMF CONVOLUTION AND SMOOTHING
+
+.TOLL = 1e-15
+.RTOLL = 1e-9
+.ALPHA_SMOOTHING = 1e-9
+.LAP_SMOOTHING = FALSE
 
 ################################################################################
 # CHECK INPUT

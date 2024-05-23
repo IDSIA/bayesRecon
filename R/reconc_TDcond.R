@@ -40,8 +40,9 @@
 # Given a vector u of the upper values and a list of the bottom distr pmfs,
 # returns samples (dim: n_bottom x length(u)) from the conditional distr 
 # of the bottom given the upper values
-.TD_sampling = function(u, bott_pmf, toll=1e-16, Rtoll=1e-7, 
-                       smoothing=TRUE, al_smooth=NULL, lap_smooth=FALSE) {
+.TD_sampling = function(u, bott_pmf, 
+                        toll=.TOLL, Rtoll=.RTOLL, smoothing=TRUE, 
+                        al_smooth=.ALPHA_SMOOTHING, lap_smooth=.LAP_SMOOTHING) {
   
   l_l_pmf = rev(PMF.bottom_up(bott_pmf, toll = toll, Rtoll = Rtoll, return_all = TRUE, 
                               smoothing=smoothing, al_smooth=al_smooth, lap_smooth=lap_smooth))
@@ -122,8 +123,6 @@
 #' * 'samples' returns a list containing the reconciled multivariate samples;
 #' * 'all' returns a list with both pmf objects and samples.
 #' 
-#' @param ... additional parameters for pmf convolution
-#' 
 #' @param suppress_warnings Logical. If \code{TRUE}, no warnings about samples
 #'        are triggered. If \code{FALSE}, warnings are generated. Default is \code{FALSE}. See Details.
 #' @param seed Seed for reproducibility.
@@ -187,21 +186,9 @@
 reconc_TDcond = function(S, fc_bottom, fc_upper, 
                          bottom_in_type = "pmf", distr = NULL,
                          num_samples = 2e4, return_type = "pmf", 
-                         ...,
                          suppress_warnings = FALSE, seed = NULL) {
   
   if (!is.null(seed)) set.seed(seed)
-  
-  # Parameters for convolution
-  # toll=1e-16
-  # Rtoll=1e-7
-  # smooth_bottom=TRUE
-  # al_smooth=NULL
-  # lap_smooth=FALSE 
-  
-  # After testing the convolution parameters:
-  # remove dots, remove comment above, and set the "best parameters" as default in 
-  # PMF.check_support, .TD_sampling, PMF.summary
   
   # Check inputs
   .check_input_TD(S, fc_bottom, fc_upper, 
@@ -263,13 +250,13 @@ reconc_TDcond = function(S, fc_bottom, fc_upper,
   }
   
   # Check that each multiv. sample of U is contained in the supp of the bottom-up distr
-  samp_ok = mapply(PMF.check_support, U_js, L_pmf_js, 
-                   MoreArgs = list(...))
+  samp_ok = mapply(PMF.check_support, U_js, L_pmf_js)
   samp_ok = rowSums(samp_ok) == n_u_low
   # Only keep the "good" upper samples, and throw a warning if some samples are discarded:
   U_js = lapply(U_js, "[", samp_ok) 
   if (sum(samp_ok) != num_samples & !suppress_warnings) {
-    warning(paste0("Only ", round(sum(samp_ok)/num_samples, 3)*100, "% of the upper samples ",
+    # We round down to the nearest decimal
+    warning(paste0("Only ", floor(sum(samp_ok)/num_samples*1000)/10, "% of the upper samples ",
                    "are in the support of the bottom-up distribution; ",
                    "the others are discarded."))
   }
@@ -277,7 +264,7 @@ reconc_TDcond = function(S, fc_bottom, fc_upper,
   # Get bottom samples via the prob top-down
   B = list()
   for (j in 1:n_u_low) {
-    B[[j]] = .TD_sampling(U_js[[j]], L_pmf_js[[j]], ...)
+    B[[j]] = .TD_sampling(U_js[[j]], L_pmf_js[[j]])
   }
   B = do.call("rbind", B)  # dim: n_bottom x num_samples
   U = A %*% B              # dim: n_upper x num_samples

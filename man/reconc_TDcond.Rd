@@ -12,7 +12,6 @@ reconc_TDcond(
   distr = NULL,
   num_samples = 20000,
   return_type = "pmf",
-  ...,
   suppress_warnings = FALSE,
   seed = NULL
 )
@@ -46,8 +45,6 @@ A string with three possible values:
 \item 'samples' returns a list containing the reconciled multivariate samples;
 \item 'all' returns a list with both pmf objects and samples.
 }}
-
-\item{...}{additional parameters for pmf convolution}
 
 \item{suppress_warnings}{Logical. If \code{TRUE}, no warnings about samples
 are triggered. If \code{FALSE}, warnings are generated. Default is \code{FALSE}. See Details.}

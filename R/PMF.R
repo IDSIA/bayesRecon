@@ -16,7 +16,7 @@ PMF.from_samples = function(v) {
 }
 
 # Compute the pmf from a parametric distribution
-PMF.from_params = function(params, distr, Rtoll = 1e-7) {
+PMF.from_params = function(params, distr, Rtoll = .RTOLL) {
   # Check that the distribution is implemented, and that the params are ok
   if (!(distr %in% .DISCR_DISTR)) {
     stop(paste0("Input error: distr must be one of {",
@@ -186,9 +186,9 @@ PMF.get_quantile = function(pmf, p) {
 #' 
 #' @param pmf the PMF object.
 #' @param Ltoll used for computing the min of the PMF: the min is the smallest value
-#'        with probability greater than Ltoll (default: 1e-16) 
+#'        with probability greater than Ltoll (default: 1e-15) 
 #' @param Rtoll used for computing the max of the PMF: the max is the largest value
-#'        with probability greater than Rtoll (default: 1e-7)
+#'        with probability greater than Rtoll (default: 1e-9)
 #' 
 #' @examples 
 #' library(bayesRecon)
@@ -205,7 +205,7 @@ PMF.get_quantile = function(pmf, p) {
 #' @return A summary data.frame
 #' @seealso [PMF.get_mean()], [PMF.get_var()], [PMF.get_quantile()], [PMF.sample()]
 #' @export
-PMF.summary = function(pmf, Ltoll=1e-16, Rtoll=1e-7) {
+PMF.summary = function(pmf, Ltoll=.TOLL, Rtoll=.RTOLL) {
   min_pmf = min(which(pmf > Ltoll)) - 1
   max_pmf = max(which(pmf > Rtoll)) - 1
   all_summaries <- data.frame("Min."    = min_pmf,
@@ -223,7 +223,7 @@ PMF.summary = function(pmf, Ltoll=1e-16, Rtoll=1e-7) {
 # If the smoothing parameter alpha is not specified, it is set to the min of pmf. 
 # If laplace is set to TRUE, add alpha to all the points. 
 # Otherwise, add alpha only to points with zero mass.
-PMF.smoothing = function(pmf, alpha = NULL, laplace=FALSE) {
+PMF.smoothing = function(pmf, alpha = 1e-9, laplace=FALSE) {
   
   if (is.null(alpha)) alpha = min(pmf[pmf!=0])
   
@@ -242,7 +242,7 @@ PMF.smoothing = function(pmf, alpha = NULL, laplace=FALSE) {
 # -removes small values at the end of the vector (< Rtoll)
 # -set to zero all the values to the left of the support
 # -set to zero small values (< toll)
-PMF.conv = function(pmf1, pmf2, toll=1e-16, Rtoll=1e-7) {
+PMF.conv = function(pmf1, pmf2, toll=.TOLL, Rtoll=.RTOLL) {
   pmf = stats::convolve(pmf1, rev(pmf2), type="open")
   # Look for last value > Rtoll and remove all the elements after it:
   last_pos = max(which(pmf > Rtoll))  
@@ -268,8 +268,8 @@ PMF.conv = function(pmf1, pmf2, toll=1e-16, Rtoll=1e-7) {
 # -the bottom-up pmf, if return_all=FALSE
 # -otherwise, a list of lists of pmfs for all the steps of the algorithm; 
 #  they correspond to the variables of the "auxiliary binary tree"
-PMF.bottom_up = function(l_pmf, toll=1e-16, Rtoll=1e-7, return_all=FALSE,
-                         smoothing=TRUE, al_smooth=NULL, lap_smooth=FALSE) {
+PMF.bottom_up = function(l_pmf, toll=.TOLL, Rtoll=.RTOLL, return_all=FALSE,
+                         smoothing=TRUE, al_smooth=.ALPHA_SMOOTHING, lap_smooth=.LAP_SMOOTHING) {
   
   # Smoothing to "cover the holes" in the supports of the bottom pmfs
   if (smoothing) l_pmf = lapply(l_pmf, PMF.smoothing, 
@@ -306,8 +306,8 @@ PMF.bottom_up = function(l_pmf, toll=1e-16, Rtoll=1e-7, return_all=FALSE,
 # Given a vector v_u and a list of bottom pmf l_pmf,
 # checks if the elements of v_u are contained in the support of the bottom-up distr 
 # Returns a vector with the same length of v_u with TRUE if it is contained and FALSE otherwise 
-PMF.check_support = function(v_u, l_pmf, toll=1e-16, Rtoll=1e-7,
-                             smoothing=TRUE, al_smooth=NULL, lap_smooth=FALSE) {
+PMF.check_support = function(v_u, l_pmf, toll=.TOLL, Rtoll=.RTOLL,
+                             smoothing=TRUE, al_smooth=.ALPHA_SMOOTHING, lap_smooth=.LAP_SMOOTHING) {
   pmf_u = PMF.bottom_up(l_pmf, toll=toll, Rtoll=Rtoll, return_all=FALSE,
                         smoothing=smoothing, al_smooth=al_smooth, lap_smooth=lap_smooth)
   # The elements of v_u must be in the support of pmf_u

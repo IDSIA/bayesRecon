@@ -4,16 +4,16 @@
 \alias{PMF.summary}
 \title{Returns summary of a PMF object}
 \usage{
-PMF.summary(pmf, Ltoll = 1e-16, Rtoll = 1e-07)
+PMF.summary(pmf, Ltoll = .TOLL, Rtoll = .RTOLL)
 }
 \arguments{
 \item{pmf}{the PMF object.}
 
 \item{Ltoll}{used for computing the min of the PMF: the min is the smallest value
-with probability greater than Ltoll (default: 1e-16)}
+with probability greater than Ltoll (default: 1e-15)}
 
 \item{Rtoll}{used for computing the max of the PMF: the max is the largest value
-with probability greater than Rtoll (default: 1e-7)}
+with probability greater than Rtoll (default: 1e-9)}
 }
 \value{
 A summary data.frame
