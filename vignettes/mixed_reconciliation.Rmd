@@ -1,0 +1,427 @@
+---
+title: "Reconciliation of M5 hierarchy with mixed-type forecasts"
+author: "Lorenzo Zambon, Dario Azzimonti, Nicolò Rubattu, Giorgio Corani"
+date: "2024-05-22"
+lang: "en"
+bibliography: references.bib
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Reconciliation of M5 hierarchy with mixed-type forecasts}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(bayesRecon)
+```
+
+# Introduction
+
+This vignette partially reproduces the results of the paper *Probabilistic reconciliation of mixed-type hierarchical time series* [@zambon2024mixed], 
+accepted for publication at the 40th Conference on Uncertainty in Artificial Intelligence.
+We replicate the reconciliation of the one-step ahead forecasts of one store from the time series hierarchy of the M5 competition [@MAKRIDAKIS20221325]. Sec. 5 of the paper presents the results of the experiment conducted on 10 different stores. 
+
+# Data and forecasts
+
+The M5 competition [@MAKRIDAKIS20221325] contains daily time series of sales data referring to 10 different stores. The hierarchy of each store has the same structure: 3049 bottom time series (single items) and 11 upper time series, obtained by aggregating the items by department, product category, and store. The figure below shows the hierarchy of a store.
+
+```{r out.width = '100%', echo = FALSE}
+knitr::include_graphics("img/M5store_hier.png")
+```
+
+We focus here on the store ``CA_1''. We computed the one-step ahead ($h=1$) forecasts for each bottom and upper time series, i.e. base forecasts, by using iETS [@svetunkov2023iets], available from the R package smooth [@smooth_pkg]. 
+
+The base forecasts are stored in the data `M5_CA1_basefc`, available with this package. 
+
+```{r}
+# Hierarchy composed by 3060 time series: 3049 bottom and 11 upper
+n_b <- 3049
+n_u <- 11
+n <- n_b + n_u   
+
+# Save matrix A and S
+A <- M5_CA1_basefc$A
+S <- M5_CA1_basefc$S
+
+# Base forecasts:
+base_fc_upper  <- M5_CA1_basefc$upper
+base_fc_bottom <- M5_CA1_basefc$bottom
+```
+
+# Gaussian reconciliations
+
+We start by assuming that all forecasts are Gaussian and perform a Gaussian forecast reconciliation 
+with the function `bayesRecon::reconc_gaussian`. 
+
+The method `Gauss` considers the bottom forecasts as independent and the upper forecasts are a multivariate Gaussian. 
+
+
+```{r}
+# We will save all results in the list rec_fc
+rec_fc = list(
+        Gauss = list(),
+        Mixed_cond = list(),
+        TD_cond = list()
+      )
+    
+# Extract Gaussian parameters from the upper forecasts
+mu_u = c()
+sd_u = c()
+for (fc in base_fc_upper) {
+  mu_u = c(mu_u, fc$mu)
+  sd_u = c(sd_u, fc$sigma)
+} 
+residuals.upper = lapply(base_fc_upper, "[[", "residuals")
+residuals.upper = t(do.call("rbind", residuals.upper))
+Sigma_u = schaferStrimmer_cov(residuals.upper)$shrink_cov
+  
+
+# Extract parameters for bottom forecasts
+mu_b = c()
+sd_b = c()
+for (fc_b in base_fc_bottom) {
+  pmf = fc_b$pmf
+  mu_bott = PMF.get_mean(pmf) 
+  sd_bott = PMF.get_var(pmf)**0.5
+  mu_b = c(mu_bott, mu_b)
+  sd_b = c(sd_bott, sd_b)
+}
+Sigma_b = diag(sd_b**2)
+    
+### Gaussian reconciliation ###
+
+base_forecasts.mu <- c(mu_u,mu_b)
+base_forecasts.Sigma <- diag(c(sd_u**2,sd_b**2))
+      
+# Gauss
+base_forecasts.Sigma_corr <- base_forecasts.Sigma
+base_forecasts.Sigma_corr[1:11,1:11] <- Sigma_u
+
+start <- Sys.time()       
+gauss = reconc_gaussian(S, base_forecasts.mu,
+                        base_forecasts.Sigma_corr)
+stop <- Sys.time()
+
+rec_fc$Gauss = list(mu_b    = gauss$bottom_reconciled_mean,
+                         Sigma_b = gauss$bottom_reconciled_covariance,
+                         mu_u    = A %*% gauss$bottom_reconciled_mean,
+                         Sigma_u = A %*% gauss$bottom_reconciled_covariance %*% t(A))
+
+
+Gauss_time_print <- round(difftime(stop, start, units = "secs"), 2)
+cat("Computational time for Gaussian reconciliation: ",     
+    Gauss_time_print, "s")
+Gauss_time <- as.double(Gauss_time_print)
+```
+
+
+# Reconciliation with mixed-cond
+
+We now reconcile the forecasts with the algorithm Mix-cond described in [@zambon2024mixed], Sec. 4. The algorithm is implemented in the function \link{reconc_MixCond}. 
+
+```{r}
+### Mixed correlated 
+seed <- 1
+N_samples_IS <- 5e4
+
+fc_upper_4rec <- list(mu=mu_u, Sigma=Sigma_u)
+fc_bottom_4rec <- lapply(base_fc_bottom,function(x) x$pmf)
+
+start <- Sys.time()       
+mix_cond = reconc_MixCond(S, fc_bottom_4rec, fc_upper_4rec, bottom_in_type = "pmf",
+                           num_samples = N_samples_IS, return_type = "pmf", seed = seed)
+stop <- Sys.time()       
+
+      
+rec_fc$Mixed_cond = list(
+  bottom = mix_cond$bottom_reconciled$pmf,
+  upper = mix_cond$upper_reconciled$pmf,
+  ESS = mix_cond$ESS)
+
+MixCond_time_print <- round(difftime(stop, start, units = "secs"), 2)
+cat("Computational time for Mix-cond reconciliation: ",     
+    MixCond_time_print, "s")
+MixCond_time <- as.double(MixCond_time_print)
+```
+
+As discussed in [@zambon2024mixed], Sec. 4, Mix-cond performs poorly in high dimensions. While we have not computed the metrics for this reconciliation yet, we see that the implementation returns a warning regarding the effective sample size of the importance sampling algorithm. This is a sign that Mix-cond is not handling well the high incoherence between the joint bottom-up and the upper base forecasts, see also [@zambon2024mixed], fig. 3, for a graphical example. 
+
+# Reconciliation with TD-cond
+
+In [@zambon2024mixed], Sec. 5, TD-cond is proposed as a reliable alternative in high dimensions. This algorithm is implemented in the function \link{reconc_TDcond}. 
+
+```{r}
+### TD-cond 
+N_samples_TD <- 1e4
+
+start <- Sys.time()     
+td = reconc_TDcond(S, fc_bottom_4rec, fc_upper_4rec,
+                   bottom_in_type = "pmf", num_samples = N_samples_TD, 
+                   return_type = "pmf", seed = seed)
+stop <- Sys.time()  
+
+rec_fc$TD_cond = list(
+  bottom = td$bottom_reconciled$pmf,
+  upper = td$upper_reconciled$pmf)
+
+TDCond_time_print <- round(difftime(stop, start, units = "secs"), 2)
+cat("Computational time for TD-cond reconciliation: ",     
+    TDCond_time_print, "s")
+TDCond_time <- as.double(TDCond_time_print)
+```
+
+The algorithm TD-cond still returns a warning regarding the high incoherence between the joint bottom-up and the upper base forecasts. We will see that this warning does not impact the performances of TD-cond. 
+
+# Comparison
+
+For each time series in the hierarchy, we compute the following three metrics for each method:
+
+- MASE: Mean Absolute Scaled Error
+
+- MIS: Mean Interval Score
+
+- RPS: Ranked Probability Score
+
+```{r}
+# Parameters for computing the metrics
+alpha<- 0.9 # MIS alpha
+jitt <- 1e-9 # jitter for numerical stability 
+n_samp_gtrunc <- 1e4 # number of truncated normal samples
+
+
+# Save actual values
+actuals_u = unlist(lapply(base_fc_upper, "[[", "actual"))
+actuals_b = unlist(lapply(base_fc_bottom, "[[", "actual"))
+actuals = c(actuals_u, actuals_b)
+
+# Scaling factor for computing MASE
+Q_u <- M5_CA1_basefc$Q_u
+Q_b <- M5_CA1_basefc$Q_b
+Q   <- c(Q_u, Q_b)
+
+# Initialize list to save the results
+mase = list("base" = matrix(nrow = n, ncol = 1),
+            "Gauss" = matrix(nrow = n, ncol = 1),
+            "Mix-cond" = matrix(nrow = n, ncol = 1),
+            "TD-cond" = matrix(nrow = n, ncol = 1))
+mis = mase
+rps = mase
+```
+
+```{r,include=FALSE}
+AE_pmf = function(pmf, actual) {
+  return(abs(PMF.get_quantile(pmf,p=0.5) - actual))
+}
+
+IS_pmf = function(pmf, actual, alpha=0.1) {
+  u = PMF.get_quantile(pmf, p=1-(alpha/2))
+  l = PMF.get_quantile(pmf, p=alpha/2)
+  return(u - l + (2/alpha)*(l - actual)*(actual < l) + 
+           (2/alpha)*(actual - u)*(actual > u) )
+}
+
+CRPS_pmf = function(pmf, actual) {
+  v = pmf
+  cdf = cumsum(v) / sum(v)
+  M = length(cdf)
+  if (actual >= M) {  # if actuals is outside the supp of tab, add ones to the end of the cdf
+    cdf = c(cdf, rep(1, (actual-M+1)))
+    M = length(cdf)
+  }
+  cdf_act = (0:(M-1)) >= actual
+  crps_ = sum((cdf - cdf_act)**2)
+  return(crps_)
+}
+
+MIS_gauss = function(mus, sds, actuals, alpha=0.1, trunc=FALSE) {
+  z = qnorm(1-(alpha/2))
+  u = mus + z * sds
+  l = mus - z * sds
+  if (trunc) {
+    l[l<0] = 0
+    u[u<0] = 0
+  }  
+  return(u - l + (2/alpha)*(l - actuals)*(actuals < l) + 
+           (2/alpha)*(actuals - u)*(actuals > u) )
+}
+
+# MIS_samples = function(samples, actual, alpha=0.1) {
+#   if (nrow(samples)!=length(actual)) stop(paste0(samples, " must be of shape length(", actual, ") x n_samples"))
+#   u = apply(samples, 1, function(x) quantile(x, 1-(alpha/2)))
+#   l = apply(samples, 1, function(x) quantile(x, alpha/2))
+#   return(u - l + (2/alpha)*(l - actual)*(actual < l) + 
+#            (2/alpha)*(actual - u)*(actual > u) )
+# }
+
+skill.score <- function(ref, met) {
+  s = (2 * (ref - met) / (ref + met)) * 100
+  s[is.na(s)] = 0
+  return (s)
+}
+```
+
+
+
+
+```{r}
+### BASE forecasts ###
+# Upper
+mase$base[1:n_u,1] = abs(mu_u - actuals_u) / Q_u
+mis$base[1:n_u,1] = MIS_gauss(mu_u, sd_u, actuals_u, alpha)
+rps$base[1:n_u,1] = scoringRules::crps(actuals_u, "norm", mean=mu_u, sd=sd_u)
+
+# Bottom
+pmfs = lapply(base_fc_bottom, "[[", "pmf")
+mase$base[(n_u+1):n,1] = mapply(AE_pmf, pmfs, actuals_b) / Q_b
+mis$base[(n_u+1):n,1] = mapply(IS_pmf, pmfs, actuals_b, 
+                                     MoreArgs = list(alpha=alpha))
+
+rps$base[(n_u+1):n,1] = mapply(CRPS_pmf, pmfs, actuals_b)
+```
+
+```{r}
+# Metrics for Gauss reconciliations
+mu = c(rec_fc$Gauss$mu_u, rec_fc$Gauss$mu_b)
+sd = c(diag(rec_fc$Gauss$Sigma_u)**0.5, diag(rec_fc$Gauss$Sigma_b)**0.5)
+sd = sd + jitt
+mase$Gauss[,1] = abs(mu - actuals) / Q
+mis$Gauss[,1] = MIS_gauss(mu, sd, actuals, alpha)
+rps$Gauss[,1] = scoringRules::crps(actuals, "norm", mean=mu, sd=sd)
+```
+
+```{r,eval=FALSE,include=FALSE}
+# Metrics for Gauss-truncated reconciliations
+# Bottom
+mu_b = rec_fc$Gauss$mu_b
+mu_b_trunc = mu_b
+mu_b_trunc[mu_b_trunc<0] = 0
+sd_b = diag(rec_fc$Gauss$Sigma_b)**0.5
+
+mase$`Gauss-T`[(n_u+1):n,1] = abs(mu_b_trunc - actuals_b) / Q_b
+mis$`Gauss-T`[(n_u+1):n,1] = MIS_gauss(mu_b_trunc, sd_b, actuals_b, alpha, trunc=TRUE)
+Sigma_b = rec_fc$Gauss$Sigma_b
+Sigma_b = Sigma_b + diag(jitt, nrow(Sigma_b))
+samples_b = t(mvtnorm::rmvnorm(n_samp_gtrunc, mean = mu_b,
+                               sigma = Sigma_b, method = "chol"))
+samples_b[samples_b<0] = 0
+rps$`Gauss-T`[(n_u+1):n,1] = scoringRules::crps_sample(actuals_b, samples_b)
+# Upper
+samples_u = A %*% samples_b
+rm(samples_b)
+medians_u = apply(samples_u, 1, median)
+mase$`Gauss-T`[1:n_u,1] = abs(medians_u - actuals_u) / Q_u
+mis$`Gauss-T`[1:n_u,1] = MIS_samples(samples_u, actuals_u, alpha)
+rps$`Gauss-T`[1:n_u,1] = scoringRules::crps_sample(actuals_u, samples_u)
+```
+
+```{r}
+# Metrics for Mix-cond reconciliation
+pmfs = c(rec_fc$Mixed_cond$upper, rec_fc$Mixed_cond$bottom)
+mase$`Mix-cond`[,1] = mapply(AE_pmf, pmfs, actuals) / Q
+mis$`Mix-cond`[,1] = mapply(IS_pmf, pmfs, actuals, 
+                                  MoreArgs = list(alpha=alpha))
+rps$`Mix-cond`[,1] = mapply(CRPS_pmf, pmfs, actuals)
+```
+
+```{r}
+# Metrics for TD-cond reconciliation
+pmfs = c(rec_fc$TD_cond$upper, rec_fc$TD_cond$bottom)
+mase$`TD-cond`[,1] = mapply(AE_pmf, pmfs, actuals) / Q
+mis$`TD-cond`[,1] = mapply(IS_pmf, pmfs, actuals,
+                          MoreArgs = list(alpha=alpha))
+rps$`TD-cond`[,1] = mapply(CRPS_pmf, pmfs, actuals)
+```
+
+
+## Skill scores
+We report the improvement over the base forecasts using the skill score values and averaging them across experiments.
+For instance, the skill score of Gauss on RPS is:
+
+$$ \text{Skill}_{\%}\,(\text{RPS, }Gauss) = 100 \cdot
+\frac{\text{RPS}(base) - \text{RPS}(Gauss)}
+{(\text{RPS}(base) + \text{RPS}(Gauss))/2}$$
+
+
+
+```{r}
+scores = list(
+        mase = mase,
+        mis  = mis,
+        rps = rps
+      )
+
+ref_met="base"
+methods_ = names(mase)
+methods_ = setdiff(methods_, ref_met)
+metrics = names(scores)
+  
+skill_scores = list()
+for (m in metrics) {
+  skill_scores[[m]] = list()
+  for (met in methods_) {
+    skill_scores[[m]][["upper"]][[met]] = skill.score(scores[[m]][[ref_met]][1:11], 
+                                             scores[[m]][[met]][1:11])
+    skill_scores[[m]][["bottom"]][[met]] = skill.score(scores[[m]][[ref_met]][12:3060], 
+                                             scores[[m]][[met]][12:3060])
+    }
+}
+```
+
+## Boxplots
+
+Finally, we show a comparison of the skill scores for each method divided in upper and bottom level. 
+
+```{r,fig.width=10,fig.height=5}
+custom_colors = c("#a8a8e4", 
+                  "#a9c7e4",
+                  "#aae4df")
+
+# Boxplots of MASE skill scores
+par(mfrow = c(1, 2))
+boxplot(skill_scores$mase$upper,main="MASE upper variables",col=custom_colors)
+abline(h=0,lty=3)
+boxplot(skill_scores$mase$bottom,main= "MASE bottom variables",col=custom_colors)
+abline(h=0,lty=3)
+```
+```{r,eval=TRUE,include=FALSE}
+par(mfrow = c(1, 1))
+```
+
+
+```{r,fig.width=10,fig.height=5}
+# Boxplots of MIS skill scores
+par(mfrow = c(1, 2))
+boxplot(skill_scores$mis$upper,main="MIS upper variables",col=custom_colors)
+abline(h=0,lty=3)
+boxplot(skill_scores$mis$bottom,main= "MIS bottom variables",col=custom_colors)
+abline(h=0,lty=3)
+```
+```{r,eval=TRUE,include=FALSE}
+par(mfrow = c(1, 1))
+```
+
+```{r,fig.width=10,fig.height=5}
+# Boxplots of RPS skill scores
+par(mfrow = c(1, 2))
+boxplot(skill_scores$rps$upper,main="RPS upper variables",col=custom_colors)
+abline(h=0,lty=3)
+boxplot(skill_scores$rps$bottom,main= "RPS bottom variables",col=custom_colors)
+abline(h=0,lty=3)
+```
+```{r,eval=TRUE,include=FALSE}
+par(mfrow = c(1, 1))
+```
+
+# Full reproducibility
+
+The full experiment described in [@zambon2024mixed] can be reproduced by using the code available **here**.
+
+# References
+<div id="refs"></div>
