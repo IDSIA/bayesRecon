@@ -24,28 +24,29 @@ library(bayesRecon)
 
 # Introduction
 
-This vignette partially reproduces the results of the paper *Probabilistic reconciliation of mixed-type hierarchical time series* [@zambon2024mixed], 
-accepted for publication at the 40th Conference on Uncertainty in Artificial Intelligence.
-We replicate the reconciliation of the one-step ahead forecasts of one store from the 
-time series hierarchy of the M5 competition [@MAKRIDAKIS20221325]. 
-Sec. 5 of the paper presents the results of the experiments conducted on 10 different stores replicated 14 times with rolling one-step ahead forecasts. 
+This vignette partially reproduces the results of *Probabilistic reconciliation of mixed-type hierarchical time series* [@zambon2024mixed], 
+published at UAI 2024 (the 40th Conference on Uncertainty in Artificial Intelligence).
 
-# Data and forecasts
+In particular, we replicate the reconciliation of the one-step ahead $(h=1)$ forecasts of one store of the  M5 competition [@MAKRIDAKIS20221325]. 
+Sec. 5 of the paper presents the results for 10  stores, each reconciled
+14 times using rolling one-step ahead forecasts. 
 
-The M5 competition [@MAKRIDAKIS20221325] contains daily time series of sales data referring to 10 different stores. 
-The hierarchy of each store has the same structure: 3049 bottom time series (single items) and 11 upper time series, 
-obtained by aggregating the items by department, product category, and store. The figure below shows the hierarchy of a store.
+
+# Data and base forecasts
+
+The M5 competition [@MAKRIDAKIS20221325] is about daily time series of sales data referring to 10 different stores. 
+Each store has the same hierarchy: 3049 bottom time series (single items) and 11 upper time series,  obtained by aggregating the items by department, product category, and store; see the  below.
 
 ```{r out.width = '100%', echo = FALSE}
 knitr::include_graphics("img/M5store_hier.png")
 ```
 
-We focus here on the store "CA_1". We computed the one-step ahead $(h=1)$ forecasts for each bottom and upper time series, 
-i.e. the base forecasts, by using iETS [@svetunkov2023iets], available from the R package smooth [@smooth_pkg]. 
+We reproduce  the results of store "CA_1". The  base forecasts $(h=1)$  of bottom and upper time series are stored  `M5_CA1_basefc`, available as data in the package.
+The base forecast are computed  using iETS [@svetunkov2023iets], implemented by the R package smooth [@smooth_pkg]. 
 
-The base forecasts are stored in the data `M5_CA1_basefc`, available with this package.
 
 ```{r}
+data("M5_CA1_basefc")
 # Hierarchy composed by 3060 time series: 3049 bottom and 11 upper
 n_b <- 3049
 n_u <- 11
@@ -69,11 +70,11 @@ rec_fc <- list(
 
 # Gaussian reconciliation
 
-We start by assuming that all forecasts are Gaussian and perform a Gaussian forecast reconciliation 
-with the function `reconc_gaussian()`. We refer to this method as `Gauss`. Note that this assumption is not correct because the the bottom base forecasts are not Gaussian. 
+We perform first the Gaussian reconciliation (`Gauss`). 
+It assumes  all forecasts to be Gaussian, even though the bottom base forecasts are not Gaussian. 
 
-The upper base forecasts are assumed to be a multivariate Gaussian, whose covariance matrix is estimated from the in-sample residuals, while the bottom base forecasts are assumed to be independent.
-
+We assume the upper base forecasts to be a multivariate Gaussian, estimating their  covariance matrix from the in-sample residuals. We assume instead the bottom base forecasts  to be independent.
+**giustificare why**
 
 ```{r}
 # Parameters of the upper base forecast distributions
@@ -100,10 +101,11 @@ base_forecasts.Sigma[1:n_u,1:n_u] <- Sigma_u
 base_forecasts.Sigma[(n_u+1):n,(n_u+1):n] <- Sigma_b
 ```
 
-The forecast reconciliation is performed with the function `reconc_gaussian()` which takes as input 
+We reconcile the forecast using the function `reconc_gaussian()` which takes as input: 
 
-* the matrix `S`, the base forecast means; 
-* `base_forecasts.mu` and the base forecast covariance `base_forecasts.Sigma`. 
+* the summing matrix `S`;
+* the means of the  base forecast,  `base_forecasts.mu`; 
+* the covariance of the base forecast,  `base_forecasts.Sigma`. 
 
 The function returns the reconciled mean and covariance for the bottom time series. 
 
