@@ -69,7 +69,7 @@ rec_fc <- list(
 
 # Gaussian reconciliation
 
-We perform Gaussian reconciliation (`Gauss`) first. 
+We perform Gaussian reconciliation (`Gauss`, [@corani2021probabilistic]) first. 
 It assumes  all forecasts to be Gaussian, even though the bottom base forecasts are not Gaussian. 
 
 We assume the upper base forecasts to be a multivariate Gaussian and we estimate their  covariance matrix from the in-sample residuals. We assume also the bottom base forecasts to be independent Gaussian.
