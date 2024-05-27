@@ -46,7 +46,6 @@ The base forecast are computed  using iETS [@svetunkov2023iets], implemented by 
 
 
 ```{r}
-data("M5_CA1_basefc")
 # Hierarchy composed by 3060 time series: 3049 bottom and 11 upper
 n_b <- 3049
 n_u <- 11
@@ -70,10 +69,10 @@ rec_fc <- list(
 
 # Gaussian reconciliation
 
-We perform first the Gaussian reconciliation (`Gauss`). 
+We perform Gaussian reconciliation (`Gauss`) first. 
 It assumes  all forecasts to be Gaussian, even though the bottom base forecasts are not Gaussian. 
 
-We assume the upper base forecasts to be a multivariate Gaussian and we estimate their  covariance matrix from the in-sample residuals. We assume also the bottom base forecasts to be  independent Gaussian.
+We assume the upper base forecasts to be a multivariate Gaussian and we estimate their  covariance matrix from the in-sample residuals. We assume also the bottom base forecasts to be independent Gaussian.
 
 
 ```{r}
@@ -168,7 +167,7 @@ in high dimensions.
 Moreover, forecast for count time series are usually biased and their sum tend to be strongly biased; see  [@zambon2024mixed], fig. 3, for a graphical example. 
 
 # Top down conditioning
-For this reason, we introduced top down conditioning (TD-cond; see [@zambon2024mixed], Sec. 5) as a more reliable approach for reconciliation with mixed variables in high dimensions.
+Top down conditioning (TD-cond; see [@zambon2024mixed], Sec. 5) is a more reliable approach for reconciling  mixed variables in high dimensions.
 The algorithm is implemented by the function `reconc_TDcond()`; it takes the same arguments as `reconc_MixCond()` and returns reconciled forecasts in the same format. 
 
 ```{r}
