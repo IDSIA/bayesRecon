@@ -162,12 +162,14 @@ MixCond_time <- as.double(round(difftime(stop, start, units = "secs"), 2))
 cat("Computational time for Mix-cond reconciliation: ", MixCond_time, "s")
 ```
 
-As discussed in [@zambon2024mixed], Sec. 4, Mix-cond performs poorly in high dimensions and it does not handle well high incoherence between the joint bottom-up and the upper base forecasts, see also [@zambon2024mixed], fig. 3, for a graphical example. 
+As discussed in [@zambon2024mixed], Sec. 4, conditioning with mixed variables performs poorly in high dimensions.
+This is because the bottom-up distribution, built by assuming the bottom forecast to be independent, is untenable
+in high dimensions.
+Moreover, forecast for count time series are usually biased and their sum tend to be strongly biased; see  [@zambon2024mixed], fig. 3, for a graphical example. 
 
-# Reconciliation with top down conditioning
-
-In [@zambon2024mixed], Sec. 5, TD-cond is proposed as a reliable alternative in high dimensions. 
-This algorithm is implemented in the function `reconc_TDcond()`. The function takes the same arguments as `reconc_MixCond()` and returns reconciled forecasts in the same format. 
+# Top down conditioning
+For this reason, we introduced top down conditioning (TD-cond; see [@zambon2024mixed], Sec. 5) as a more reliable approach for reconciliation with mixed variables in high dimensions.
+The algorithm is implemented by the function `reconc_TDcond()`; it takes the same arguments as `reconc_MixCond()` and returns reconciled forecasts in the same format. 
 
 ```{r}
 N_samples_TD <- 1e4
