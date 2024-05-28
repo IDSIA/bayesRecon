@@ -144,7 +144,7 @@
 
 # Check that the samples are discrete 
 .check_discrete_samples <- function(samples) {
-  if (!isTRUE(all.equal(samples, as.integer(samples)))) {
+  if (!isTRUE(all.equal(unname(samples), as.integer(samples)))) {
     stop("Input error: samples are not all discrete")
   }
 }

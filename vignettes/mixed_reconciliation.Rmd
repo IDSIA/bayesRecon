@@ -27,22 +27,22 @@ library(bayesRecon)
 This vignette partially reproduces the results of *Probabilistic reconciliation of mixed-type hierarchical time series* [@zambon2024mixed], 
 published at UAI 2024 (the 40th Conference on Uncertainty in Artificial Intelligence).
 
-In particular, we replicate the reconciliation of the one-step ahead $(h=1)$ forecasts of one store of the  M5 competition [@MAKRIDAKIS20221325]. 
-Sec. 5 of the paper presents the results for 10  stores, each reconciled
+In particular, we replicate the reconciliation of the one-step ahead (h=1) forecasts of one store of the  M5 competition [@MAKRIDAKIS20221325]. 
+Sect. 5 of the paper presents the results for 10  stores, each reconciled
 14 times using rolling one-step ahead forecasts. 
 
 
 # Data and base forecasts
 
 The M5 competition [@MAKRIDAKIS20221325] is about daily time series of sales data referring to 10 different stores. 
-Each store has the same hierarchy: 3049 bottom time series (single items) and 11 upper time series,  obtained by aggregating the items by department, product category, and store; see the  below.
+Each store has the same hierarchy: 3049 bottom time series (single items) and 11 upper time series,  obtained by aggregating the items by department, product category, and store; see the figure below.
 
 ```{r out.width = '100%', echo = FALSE}
 knitr::include_graphics("img/M5store_hier.png")
 ```
 
-We reproduce  the results of store "CA_1". The  base forecasts $(h=1)$  of bottom and upper time series are stored  `M5_CA1_basefc`, available as data in the package.
-The base forecast are computed  using iETS [@svetunkov2023iets], implemented by the R package smooth [@smooth_pkg]. 
+We reproduce  the results of the store "CA_1". The  base forecasts (for h=1)  of the bottom and upper time series are stored in `M5_CA1_basefc`, available as data in the package.
+The base forecast are computed  using ADAM [@svetunkov2023iets], implemented in the R package smooth [@smooth_pkg]. 
 
 
 ```{r}
@@ -69,10 +69,10 @@ rec_fc <- list(
 
 # Gaussian reconciliation
 
-We perform Gaussian reconciliation (`Gauss`, [@corani2021probabilistic]) first. 
+We first perform Gaussian reconciliation (`Gauss`, @corani2021probabilistic). 
 It assumes  all forecasts to be Gaussian, even though the bottom base forecasts are not Gaussian. 
 
-We assume the upper base forecasts to be a multivariate Gaussian and we estimate their  covariance matrix from the in-sample residuals. We assume also the bottom base forecasts to be independent Gaussian.
+We assume the upper base forecasts to be a multivariate Gaussian and we estimate their  covariance matrix from the in-sample residuals. We assume also the bottom base forecasts to be independent Gaussians.
 
 
 ```{r}
@@ -100,7 +100,7 @@ base_forecasts.Sigma[1:n_u,1:n_u] <- Sigma_u
 base_forecasts.Sigma[(n_u+1):n,(n_u+1):n] <- Sigma_b
 ```
 
-We reconcile the forecast using the function `reconc_gaussian()` which takes as input: 
+We reconcile using the function `reconc_gaussian()`, which takes as input: 
 
 * the summing matrix `S`;
 * the means of the  base forecast,  `base_forecasts.mu`; 
@@ -127,15 +127,15 @@ cat("Time taken by Gaussian reconciliation: ", Gauss_time, "s")
 # Reconciliation with mixed-conditioning 
 
 We now reconcile the forecasts using the mixed-conditioning 
-approach of [@zambon2024mixed], Sec. 4. 
-The algorithm is implemented in the function `reconc_MixCond()`. The function takes as input 
+approach of @zambon2024mixed, Sect. 3. 
+The algorithm is implemented in the function `reconc_MixCond()`. The function takes as input: 
 
 * the summing matrix `S`;
-* the probability mass functions of the bottom base forecast, stored in the list `fc_bottom_4rec`;
-* the parameters of the multivariate Gaussian distribution for the upper variables, `fc_upper_4rec`.
-* additional function parameters, among those note that `num_samples` specifies the number of samples used in the internal importance sampling (IS) algorithm. The parameter `return_type` can be changed to `samples` or `all` to obtain the IS samples. 
+* the probability mass functions of the bottom base forecasts, stored in the list `fc_bottom_4rec`;
+* the parameters of the multivariate Gaussian distribution for the upper variables, `fc_upper_4rec`;
+* additional function parameters; among those note that `num_samples` specifies the number of samples used in the internal importance sampling (IS) algorithm. 
 
-The function returns the reconciled forecasts in the form of probability mass functions for both the upper and bottom time series. 
+The function returns the reconciled forecasts in the form of probability mass functions for both the upper and bottom time series. The function parameter `return_type` can be changed to `samples` or `all` to obtain the IS samples. 
 
 ```{r}
 seed <- 1
@@ -161,14 +161,14 @@ MixCond_time <- as.double(round(difftime(stop, start, units = "secs"), 2))
 cat("Computational time for Mix-cond reconciliation: ", MixCond_time, "s")
 ```
 
-As discussed in [@zambon2024mixed], Sec. 4, conditioning with mixed variables performs poorly in high dimensions.
-This is because the bottom-up distribution, built by assuming the bottom forecast to be independent, is untenable
+As discussed in @zambon2024mixed, Sect. 3, conditioning with mixed variables performs poorly in high dimensions.
+This is because the bottom-up distribution, built by assuming the bottom forecasts to be independent, is untenable
 in high dimensions.
-Moreover, forecast for count time series are usually biased and their sum tend to be strongly biased; see  [@zambon2024mixed], fig. 3, for a graphical example. 
+Moreover, forecasts for count time series are usually biased and their sum tends to be strongly biased; see @zambon2024mixed, Fig. 3, for a graphical example. 
 
 # Top down conditioning
-Top down conditioning (TD-cond; see [@zambon2024mixed], Sec. 5) is a more reliable approach for reconciling  mixed variables in high dimensions.
-The algorithm is implemented by the function `reconc_TDcond()`; it takes the same arguments as `reconc_MixCond()` and returns reconciled forecasts in the same format. 
+Top down conditioning (TD-cond; see @zambon2024mixed, Sect. 4) is a more reliable approach for reconciling  mixed variables in high dimensions.
+The algorithm is implemented in the function `reconc_TDcond()`; it takes the same arguments as `reconc_MixCond()` and returns reconciled forecasts in the same format. 
 
 ```{r}
 N_samples_TD <- 1e4
@@ -180,7 +180,7 @@ td <- reconc_TDcond(S, fc_bottom_4rec, fc_upper_4rec,
                    return_type = "pmf", seed = seed)
 stop <- Sys.time()  
 ```
-The algorithm TD-cond returns a warning regarding the incoherence between the joint bottom-up and the upper base forecasts. 
+The algorithm TD-cond raises a warning regarding the incoherence between the joint bottom-up and the upper base forecasts. 
 We will see that this warning does not impact the performances of TD-cond.
 
 ```{r}
@@ -195,6 +195,8 @@ cat("Computational time for TD-cond reconciliation: ", TDCond_time, "s")
 
  
 # Comparison
+
+The computational time required for the Gaussian reconciliation is `r Gauss_time` seconds, Mix-cond requires `r MixCond_time` seconds and TD-cond requires `r TDCond_time` seconds. 
 
 For each time series in the hierarchy, we compute the following scores for each method:
 
@@ -227,9 +229,9 @@ rps  <- list()
 
 The following functions are used for computing the scores:
 
-* `AE_pmf`: compute the absolute error from a PMF;
-* `MIS_pmf`: compute interval score from a PMF;
-* `RPS_pmf`: compute RPS from a PMF;
+* `AE_pmf`: compute the absolute error for a PMF;
+* `MIS_pmf`: compute interval score for a PMF;
+* `RPS_pmf`: compute RPS for a PMF;
 * `MIS_gauss`: compute MIS for a Gaussian distribution. 
 
 The implementation of these functions is available in the source code of the vignette but not shown here. 
@@ -385,11 +387,9 @@ knitr::kable(mean_skill_scores$rps,digits = 2,caption = "Mean skill score on RPS
 ```
 The mean RPS skill score for TD-cond is positive for both upper and bottom time series. Mix-cond slightly improves the base forecasts on the bottom variables, however it degrades the upper base forecasts. Gauss strongly degrades both upper and bottom base forecasts. 
 
-The computational time required for the Gaussian reconciliation is `r Gauss_time` seconds, Mix-cond requires `r MixCond_time` seconds and TD-cond requires `r TDCond_time` seconds. 
-
 ## Boxplots
 
-Finally, we show the boxplots of the skill scores for each method divided in upper and bottom level. 
+Finally, we show the boxplots of the skill scores for each method divided in upper and bottom levels. 
 
 ```{r,fig.width=7,fig.height=8}
 custom_colors <- c("#a8a8e4", 
@@ -408,7 +408,8 @@ abline(h=0,lty=3)
 ```{r,eval=TRUE,include=FALSE}
 par(mfrow = c(1, 1))
 ```
-Both Mix-cond and TD-cond do not improve the bottom MASE over the base forecasts (boxplot flattened on the value zero), however TD-cond provides a slight improvement over the upper base forecast (boxplot over the zero line).
+
+Both Mix-cond and TD-cond do not improve the bottom MASE over the base forecasts (boxplot flattened on the value zero), however TD-cond provides a slight improvement over the upper base forecasts (boxplot over the zero line).
 
 ```{r,fig.width=7,fig.height=8}
 # Boxplots of MIS skill scores
@@ -423,6 +424,7 @@ abline(h=0,lty=3)
 ```{r,eval=TRUE,include=FALSE}
 par(mfrow = c(1, 1))
 ```
+
 Both Mix-cond and TD-cond do not improve nor degrade the bottom base forecasts in MIS score as shown by the small boxplots centered around zero. On the upper variables instead only TD-cond does not degrade the MIS score of the base forecasts. 
 
 
@@ -439,6 +441,7 @@ abline(h=0,lty=3)
 ```{r,eval=TRUE,include=FALSE}
 par(mfrow = c(1, 1))
 ```
+
 According to RPS, TD-cond does not degrade the bottom base forecasts and improves the upper base forecasts. On the other hand both Gauss and Mix-cond strongly degrade the upper base forecasts. 
 
 
