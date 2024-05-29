@@ -1,7 +1,7 @@
 ---
 title: "Reconciliation of M5 hierarchy with mixed-type forecasts"
-author: "Lorenzo Zambon, Dario Azzimonti, Nicolò Rubattu, Giorgio Corani"
-date: "2024-05-22"
+author: "Dario Azzimonti, Lorenzo Zambon, Nicolò Rubattu, Giorgio Corani"
+date: "2024-05-29"
 lang: "en"
 bibliography: references.bib
 output: rmarkdown::html_vignette
@@ -192,6 +192,7 @@ rec_fc$TD_cond <- list(
 TDCond_time <- as.double(round(difftime(stop, start, units = "secs"), 2))
 cat("Computational time for TD-cond reconciliation: ", TDCond_time, "s")
 ```
+
 
  
 # Comparison
@@ -447,7 +448,7 @@ According to RPS, TD-cond does not degrade the bottom base forecasts and improve
 
 # Full reproducibility
 
-The full experiment described in [@zambon2024mixed] can be reproduced by using the code available **here**.
+The full experiment described in [@zambon2024mixed] can be reproduced by using the code available [here](https://github.com/LorenzoZambon/M5_MixedReconc).
 
 # References
 <div id="refs"></div>

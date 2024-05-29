@@ -41,7 +41,7 @@ The main functions are:
     multivariate Gaussian and the bottom forecasts are discrete distributions.
  
 ## News
-:boom: [2024-05-24] Added `reconc_MixCond` and `reconc_TDcond`. 
+:boom: [2024-05-29] Added `reconc_MixCond` and `reconc_TDcond` and the vignette "Reconciliation of M5 hierarchy with mixed-type forecasts". 
 
 :boom: [2023-12-19] Added the vignette "Properties of the reconciled distribution via conditioning".
 
