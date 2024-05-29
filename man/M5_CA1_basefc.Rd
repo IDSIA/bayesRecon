@@ -38,7 +38,7 @@ Forecasts are generated with the function \code{forecast} and the model \code{ad
 \item The models for the upper time series (\code{AXZ}) is selected with Gaussian additive error term, seasonality selected based on information criterion.
 }
 
-The raw data was downloaded with the package \link[m5]{m5-package}.
+The raw data was downloaded with the package \code{m5}.
 }
 \references{
 Joachimiak K (2022). \emph{m5: 'M5 Forecasting' Challenges Data}. R package version 0.1.1, \url{https://CRAN.R-project.org/package=m5}.
