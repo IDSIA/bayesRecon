@@ -32,7 +32,7 @@ The store \code{CA_1} contains 3049 item level time series and 11 aggregate time
 \item Department level aggregations (\code{HOBBIES_1}, \code{HOBBIES_2}, \code{HOUSEHOLD_1}, \code{HOUSEHOLD_2}, \code{FOODS_1}, \code{FOODS_2}, \code{FOODS_3})
 }
 
-Forecasts are generated with the function \link[smooth]{forecast} and the model \link[smooth]{adam} from the package \code{smooth}.
+Forecasts are generated with the function \code{forecast} and the model \code{adam} from the package \code{smooth}.
 \itemize{
 \item The models for the bottom time series are selected with multiplicative Gamma error term (\code{MNN});
 \item The models for the upper time series (\code{AXZ}) is selected with Gaussian additive error term, seasonality selected based on information criterion.
@@ -44,5 +44,7 @@ The raw data was downloaded with the package \link[m5]{m5-package}.
 Joachimiak K (2022). \emph{m5: 'M5 Forecasting' Challenges Data}. R package version 0.1.1, \url{https://CRAN.R-project.org/package=m5}.
 
 Makridakis, Spyros & Spiliotis, Evangelos & Assimakopoulos, Vassilis. (2020). \emph{The M5 Accuracy competition: Results, findings and conclusions.} International Journal of Forecasting 38(4) 1346-1364. \doi{10.1016/j.ijforecast.2021.10.009}
+
+Svetunkov I (2023). \emph{smooth: Forecasting Using State Space Models}. R package version 4.0.0, \url{https://CRAN.R-project.org/package=smooth}.
 }
 \keyword{datasets}
