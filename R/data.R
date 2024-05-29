@@ -141,7 +141,7 @@
 #' * The models for the bottom time series are selected with multiplicative Gamma error term (`MNN`);
 #' * The models for the upper time series (`AXZ`) is selected with Gaussian additive error term, seasonality selected based on information criterion.
 #' 
-#' The raw data was downloaded with the package \link[m5]{m5-package}. 
+#' The raw data was downloaded with the package `m5`. 
 #'
 #' @format
 #' A list containing:
