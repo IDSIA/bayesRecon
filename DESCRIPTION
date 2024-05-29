@@ -1,8 +1,8 @@
 Package: bayesRecon
 Type: Package
-Date: 2023-12-19
+Date: 2024-05-29
 Title: Probabilistic Reconciliation via Conditioning
-Version: 0.2.0
+Version: 0.3.0
 Authors@R: c(person(given = "Dario",
              family = "Azzimonti",
              role = c("aut","cre"),
@@ -24,7 +24,15 @@ Authors@R: c(person(given = "Dario",
              email = "giorgio.corani@idsia.ch",
              comment = c(ORCID = "0000-0002-1541-8384")))
 Maintainer: Dario Azzimonti <dario.azzimonti@gmail.com>
-Description: Provides methods for probabilistic reconciliation of hierarchical forecasts of time series. The available methods include analytical Gaussian reconciliation (Corani et al., 2021) <doi:10.1007/978-3-030-67664-3_13>, MCMC reconciliation of count time series (Corani et al., 2022) <doi:10.48550/arXiv.2207.09322>, Bottom-Up Importance Sampling (Zambon et al., 2022) <doi:10.48550/arXiv.2210.02286>.
+Description: Provides methods for probabilistic reconciliation of hierarchical forecasts of time series. 
+             The available methods include analytical Gaussian reconciliation (Corani et al., 2021) 
+             <doi:10.1007/978-3-030-67664-3_13>, 
+             MCMC reconciliation of count time series (Corani et al., 2024) 
+             <doi:10.1016/j.ijforecast.2023.04.003>, 
+             Bottom-Up Importance Sampling (Zambon et al., 2024) 
+             <doi:10.1007/s11222-023-10343-y>,
+             methods for the reconciliation of mixed hierarchies (Mix-Cond and TD-cond)
+             (Zambon et al., 2024. The 40th Conference on Uncertainty in Artificial Intelligence, accepted). 
 License: LGPL (>= 3)
 Depends: R (>= 4.1.0)
 Imports:
@@ -34,7 +42,7 @@ Imports:
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown=TRUE)
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 Suggests: 
     knitr,
     rmarkdown,

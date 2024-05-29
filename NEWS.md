@@ -1,8 +1,20 @@
+# bayesRecon 0.3.0
+
+* Added `reconc_MixCond`, the implementation of Mixed conditioning for the reconciliation of mixed-type hierarchical forecasts.
+
+* Added `reconc_TDcond`, the implementation of Top-down conditioning for the reconciliation of mixed-type hierarchical forecasts.
+
+* Vignette "Reconciliation of M5 hierarchy with mixed-type forecasts".
+
+* Added functions `PMF.get_mean`, `PMF.get_quantile`, `PMF.get_var`, `PMF.sample`, `PMF.summary` that return point estimates and samples from a probability mass function object.
+
+* Added the dataset `M5_CA1_basefc` which contains the base forecasts for the store "CA1" of the hierarchical time series in the M5 competition. 
+
 # bayesRecon 0.2.0
 
-* Vignette "Properties of the reconciled distribution via conditioning"
+* Vignette "Properties of the reconciled distribution via conditioning".
 
-* Added option in `reconc_BUIS` to pass some base forecast as parameters and some as samples
+* Added option in `reconc_BUIS` to pass some base forecast as parameters and some as samples.
 
 * Added option in `reconc_BUIS` to input a list of distributions instead of a string.
 

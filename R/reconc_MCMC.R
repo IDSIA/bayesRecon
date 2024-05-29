@@ -6,7 +6,8 @@
 #' Uses Markov Chain Monte Carlo algorithm to draw samples from the reconciled
 #' forecast distribution, which is obtained via conditioning.
 #'
-#' This is a bare-bones implementation of the Metropolis-Hastings algorithm, we suggest the usage of tools to check the convergence.
+#' This is a bare-bones implementation of the Metropolis-Hastings algorithm, 
+#' we suggest the usage of tools to check the convergence.
 #' The function only works with Poisson or Negative Binomial base forecasts.
 #'
 #' The function [reconc_BUIS()] is generally faster on most hierarchies.
@@ -25,11 +26,11 @@
 #' @details
 #'
 #' The parameter `base_forecast` is a list containing n elements.
-#' Each element is a vector containing the estimated:
+#' Each element is a list containing the estimated:
 #'
 #' * mean and sd for the Gaussian base forecast, see \link[stats]{Normal}, if `distr`='gaussian';
 #' * lambda for the Poisson base forecast, see \link[stats]{Poisson}, if `distr`='poisson';
-#' * mu and size for the negative binomial base forecast, see \link[stats]{NegBinomial}, if `distr`='nbinom'.
+#' * size and prob (or mu) for the negative binomial base forecast, see \link[stats]{NegBinomial}, if `distr`='nbinom'.
 #'
 #' The order of the `base_forecast` list is given by the order of the time series in the summing matrix.
 #'
@@ -55,12 +56,12 @@
 #'
 #'base_forecasts = list()
 #'for (i in 1:nrow(S)) {
-#'  base_forecasts[[i]] = lambdas[i]
+#'  base_forecasts[[i]] = list(lambda = lambdas[i])
 #'}
 #'
 #'#Sample from the reconciled forecast distribution using MCMC
-#'mcmc = reconc_MCMC(S,base_forecasts=lambdas,distr="poisson",
-#'                   num_samples=30000, seed=42)
+#'mcmc = reconc_MCMC(S, base_forecasts, distr = "poisson",
+#'                   num_samples = 30000, seed = 42)
 #'samples_mcmc <- mcmc$reconciled_samples
 #'
 #'#Compare the reconciled means with those obtained via BUIS
@@ -72,8 +73,10 @@
 #'print(rowMeans(samples_buis))
 #'
 #' @references
-#' Corani, G., Azzimonti, D., Rubattu, N. (2023). *Probabilistic reconciliation of count time series*. \doi{10.1016/j.ijforecast.2023.04.003}.
-#'
+#' Corani, G., Azzimonti, D., Rubattu, N. (2024). 
+#' *Probabilistic reconciliation of count time series*. 
+#' International Journal of Forecasting 40 (2), 457-469.
+#' \doi{10.1016/j.ijforecast.2023.04.003}.
 #'
 #' @seealso
 #' [reconc_BUIS()]
@@ -88,16 +91,18 @@ reconc_MCMC <- function(S,
                         burn_in = 1000,
                         seed = NULL) {
 
-  set.seed(seed)
+  if (!is.null(seed)) set.seed(seed)
 
   # Ensure that data inputs are valid
   if (distr == "gaussian") {
     stop("MCMC for Gaussian distributions is not implemented")
   }
-  .check_input(S, base_forecasts, in_type = "params", distr = distr)
+  # Transform distr into list
   if (!is.list(distr)) {
     distr = rep(list(distr), nrow(S))
   }
+  # Check input
+  .check_input_BUIS(S, base_forecasts, in_type = as.list(rep("params", nrow(S))), distr = distr)
 
   n_bottom <- ncol(S)
   n_ts <- nrow(S)

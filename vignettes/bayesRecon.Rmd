@@ -271,8 +271,8 @@ for (level in train.agg) {
   level.fc <- forecast(model, h = h)
   # save mean and sd of the gaussian predictive distribution
   for (i in 1:h) {
-    fc[[fc.idx]] <- c(level.fc$mean[[i]],
-                      (level.fc$upper[, "95%"][[i]] - level.fc$mean[[i]]) / qnorm(0.975))
+    fc[[fc.idx]] <- list(mean = level.fc$mean[[i]],
+                         sd = (level.fc$upper[, "95%"][[i]] - level.fc$mean[[i]]) / qnorm(0.975))
     fc.idx <- fc.idx + 1
   }
   level.idx <- level.idx + 1

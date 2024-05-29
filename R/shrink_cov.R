@@ -32,8 +32,9 @@
 #' 
 #' # Generate samples
 #' set.seed(42)
-#' x <- replicate(nSamples, trueMean) +  t(chol_trueSigma)%*%matrix(rnorm(pTrue*nSamples), 
-#'                                                                  nrow=pTrue,ncol=nSamples)
+#' x <- replicate(nSamples, trueMean) +  
+#'      t(chol_trueSigma)%*%matrix(stats::rnorm(pTrue*nSamples), 
+#'                                 nrow = pTrue, ncol = nSamples)
 #' x <- t(x) 
 #' res_shrinkage <- schaferStrimmer_cov(x)
 #' res_shrinkage$lambda_star # should be 0.01287923

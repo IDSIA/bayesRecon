@@ -6,7 +6,7 @@
 \alias{bayesRecon-package}
 \title{bayesRecon: Probabilistic Reconciliation via Conditioning}
 \description{
-Provides methods for probabilistic reconciliation of hierarchical forecasts of time series. The available methods include analytical Gaussian reconciliation (Corani et al., 2021) \doi{10.1007/978-3-030-67664-3_13}, MCMC reconciliation of count time series (Corani et al., 2022) \doi{10.48550/arXiv.2207.09322}, Bottom-Up Importance Sampling (Zambon et al., 2022) \doi{10.48550/arXiv.2210.02286}.
+Provides methods for probabilistic reconciliation of hierarchical forecasts of time series. The available methods include analytical Gaussian reconciliation (Corani et al., 2021) \doi{10.1007/978-3-030-67664-3_13}, MCMC reconciliation of count time series (Corani et al., 2024) \doi{10.1016/j.ijforecast.2023.04.003}, Bottom-Up Importance Sampling (Zambon et al., 2024) \doi{10.1007/s11222-023-10343-y}, methods for the reconciliation of mixed hierarchies (Mix-Cond and TD-cond) (Zambon et al., 2024. The 40th Conference on Uncertainty in Artificial Intelligence, accepted).
 }
 \section{Learn more}{
 
@@ -17,12 +17,19 @@ To learn more about \code{bayesRecon}, start with the vignettes: \code{browseVig
 \section{Main functions}{
 
 
-The package implements reconciliation via conditioning for probabilistic forecasts of hierarchical time series. The main functions are
+The package implements reconciliation via conditioning for probabilistic forecasts
+of hierarchical time series. The main functions are:
 \itemize{
-\item \code{\link[=reconc_gaussian]{reconc_gaussian()}}: analytical reconciliation of Gaussian base forecasts;
-\item \code{\link[=reconc_BUIS]{reconc_BUIS()}}: reconciliation of any probabilistic base forecast via importance sampling;
-this is the recommended option for non-Gaussian base forecasts;
-\item \code{\link[=reconc_MCMC]{reconc_MCMC()}}: reconciliation of probabilistic discrete base forecasts via Markov Chain Monte Carlo.
+\item \code{\link[=reconc_gaussian]{reconc_gaussian()}}: reconciliation via conditioning of multivariate Gaussian
+base forecasts; this is done analytically;
+\item \code{\link[=reconc_BUIS]{reconc_BUIS()}}: reconciliation via conditioning of any probabilistic forecast
+via importance sampling; this is the recommended option for non-Gaussian base forecasts;
+\item \code{\link[=reconc_MCMC]{reconc_MCMC()}}: reconciliation via conditioning of discrete probabilistic
+forecasts via Markov Chain Monte Carlo;
+\item \code{\link[=reconc_MixCond]{reconc_MixCond()}}: reconciliation via conditioning of mixed hierarchies, where
+the upper forecasts are multivariate Gaussian and the bottom forecasts are discrete distributions;
+\item \code{\link[=reconc_TDcond]{reconc_TDcond()}}: reconciliation via top-down conditioning of mixed hierarchies, where
+the upper forecasts are multivariate Gaussian and the bottom forecasts are discrete distributions.
 }
 }
 
@@ -30,18 +37,38 @@ this is the recommended option for non-Gaussian base forecasts;
 
 \itemize{
 \item \code{\link[=temporal_aggregation]{temporal_aggregation()}}: temporal aggregation of a given time series object of class \link[stats]{ts};
-\item \code{\link[=get_reconc_matrices]{get_reconc_matrices()}}: aggregation and summing matrices for a temporal hierarchy of time series from user-selected list of aggregation levels.
+\item \code{\link[=get_reconc_matrices]{get_reconc_matrices()}}: aggregation and summing matrices for a temporal hierarchy
+of time series from user-selected list of aggregation levels;
+\item \code{\link[=schaferStrimmer_cov]{schaferStrimmer_cov()}}: computes the Schäfer-Strimmer shrinkage estimator for the covariance matrix;
+\item \code{\link[=PMF.get_mean]{PMF.get_mean()}}, \code{\link[=PMF.get_var]{PMF.get_var()}}, \code{\link[=PMF.get_quantile]{PMF.get_quantile()}}, \code{\link[=PMF.summary]{PMF.summary()}}, \code{\link[=PMF.sample]{PMF.sample()}}:
+functions for handling PMF objects.
 }
 }
 
 \references{
-Corani, G., Azzimonti, D., Augusto, J.P.S.C., Zaffalon, M. (2021). \emph{Probabilistic Reconciliation of Hierarchical Forecast via Bayes' Rule}. In: Hutter, F., Kersting, K., Lijffijt, J., Valera, I. (eds) Machine Learning and Knowledge Discovery in Databases. ECML PKDD 2020. Lecture Notes in Computer Science(), vol 12459. Springer, Cham. \doi{10.1007/978-3-030-67664-3_13}.
+Corani, G., Azzimonti, D., Augusto, J.P.S.C., Zaffalon, M. (2021).
+\emph{Probabilistic Reconciliation of Hierarchical Forecast via Bayes' Rule}.
+ECML PKDD 2020. Lecture Notes in Computer Science, vol 12459.
+\doi{10.1007/978-3-030-67664-3_13}.
 
-Corani, G., Azzimonti, D., Rubattu, N. (2023). \emph{Probabilistic reconciliation of count time series}. \doi{10.1016/j.ijforecast.2023.04.003}.
+Corani, G., Azzimonti, D., Rubattu, N. (2024).
+\emph{Probabilistic reconciliation of count time series}.
+International Journal of Forecasting 40 (2), 457-469.
+\doi{10.1016/j.ijforecast.2023.04.003}.
 
-Zambon, L., Azzimonti, D. & Corani, G. (2024). \emph{Efficient probabilistic reconciliation of forecasts for real-valued and count time series}. \doi{10.1007/s11222-023-10343-y}.
+Zambon, L., Azzimonti, D. & Corani, G. (2024).
+\emph{Efficient probabilistic reconciliation of forecasts for real-valued and count time series}.
+Statistics and Computing 34 (1), 21.
+\doi{10.1007/s11222-023-10343-y}.
 
-Zambon, L., Agosto, A., Giudici, P., Corani, G. (2023). \emph{Properties of the reconciled distributions for Gaussian and count forecasts}. \doi{10.48550/arXiv.2303.15135}.
+Zambon, L., Agosto, A., Giudici, P., Corani, G. (2024).
+\emph{Properties of the reconciled distributions for Gaussian and count forecasts}.
+International Journal of Forecasting (in press).
+\doi{10.1016/j.ijforecast.2023.12.004}.
+
+Zambon, L., Azzimonti, D., Rubattu, N., Corani, G. (2024).
+\emph{Probabilistic reconciliation of mixed-type hierarchical time series}.
+The 40th Conference on Uncertainty in Artificial Intelligence, accepted.
 }
 \author{
 \strong{Maintainer}: Dario Azzimonti \email{dario.azzimonti@gmail.com} (\href{https://orcid.org/0000-0001-5080-3061}{ORCID})
