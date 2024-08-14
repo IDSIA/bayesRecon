@@ -131,17 +131,6 @@ reconc_MixCond = function(S, fc_bottom, fc_upper,
   
   if (!is.null(seed)) set.seed(seed)
   
-  # Parameters for convolution
-  # toll=1e-16
-  # Rtoll=1e-7
-  # smooth_bottom=TRUE
-  # al_smooth=NULL
-  # lap_smooth=FALSE 
-  
-  # After testing the convolution parameters:
-  # remove dots, remove comment above, and set the "best parameters" as default in 
-  # PMF.check_support and .TD_sampling
-  
   # Check inputs
   .check_input_TD(S, fc_bottom, fc_upper, 
                   bottom_in_type, distr,

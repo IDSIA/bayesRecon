@@ -5,6 +5,10 @@
 
 # Compute the empirical pmf from a vector of samples
 PMF.from_samples = function(v) {
+  if (sum(is.na(v))) {
+    v = v[!is.na(v)]
+    warning("Some samples are NA, they have been removed")
+  }
   .check_discrete_samples(v)
   pmf = tabulate(v+1) / length(v)  # the support starts from 0 
   # Tabulate only counts values above 1: if sum(tabulate(v+1)) > length(v),
