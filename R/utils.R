@@ -29,7 +29,7 @@
   
   
   if(nrow(unique(S))!=nrow(S)){
-    warning("Input error in S: S has a repeated row.")
+    warning("S has some repeated rows.")
   }
   
   # Check that each bottom has a corresponding row with with one 1 and the rest 0s.
