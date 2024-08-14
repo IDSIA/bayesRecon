@@ -331,7 +331,7 @@ get_reconc_matrices <- function(agg_levels, h) {
   for (i in 1:k) {
     for (j in 1:k) {
       if (i < j) {
-        cond1 = A[i,] %*% A[j,] != 0  # Upper i and j have some common descendants
+        cond1 = c(A[i,] %*% A[j,] != 0)  # Upper i and j have some common descendants
         cond2 = any(A[j,] > A[i,])    # Upper j is not a descendant of upper i
         cond3 = any(A[i,] > A[j,])    # Upper i is not a descendant of upper j
         if (cond1 & cond2 & cond3) {
@@ -371,17 +371,20 @@ get_reconc_matrices <- function(agg_levels, h) {
   
   if (!.check_hierarchical(A)) stop("Matrix A is not hierarchical")
   
-  k = nrow(A)
-  m = ncol(A)
+  # First, only keep unique rows of A
+  A_uni = unique(A)
   
-  rows = c()
+  k = nrow(A_uni)
+  m = ncol(A_uni)
+  
+  low_rows_A_uni = c()
   for (i in 1:k) {
-    rows = c(rows, i)
+    low_rows_A_uni = c(low_rows_A_uni, i)
     for (j in 1:k) {
       if (i != j) {
         # If upper j is a descendant of upper i, remove i and exit loop
-        if (all(A[j,] <= A[i,])) {
-          rows = rows[-length(rows)] 
+        if (all(A_uni[j,] <= A_uni[i,])) {
+          low_rows_A_uni = low_rows_A_uni[-length(low_rows_A_uni)] 
           break
         }
       }
@@ -389,12 +392,15 @@ get_reconc_matrices <- function(agg_levels, h) {
   }
   # keep all rows except those that have no descendants among the uppers
   
+  # Now, change the indices of the lowest rows to match with A (instead of A_un)
+  low_rows_A = (1:nrow(A))[!duplicated(A)][low_rows_A_uni]
+  
   # The sum of the rows corresponding to the lowest level should be a vector of 1 
-  if (any(colSums(A[rows,,drop=FALSE])!=1)) {
+  if (any(colSums(A[low_rows_A,,drop=FALSE])!=1)) {
     stop("The hierarchy is not balanced")
   }
   
-  return(rows)
+  return(low_rows)
 }
 
 
