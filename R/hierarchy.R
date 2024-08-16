@@ -400,7 +400,7 @@ get_reconc_matrices <- function(agg_levels, h) {
     stop("The hierarchy is not balanced")
   }
   
-  return(low_rows)
+  return(low_rows_A)
 }
 
 
