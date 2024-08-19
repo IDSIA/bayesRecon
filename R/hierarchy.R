@@ -293,7 +293,12 @@ get_reconc_matrices <- function(agg_levels, h) {
 
 # Get A from S
 .get_A_from_S <- function(S) {
-  bottom_idxs = which(rowSums(S) == 1)
+  # Bottom rows are those with a single 1; if there are replicated bottom rows,
+  # only one is treated as bottom, the copies will be upper
+  bottom_idxs = which(rowSums(S) == 1 & !duplicated(S))
+  if (length(bottom_idxs) < ncol(S)) {
+    stop("Check S: some bottom rows are missing")
+  }
   upper_idxs = setdiff(1:nrow(S), bottom_idxs)
   A = matrix(S[upper_idxs, ], ncol=ncol(S))
   out = list(A = A,
