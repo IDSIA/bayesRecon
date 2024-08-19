@@ -398,11 +398,13 @@ get_reconc_matrices <- function(agg_levels, h) {
   # keep all rows except those that have no descendants among the uppers
   
   # Now, change the indices of the lowest rows to match with A (instead of A_un)
+  # If there are duplicated rows for some lowest rows, only take one copy
   low_rows_A = (1:nrow(A))[!duplicated(A)][low_rows_A_uni]
   
   # The sum of the rows corresponding to the lowest level should be a vector of 1 
   if (any(colSums(A[low_rows_A,,drop=FALSE])!=1)) {
-    stop("The hierarchy is not balanced")
+    stop("It is impossible to find the lowest upper level. 
+         Check if the hierarchy is balanced.")
   }
   
   return(low_rows_A)
