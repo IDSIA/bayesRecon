@@ -22,21 +22,18 @@
     stop("Input error in S: S must be a matrix containing only 0s and 1s.")
   }
   
-  
   if(!all(colSums(S)>1)){
     stop("Input error in S: all bottom level forecasts must aggregate into an upper.")
   }
-  
   
   if(nrow(unique(S))!=nrow(S)){
     warning("S has some repeated rows.")
   }
   
   # Check that each bottom has a corresponding row with with one 1 and the rest 0s.
-  if(sum(rowSums(S) ==1) != ncol(S)){
+  if (nrow(unique(S_u[rowSums(S_u)==1,])) < ncol(S)) {
     stop("Input error in S: there is at least one bottom that does not have a row with one 1 and the rest 0s.")
   }
-  
   
 }
 
