@@ -31,7 +31,7 @@
   }
   
   # Check that each bottom has a corresponding row with with one 1 and the rest 0s.
-  if (nrow(unique(S_u[rowSums(S_u)==1,])) < ncol(S)) {
+  if (nrow(unique(S_u[rowSums(S)==1,])) < ncol(S)) {
     stop("Input error in S: there is at least one bottom that does not have a row with one 1 and the rest 0s.")
   }
   
