@@ -4,15 +4,19 @@
 #' @description
 #' Closed form computation of the reconciled forecasts in case of Gaussian base forecasts.
 #'
-#' @param S summing matrix (n x n_bottom).
+#' @param A aggregation matrix (n_upper x n_bottom).
 #' @param base_forecasts.mu a vector containing the means of the base forecasts.
 #' @param base_forecasts.Sigma a matrix containing the covariance matrix of the base forecasts.
 #'
 #' @details
-#' The order of the base forecast means and covariance is given by the order of the time series in the summing matrix.
+#' In the vector of the means of the base forecasts the order must be: first the upper, 
+#' then the bottom; the order within the uppers is given by the rows of A, 
+#' the order within the bottoms by the columns of A.
+#' The order of the rows of the covariance matrix of the base forecasts is the same.
 #' 
 #' The function returns only the reconciled parameters of the bottom variables.
-#' The reconciled upper parameters and the reconciled samples for the entire hierarchy can be obtained from the reconciled bottom parameters. 
+#' The reconciled upper parameters and the reconciled samples for the entire hierarchy 
+#' can be obtained from the reconciled bottom parameters. 
 #' See the example section.
 #'
 #'
@@ -27,9 +31,7 @@
 #'library(bayesRecon)
 #'
 #'# Create a minimal hierarchy with 2 bottom and 1 upper variable
-#'rec_mat <- get_reconc_matrices(agg_levels=c(1,2), h=2)
-#'S <- rec_mat$S
-#'A <- rec_mat$A
+#'A <- get_reconc_matrices(agg_levels=c(1,2), h=2)$A
 #'
 #'#Set the parameters of the Gaussian base forecast distributions
 #'mu1 <- 2
@@ -42,8 +44,8 @@
 #'sigmaY <- 3
 #'sigmas <- c(sigmaY,sigma1,sigma2)
 #'
-#'Sigma <- diag(sigmas^2)  #need to transform into covariance matrix
-#'analytic_rec <- reconc_gaussian(S, base_forecasts.mu = mus,
+#'Sigma <- diag(sigmas^2)  # need to transform into covariance matrix
+#'analytic_rec <- reconc_gaussian(A, base_forecasts.mu = mus,
 #'                                base_forecasts.Sigma = Sigma)
 #'
 #'bottom_mu_reconc <- analytic_rec$bottom_reconciled_mean
@@ -54,8 +56,9 @@
 #'upper_Sigma_reconc <- A %*% bottom_Sigma_reconc %*% t(A)
 #'
 #'# Obtain reconciled mu and Sigma for the entire hierarchy
+#'S <- rbind(A, diag(2))  # first, get summing matrix S
 #'Y_mu_reconc <- S %*% bottom_mu_reconc
-#'Y_Sigma_reconc <- S %*% bottom_Sigma_reconc %*% t(S)  # note: singular matrix
+#'Y_Sigma_reconc <- S %*% bottom_Sigma_reconc %*% t(S)  # note that this is a singular matrix
 #'
 #'# Obtain reconciled samples for the entire hierarchy:
 #'# i.e., sample from the reconciled bottoms and multiply by S
@@ -80,12 +83,10 @@
 #' @seealso [reconc_BUIS()]
 #'
 #' @export
-reconc_gaussian <- function(S, base_forecasts.mu,
+reconc_gaussian <- function(A, base_forecasts.mu,
                             base_forecasts.Sigma) {
-  # Check if S contains only 0s and 1s. 
-  .check_S(S)
-  hier = .get_A_from_S(S)
-  A = hier$A
+  # Check matrix A 
+  .check_A(A)
   k = nrow(A)    #number of upper TS
   m = ncol(A)    #number of bottom TS
   n = length(base_forecasts.mu) #total number of TS
@@ -95,15 +96,14 @@ reconc_gaussian <- function(S, base_forecasts.mu,
     stop("Input error: nrow(base_forecasts.Sigma) != length(base_forecasts.mu)")
   }
   if (!(k + m == n)) {
-    stop("Input error: the shape of S is not correct")
+    stop("Input error: the shape of A is not correct")
   }
   .check_cov(base_forecasts.Sigma, "Sigma", pd_check=FALSE, symm_check=TRUE)
-  Sigma_u = base_forecasts.Sigma[hier$upper_idxs, hier$upper_idxs]
-  Sigma_b = base_forecasts.Sigma[hier$bottom_idxs, hier$bottom_idxs]
-  Sigma_ub = matrix(base_forecasts.Sigma[hier$upper_idxs, hier$bottom_idxs],
-                    nrow = length(hier$upper_idxs))
-  mu_u = base_forecasts.mu[hier$upper_idxs]
-  mu_b = base_forecasts.mu[hier$bottom_idxs]
+  Sigma_u  = base_forecasts.Sigma[1:k, 1:k]
+  Sigma_b  = base_forecasts.Sigma[(k+1):n, (k+1):n]
+  Sigma_ub = base_forecasts.Sigma[1:k, (k+1):n, drop=FALSE]
+  mu_u = base_forecasts.mu[1:k]
+  mu_b = base_forecasts.mu[(k+1):n]
 
   # Formulation from:
   # Zambon, L., et al. "Properties of the reconciled distributions for
