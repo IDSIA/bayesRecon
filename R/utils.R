@@ -37,6 +37,22 @@
   
 }
 
+# Function to check aggregation matrix A
+.check_A <- function(A) {
+  if(!identical(sort(unique(as.vector(A))), c(0,1)) ){
+    stop("Input error in A: A must be a matrix containing only 0s and 1s.")
+  }
+  
+  if(any(colSums(A)==0)){
+    stop("Input error in A: some columns do not have any 1.
+          All bottom level forecasts must aggregate into an upper.")
+  }
+  
+  if(nrow(unique(A))!=nrow(A)){
+    warning("A has some repeated rows.")
+  }
+}
+
 # Check if it is a covariance matrix (i.e. symmetric p.d.)
 .check_cov <- function(cov_matrix, Sigma_str,pd_check=FALSE,symm_check=FALSE) {
   # Check if the matrix is square
