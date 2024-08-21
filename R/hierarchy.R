@@ -422,15 +422,13 @@ get_reconc_matrices <- function(agg_levels, h) {
   }
   
   A_ = A[-lowest_rows,,drop=FALSE]
-  n_bott = ncol(A_)
   n_upp_u = nrow(A_)
   n_bott_u = length(lowest_rows)
   A_u = matrix(nrow=n_upp_u, ncol=n_bott_u)
   for (j in 1:n_bott_u) {
     l = lowest_rows[[j]]
-    mask = A[l,]==1
     for (i in 1:n_upp_u) {
-      A_u[i,j] = sum(A_[i, mask]==1) == sum(mask)  # check that is a vector of 1
+      A_u[i,j] = all(A[l,] <= A_[i,])  # check that "lower upper" j is a descendant of "upper upper" i
     }
   }
   

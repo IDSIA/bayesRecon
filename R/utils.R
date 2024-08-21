@@ -214,14 +214,14 @@
 }
 
 # Check input for TDcond
-.check_input_TD <- function(S, fc_bottom, fc_upper, 
+.check_input_TD <- function(A, fc_bottom, fc_upper, 
                            bottom_in_type, distr,
                            return_type) {
   
-  .check_S(S)
+  .check_A(A)
   
   n_b = ncol(S)        # number of bottom TS
-  n_u = nrow(S) - n_b  # number of upper TS
+  n_u = nrow(A)        # number of upper TS
   
   if (!(bottom_in_type %in% c("pmf", "samples", "params"))) {
     stop("Input error: bottom_in_type must be either 'pmf', 'samples', or 'params'")
@@ -230,7 +230,7 @@
     stop("Input error: return_type must be either 'pmf', 'samples', or 'all'")
   } 
   if (length(fc_bottom) != n_b) {
-    stop("Input error: length of fc_bottom does not match with S")
+    stop("Input error: length of fc_bottom does not match with A")
   }
   # If Sigma is a number, transform into a matrix 
   if (length(fc_upper$Sigma) == 1) { 
@@ -238,7 +238,7 @@
   } 
   # Check the dimensions of mu and Sigma
   if (length(fc_upper$mu) != n_u | any(dim(fc_upper$Sigma) != c(n_u, n_u))) {
-    stop("Input error: the dimensions of the upper parameters do not match with S")
+    stop("Input error: the dimensions of the upper parameters do not match with A")
   }
   # Check that Sigma is a covariance matrix (symmetric positive semi-definite)
   .check_cov(fc_upper$Sigma, "Upper covariance matrix", symm_check=TRUE)

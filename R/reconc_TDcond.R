@@ -99,7 +99,7 @@
 #' those samples are discarded and a warning is triggered.
 #' The warning reports the percentage of samples kept. 
 #'
-#' @param S Summing matrix (n x n_bottom).   
+#' @param A aggregation matrix (n_upper x n_bottom).   
 #' @param fc_bottom A list containing the bottom base forecasts, see details.
 #' @param fc_upper A list containing the upper base forecasts, see details.
 #' @param bottom_in_type A string with three possible values:
@@ -140,7 +140,6 @@
 #' 
 #' # Consider a simple hierarchy with two bottom and one upper
 #' A <- matrix(c(1,1),nrow=1)
-#' S <- rbind(A,diag(nrow=2))
 #' # The bottom forecasts are Poisson with lambda=15
 #' lambda <- 15
 #' n_tot <- 60
@@ -152,7 +151,7 @@
 #' fc_upper<- list(mu=40, Sigma=matrix(c(5^2)))
 #' 
 #' # We can reconcile with reconc_TDcond
-#' res.TDcond <- reconc_TDcond(S, fc_bottom, fc_upper)
+#' res.TDcond <- reconc_TDcond(A, fc_bottom, fc_upper)
 #' 
 #' # Note that the bottom distributions are shifted to the right
 #' PMF.summary(res.TDcond$bottom_reconciled$pmf[[1]])
@@ -183,7 +182,7 @@
 #' @seealso [reconc_MixCond()], [reconc_BUIS()]
 #'
 #' @export
-reconc_TDcond = function(S, fc_bottom, fc_upper, 
+reconc_TDcond = function(A, fc_bottom, fc_upper, 
                          bottom_in_type = "pmf", distr = NULL,
                          num_samples = 2e4, return_type = "pmf", 
                          suppress_warnings = FALSE, seed = NULL) {
@@ -191,16 +190,16 @@ reconc_TDcond = function(S, fc_bottom, fc_upper,
   if (!is.null(seed)) set.seed(seed)
   
   # Check inputs
-  .check_input_TD(S, fc_bottom, fc_upper, 
+  .check_input_TD(A, fc_bottom, fc_upper, 
                   bottom_in_type, distr,
                   return_type)
   
-  # Get aggr. matrix A and find the "lowest upper" 
-  A = .get_A_from_S(S)$A
+  # Find the "lowest upper" 
   n_u = nrow(A)
   n_b = ncol(A)
   lowest_rows = .lowest_lev(A)
   n_u_low = length(lowest_rows)  # number of lowest upper
+  n_u_upp = n_u - n_u_low        # number of "upper upper" 
   
   # Get mean and covariance matrix of the MVN upper base forecasts
   mu_u    = fc_upper$mu
@@ -216,14 +215,19 @@ reconc_TDcond = function(S, fc_bottom, fc_upper,
   } else {
     # Else, analytically reconcile the upper and then sample from the lowest-uppers
     
-    # Get the aggregation matrix A_u and the summing matrix S_u for the upper sub-hierarchy
+    # Get the aggregation matrix A_u for the upper sub-hierarchy
     A_u = .get_Au(A, lowest_rows)
-    S_u = matrix(nrow = n_u, ncol = n_u_low)
-    S_u[-lowest_rows,] = A_u
-    S_u[lowest_rows,] = diag(n_u_low)
     
     # Analytically reconcile the upper
-    rec_gauss_u = reconc_gaussian(S_u, mu_u, Sigma_u)
+    # The entries of mu_u must be in the correct order, i.e. rows of A_u (upper), columns of A_u (bottom)
+    mu_u_ord = c(mu_u[-lowest_rows],mu_u[lowest_rows])  
+    # Same for Sigma_u
+    Sigma_u_ord = matrix(nrow=n_u, ncol=n_u)
+    Sigma_u_ord[1:n_u_upp, 1:n_u_upp]             = Sigma_u[-lowest_rows,-lowest_rows]
+    Sigma_u_ord[1:n_u_upp, (n_u_upp+1):n_u]       = Sigma_u[-lowest_rows,lowest_rows]
+    Sigma_u_ord[(n_u_upp+1):n_u, 1:n_u_upp]       = Sigma_u[lowest_rows,-lowest_rows]
+    Sigma_u_ord[(n_u_upp+1):n_u, (n_u_upp+1):n_u] = Sigma_u[lowest_rows,lowest_rows]
+    rec_gauss_u = reconc_gaussian(A_u, mu_u_ord, Sigma_u_ord)
     
     # Sample from reconciled MVN on the lowest level of the upper (dim: num_samples x n_u_low)
     U = .MVN_sample(n_samples = num_samples,
@@ -262,11 +266,11 @@ reconc_TDcond = function(S, fc_bottom, fc_upper,
   }
   
   # Get bottom samples via the prob top-down
-  B = list()
+  B = matrix(nrow = n_b, ncol = num_samples)
   for (j in 1:n_u_low) {
-    B[[j]] = .TD_sampling(U_js[[j]], L_pmf_js[[j]])
+    mask_j = A[lowest_rows[j], ]  # mask for the position of the bottom referring to lowest upper j
+    B[mask_j, ] = .TD_sampling(U_js[[j]], L_pmf_js[[j]])
   }
-  B = do.call("rbind", B)  # dim: n_bottom x num_samples
   U = A %*% B              # dim: n_upper x num_samples
   
   # Prepare output: include the marginal pmfs and/or the samples (depending on "return" inputs)
@@ -274,16 +278,12 @@ reconc_TDcond = function(S, fc_bottom, fc_upper,
   if (return_type %in% c('pmf', 'all')) {
     upper_pmf  = lapply(1:n_u, function(i) PMF.from_samples(U[i,]))
     bottom_pmf = lapply(1:n_b, function(i) PMF.from_samples(B[i,]))
-    
     out$bottom_reconciled$pmf = bottom_pmf
     out$upper_reconciled$pmf = upper_pmf
-    
   }
   if (return_type %in% c('samples','all')) {
-    
     out$bottom_reconciled$samples = B
     out$upper_reconciled$samples = U
-    
   } 
 
   return(out)
