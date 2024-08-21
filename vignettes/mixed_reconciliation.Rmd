@@ -51,9 +51,8 @@ n_b <- 3049
 n_u <- 11
 n <- n_b + n_u   
 
-# Load matrix A and S
+# Load matrix A 
 A <- M5_CA1_basefc$A
-S <- M5_CA1_basefc$S
 
 # Load base forecasts:
 base_fc_upper  <- M5_CA1_basefc$upper
@@ -102,7 +101,7 @@ base_forecasts.Sigma[(n_u+1):n,(n_u+1):n] <- Sigma_b
 
 We reconcile using the function `reconc_gaussian()`, which takes as input: 
 
-* the summing matrix `S`;
+* the summing matrix `A`;
 * the means of the  base forecast,  `base_forecasts.mu`; 
 * the covariance of the base forecast,  `base_forecasts.Sigma`. 
 
@@ -111,7 +110,7 @@ The function returns the reconciled mean and covariance for the bottom time seri
 ```{r}    
 # Gaussian reconciliation 
 start <- Sys.time()       
-gauss <- reconc_gaussian(S, base_forecasts.mu, base_forecasts.Sigma)
+gauss <- reconc_gaussian(A, base_forecasts.mu, base_forecasts.Sigma)
 stop <- Sys.time()
 
 rec_fc$Gauss <- list(mu_b    = gauss$bottom_reconciled_mean,
@@ -130,7 +129,7 @@ We now reconcile the forecasts using the mixed-conditioning
 approach of @zambon2024mixed, Sect. 3. 
 The algorithm is implemented in the function `reconc_MixCond()`. The function takes as input: 
 
-* the summing matrix `S`;
+* the aggregation matrix `A`;
 * the probability mass functions of the bottom base forecasts, stored in the list `fc_bottom_4rec`;
 * the parameters of the multivariate Gaussian distribution for the upper variables, `fc_upper_4rec`;
 * additional function parameters; among those note that `num_samples` specifies the number of samples used in the internal importance sampling (IS) algorithm. 
@@ -147,7 +146,7 @@ fc_bottom_4rec <- lapply(base_fc_bottom, "[[", "pmf")  # list of PMFs
 
 # MixCond reconciliation
 start <- Sys.time()       
-mix_cond <- reconc_MixCond(S, fc_bottom_4rec, fc_upper_4rec, bottom_in_type = "pmf",
+mix_cond <- reconc_MixCond(A, fc_bottom_4rec, fc_upper_4rec, bottom_in_type = "pmf",
                           num_samples = N_samples_IS, return_type = "pmf", seed = seed)
 stop <- Sys.time()       
 
@@ -175,7 +174,7 @@ N_samples_TD <- 1e4
 
 # TDcond reconciliation
 start <- Sys.time()     
-td <- reconc_TDcond(S, fc_bottom_4rec, fc_upper_4rec,
+td <- reconc_TDcond(A, fc_bottom_4rec, fc_upper_4rec,
                    bottom_in_type = "pmf", num_samples = N_samples_TD, 
                    return_type = "pmf", seed = seed)
 stop <- Sys.time()  

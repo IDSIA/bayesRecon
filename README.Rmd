@@ -222,7 +222,7 @@ If the base forecasts are Gaussian, the reconciled distribution is still Gaussia
 
 ```{r}
 Sigma <- diag(sigmas ^ 2)  #transform into covariance matrix
-analytic_rec <- reconc_gaussian(S,
+analytic_rec <- reconc_gaussian(A,
                                 base_forecasts.mu = mus,
                                 base_forecasts.Sigma = Sigma)
 analytic_means_bottom <- analytic_rec$bottom_reconciled_mean

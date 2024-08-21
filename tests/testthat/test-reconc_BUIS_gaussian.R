@@ -11,7 +11,8 @@ test_that("Monthly, in_type=='params', distr='gaussian'",{
   res.buis = reconc_BUIS(S, base_forecasts,
                in_type = "params", distr = "gaussian", num_samples = 100000, seed=42)
   # Run Gauss Reconc
-  res.gauss = reconc_gaussian(S, base_forecasts_in[[1]], diag(base_forecasts_in[[2]]^2))
+  A = .get_A_from_S(S)  # temporary; eventually: changed all saved S into A, run everything with A
+  res.gauss = reconc_gaussian(A, base_forecasts_in[[1]], diag(base_forecasts_in[[2]]^2))
   # Test
   b_mask = rowSums(S) == 1
   m = mean(rowMeans(res.buis$reconciled_samples)[b_mask] - as.numeric(res.gauss$bottom_reconciled_mean))
@@ -32,7 +33,8 @@ test_that("Weekly, in_type=='params', distr='gaussian'",{
   res.buis <- reconc_BUIS(S, base_forecasts,
                   in_type = "params", distr = "gaussian", num_samples = 100000, seed=42)
   # Run Gauss Reconc
-  res.gauss <- reconc_gaussian(S, base_forecasts_in[[1]], diag(base_forecasts_in[[2]]^2))
+  A = .get_A_from_S(S)  # temporary; eventually: changed all saved S into A, run everything with A
+  res.gauss <- reconc_gaussian(A, base_forecasts_in[[1]], diag(base_forecasts_in[[2]]^2))
   # Test
   b_mask <- rowSums(S) == 1
   m <- mean(rowMeans(res.buis$reconciled_samples)[b_mask] - as.numeric(res.gauss$bottom_reconciled_mean))

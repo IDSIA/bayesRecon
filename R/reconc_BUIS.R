@@ -154,7 +154,7 @@
 #'#In the Gaussian case, the reconciled distribution is still Gaussian and can be
 #'#computed in closed form
 #'Sigma <- diag(sigmas^2)  #transform into covariance matrix
-#'analytic_rec <- reconc_gaussian(S, base_forecasts.mu = mus,
+#'analytic_rec <- reconc_gaussian(A, base_forecasts.mu = mus,
 #'                                 base_forecasts.Sigma = Sigma)
 #'
 #'#Compare the reconciled means obtained analytically and via BUIS

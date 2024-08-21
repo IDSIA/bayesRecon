@@ -299,7 +299,7 @@ between the two approaches.
 
 ```{r m3-reco} 
 recon.gauss <- bayesRecon::reconc_gaussian(
-  S = rmat$S,
+  A = rmat$A,
   base_forecasts.mu = sapply(fc, "[[", 1),
   base_forecasts.Sigma = diag(sapply(fc, "[[", 2)) ^ 2
 )
@@ -392,7 +392,7 @@ for (s in infantMortality) {
 }
 ```
 
-Now we build the $\mathbf{S}$ matrix.
+Now we build the $\mathbf{A}$ matrix.
 
 ```{r infants-s, dpi=300, out.width = '70%', fig.align='center', fig.cap="**Figure 6**: Infants mortality - The aggregating matrix A (red=1, yellow=0).", fig.dim = c(8, 8)}
 # we have 16 bottom time series, and 11 upper time series
@@ -407,7 +407,6 @@ A <- matrix(data = c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
                      0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,
                      1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,
                      0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1), byrow=TRUE, ncol = 16)
-S <- rbind(A, diag(16))
 
 # plot of A
 par(mai = c(1.5,1,0.5,0.5))
@@ -432,7 +431,7 @@ Sigma <- shrink.res$shrink_cov
 We now perform Gaussian reconciliation:
 
 ```{r infants-recon}
-recon.gauss <- bayesRecon::reconc_gaussian(S,
+recon.gauss <- bayesRecon::reconc_gaussian(A,
                                            base_forecasts.mu = mu,
                                            base_forecasts.Sigma = Sigma)
 
