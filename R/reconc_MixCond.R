@@ -40,7 +40,7 @@
 #' Note that warnings are an indication that the base forecasts might have issues. 
 #' Please check the base forecasts in case of warnings.
 #'
-#' @param S Summing matrix (n x n_bottom).  
+#' @param A Aggregation matrix (n_upper x n_bottom).  
 #' @param fc_bottom A list containing the bottom base forecasts, see details.
 #' @param fc_upper A list containing the upper base forecasts, see details.
 #' @param bottom_in_type A string with three possible values:
@@ -81,7 +81,6 @@
 #' 
 #' # Consider a simple hierarchy with two bottom and one upper
 #' A <- matrix(c(1,1),nrow=1)
-#' S <- rbind(A,diag(nrow=2))
 #' # The bottom forecasts are Poisson with lambda=15
 #' lambda <- 15
 #' n_tot <- 60
@@ -93,7 +92,7 @@
 #' fc_upper<- list(mu=40, Sigma=matrix(5^2))
 #' 
 #' # We can reconcile with reconc_MixCond
-#' res.mixCond <- reconc_MixCond(S, fc_bottom, fc_upper)
+#' res.mixCond <- reconc_MixCond(A, fc_bottom, fc_upper)
 #' 
 #' # Note that the bottom distributions are slightly shifted to the right
 #' PMF.summary(res.mixCond$bottom_reconciled$pmf[[1]])
@@ -124,31 +123,18 @@
 #' @seealso [reconc_TDcond()], [reconc_BUIS()]
 #'
 #' @export
-reconc_MixCond = function(S, fc_bottom, fc_upper, 
+reconc_MixCond = function(A, fc_bottom, fc_upper, 
                          bottom_in_type = "pmf", distr = NULL,
                          num_samples = 2e4, return_type = "pmf", 
                          suppress_warnings = FALSE, seed = NULL) {
   
   if (!is.null(seed)) set.seed(seed)
   
-  # Parameters for convolution
-  # toll=1e-16
-  # Rtoll=1e-7
-  # smooth_bottom=TRUE
-  # al_smooth=NULL
-  # lap_smooth=FALSE 
-  
-  # After testing the convolution parameters:
-  # remove dots, remove comment above, and set the "best parameters" as default in 
-  # PMF.check_support and .TD_sampling
-  
   # Check inputs
-  .check_input_TD(S, fc_bottom, fc_upper, 
+  .check_input_TD(A, fc_bottom, fc_upper, 
                   bottom_in_type, distr,
                   return_type)
   
-  # Get aggr. matrix A 
-  A = .get_A_from_S(S)$A
   n_u = nrow(A)
   n_b = ncol(A)
   
