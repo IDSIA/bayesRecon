@@ -39,7 +39,7 @@
 
 # Function to check aggregation matrix A
 .check_A <- function(A) {
-  if(!identical(sort(unique(as.vector(A))), c(0,1)) ){
+  if (!all(A %in% c(0,1))) {
     stop("Input error in A: A must be a matrix containing only 0s and 1s.")
   }
   
@@ -220,7 +220,7 @@
   
   .check_A(A)
   
-  n_b = ncol(S)        # number of bottom TS
+  n_b = ncol(A)        # number of bottom TS
   n_u = nrow(A)        # number of upper TS
   
   if (!(bottom_in_type %in% c("pmf", "samples", "params"))) {

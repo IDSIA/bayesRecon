@@ -124,6 +124,7 @@
 #'# Create a minimal hierarchy with 2 bottom and 1 upper variable
 #'rec_mat <- get_reconc_matrices(agg_levels=c(1,2), h=2)
 #'S <- rec_mat$S
+#'A <- rec_mat$A
 #'
 #'
 #'#1) Gaussian base forecasts

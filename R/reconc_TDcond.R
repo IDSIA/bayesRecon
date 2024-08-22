@@ -258,7 +258,8 @@ reconc_TDcond = function(A, fc_bottom, fc_upper,
   samp_ok = rowSums(samp_ok) == n_u_low
   # Only keep the "good" upper samples, and throw a warning if some samples are discarded:
   U_js = lapply(U_js, "[", samp_ok) 
-  if (sum(samp_ok) != num_samples & !suppress_warnings) {
+  num_samples_ok = sum(samp_ok)
+  if (num_samples_ok != num_samples & !suppress_warnings) {
     # We round down to the nearest decimal
     warning(paste0("Only ", floor(sum(samp_ok)/num_samples*1000)/10, "% of the upper samples ",
                    "are in the support of the bottom-up distribution; ",
@@ -266,9 +267,9 @@ reconc_TDcond = function(A, fc_bottom, fc_upper,
   }
   
   # Get bottom samples via the prob top-down
-  B = matrix(nrow = n_b, ncol = num_samples)
+  B = matrix(nrow = n_b, ncol = num_samples_ok)
   for (j in 1:n_u_low) {
-    mask_j = A[lowest_rows[j], ]  # mask for the position of the bottom referring to lowest upper j
+    mask_j = as.logical(A[lowest_rows[j], ])  # mask for the position of the bottom referring to lowest upper j
     B[mask_j, ] = .TD_sampling(U_js[[j]], L_pmf_js[[j]])
   }
   U = A %*% B              # dim: n_upper x num_samples

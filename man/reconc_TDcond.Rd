@@ -5,7 +5,7 @@
 \title{Probabilistic forecast reconciliation of mixed hierarchies via top-down conditioning}
 \usage{
 reconc_TDcond(
-  S,
+  A,
   fc_bottom,
   fc_upper,
   bottom_in_type = "pmf",
@@ -17,7 +17,7 @@ reconc_TDcond(
 )
 }
 \arguments{
-\item{S}{Summing matrix (n x n_bottom).}
+\item{A}{aggregation matrix (n_upper x n_bottom).}
 
 \item{fc_bottom}{A list containing the bottom base forecasts, see details.}
 
@@ -100,7 +100,6 @@ library(bayesRecon)
 
 # Consider a simple hierarchy with two bottom and one upper
 A <- matrix(c(1,1),nrow=1)
-S <- rbind(A,diag(nrow=2))
 # The bottom forecasts are Poisson with lambda=15
 lambda <- 15
 n_tot <- 60
@@ -112,7 +111,7 @@ fc_bottom[[2]] <- apply(matrix(seq(0,n_tot)),MARGIN=1,FUN=function(x) dpois(x,la
 fc_upper<- list(mu=40, Sigma=matrix(c(5^2)))
 
 # We can reconcile with reconc_TDcond
-res.TDcond <- reconc_TDcond(S, fc_bottom, fc_upper)
+res.TDcond <- reconc_TDcond(A, fc_bottom, fc_upper)
 
 # Note that the bottom distributions are shifted to the right
 PMF.summary(res.TDcond$bottom_reconciled$pmf[[1]])

@@ -91,6 +91,7 @@ library(bayesRecon)
 # Create a minimal hierarchy with 2 bottom and 1 upper variable
 rec_mat <- get_reconc_matrices(agg_levels=c(1,2), h=2)
 S <- rec_mat$S
+A <- rec_mat$A
 
 
 #1) Gaussian base forecasts
@@ -121,7 +122,7 @@ samples_buis <- buis$reconciled_samples
 #In the Gaussian case, the reconciled distribution is still Gaussian and can be
 #computed in closed form
 Sigma <- diag(sigmas^2)  #transform into covariance matrix
-analytic_rec <- reconc_gaussian(S, base_forecasts.mu = mus,
+analytic_rec <- reconc_gaussian(A, base_forecasts.mu = mus,
                                 base_forecasts.Sigma = Sigma)
 
 #Compare the reconciled means obtained analytically and via BUIS
