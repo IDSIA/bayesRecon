@@ -164,18 +164,20 @@
 
 # Check input for BUIS (and for MH)
 # base_forecasts, in_type, and distr must be list
-.check_input_BUIS <- function(S, base_forecasts, in_type, distr) {
+.check_input_BUIS <- function(A, base_forecasts, in_type, distr) {
   
-  .check_S(S)
+  .check_A(A)
+  
+  n_tot_A <- ncol(A)+nrow(A)
   
   # Check in_type
   if (!is.list(in_type)) {
     stop("Input error: in_type must be a list")
   }
-  if (!(nrow(S) == length(in_type))) {
-    stop("Input error: nrow(S) != length(in_type)")
+  if (!(n_tot_A == length(in_type))) {
+    stop("Input error: ncol(A)+nrow(A) != length(in_type)")
   }
-  for(i in 1:nrow(S)){
+  for(i in 1:n_tot_A){
     if (!(in_type[[i]] %in% c("params", "samples"))) {
       stop("Input error: in_type[[",i,"]] must be either 'samples' or 'params'")
     }
@@ -185,16 +187,16 @@
   if (!is.list(distr)) {
     stop("Input error: distr must be a list")
   }
-  if (!(nrow(S) == length(distr))) {
-    stop("Input error: nrow(S) != length(distr)")
+  if (!(n_tot_A == length(distr))) {
+    stop("Input error: ncol(A)+nrow(A) != length(distr)")
   }
   if (!is.list(base_forecasts)) {
     stop("Input error: base_forecasts must be a list")
   }
-  if (!(nrow(S) == length(base_forecasts))) {
-    stop("Input error: nrow(S) != length(base_forecasts)")
+  if (!(n_tot_A == length(base_forecasts))) {
+    stop("Input error: ncol(A)+nrow(A) != length(base_forecasts)")
   }
-  for(i in 1:nrow(S)){
+  for(i in 1:n_tot_A){
     if (in_type[[i]] == "params") {
       .check_distr_params(distr[[i]], base_forecasts[[i]])
     } else if (in_type[[i]] == "samples") {

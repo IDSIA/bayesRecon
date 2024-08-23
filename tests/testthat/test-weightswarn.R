@@ -19,7 +19,8 @@ test_that("Test effective sample size", {
   
   # Try the warning message
   # base_forecast = list(u,b1,b2)
-  # a = reconc_BUIS(S, base_forecast, in_type = "samples", distr = list("continuous","discrete","discrete"), seed=42)
+  # A = matrix(S[1,],nrow=1)
+  # a = reconc_BUIS(A, base_forecast, in_type = "samples", distr = list("continuous","discrete","discrete"), seed=42)
   
   # -----------
   n = 199
@@ -39,7 +40,8 @@ test_that("Test effective sample size", {
   
   # Try the warning message
   # base_forecast = list(u,b1,b2)
-  # a = bayesRecon::reconc_BUIS(S, base_forecast, in_type = "samples", distr = list("continuous","discrete","discrete"), seed=42)
+  # A = matrix(S[1,],nrow=1)
+  # a = bayesRecon::reconc_BUIS(A, base_forecast, in_type = "samples", distr = list("continuous","discrete","discrete"), seed=42)
 
   # -----------
   n = 2000
@@ -59,5 +61,6 @@ test_that("Test effective sample size", {
   
   # Try the warning message
   # base_forecast = list(u,b1,b2)
-  # a = bayesRecon::reconc_BUIS(S, base_forecast, in_type = "samples", distr = list("continuous","discrete","discrete"), seed=42)
+  # A = matrix(S[1,],nrow=1)
+  # a = bayesRecon::reconc_BUIS(A, base_forecast, in_type = "samples", distr = list("continuous","discrete","discrete"), seed=42)
 })

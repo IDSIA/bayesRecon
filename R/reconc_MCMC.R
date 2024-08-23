@@ -14,7 +14,7 @@
 #'
 #'
 #'
-#' @param S summing matrix (n x n_bottom).
+#' @param A aggregation matrix (n_upper x n_bottom).
 #' @param base_forecasts list of the parameters of the base forecast distributions, see details.
 #' @param distr a string describing the type of predictive distribution.
 #' @param num_samples number of samples to draw using MCMC.
@@ -25,14 +25,15 @@
 #'
 #' @details
 #'
-#' The parameter `base_forecast` is a list containing n elements.
+#' The parameter `base_forecast` is a list containing n=n_upper + n_bottom elements.
 #' Each element is a list containing the estimated:
 #'
 #' * mean and sd for the Gaussian base forecast, see \link[stats]{Normal}, if `distr`='gaussian';
 #' * lambda for the Poisson base forecast, see \link[stats]{Poisson}, if `distr`='poisson';
 #' * size and prob (or mu) for the negative binomial base forecast, see \link[stats]{NegBinomial}, if `distr`='nbinom'.
 #'
-#' The order of the `base_forecast` list is given by the order of the time series in the summing matrix.
+#' The first n_upper elements of the list are the upper base forecasts, in the order given by A.
+#' The elements from n_upper+1 until the end of the list are the bottom base forecasts. 
 #'
 #' @return A list containing the reconciled forecasts. The list has the following named elements:
 #'
@@ -46,7 +47,7 @@
 #'
 #'# Create a minimal hierarchy with 2 bottom and 1 upper variable
 #'rec_mat <- get_reconc_matrices(agg_levels=c(1,2), h=2)
-#'S <- rec_mat$S
+#'A <- rec_mat$A
 #'
 #'#Set the parameters of the Poisson base forecast distributions
 #'lambda1 <- 2
@@ -55,17 +56,17 @@
 #'lambdas <- c(lambdaY,lambda1,lambda2)
 #'
 #'base_forecasts = list()
-#'for (i in 1:nrow(S)) {
+#'for (i in 1:length(lambdas)) {
 #'  base_forecasts[[i]] = list(lambda = lambdas[i])
 #'}
 #'
 #'#Sample from the reconciled forecast distribution using MCMC
-#'mcmc = reconc_MCMC(S, base_forecasts, distr = "poisson",
+#'mcmc = reconc_MCMC(A, base_forecasts, distr = "poisson",
 #'                   num_samples = 30000, seed = 42)
 #'samples_mcmc <- mcmc$reconciled_samples
 #'
 #'#Compare the reconciled means with those obtained via BUIS
-#'buis = reconc_BUIS(S, base_forecasts, in_type="params",
+#'buis = reconc_BUIS(A, base_forecasts, in_type="params",
 #'                    distr="poisson", num_samples=100000, seed=42)
 #'samples_buis <- buis$reconciled_samples
 #'
@@ -82,7 +83,7 @@
 #' [reconc_BUIS()]
 #'
 #' @export
-reconc_MCMC <- function(S,
+reconc_MCMC <- function(A,
                         base_forecasts,
                         distr,
                         num_samples = 10000,
@@ -97,15 +98,16 @@ reconc_MCMC <- function(S,
   if (distr == "gaussian") {
     stop("MCMC for Gaussian distributions is not implemented")
   }
+  
+  n_bottom <- ncol(A)
+  n_ts <- nrow(A)+ncol(A)
+  
   # Transform distr into list
   if (!is.list(distr)) {
-    distr = rep(list(distr), nrow(S))
+    distr = rep(list(distr), n_ts)
   }
   # Check input
-  .check_input_BUIS(S, base_forecasts, in_type = as.list(rep("params", nrow(S))), distr = distr)
-
-  n_bottom <- ncol(S)
-  n_ts <- nrow(S)
+  .check_input_BUIS(A, base_forecasts, in_type = as.list(rep("params", n_ts)), distr = distr)
 
   # the first burn_in samples will be removed
   num_samples <- num_samples + burn_in
@@ -123,8 +125,13 @@ reconc_MCMC <- function(S,
   b <- matrix(nrow = num_samples, ncol = n_bottom)
 
   # Get matrix A and bottom base forecasts
-  split_hierarchy.res <- .split_hierarchy(S, base_forecasts)
-  A <- split_hierarchy.res$A
+  split_hierarchy.res <- list(
+    A = A,
+    upper = base_forecasts[1:nrow(A)],
+    bottom = base_forecasts[(nrow(A)+1):n_ts],
+    upper_idxs = 1:nrow(A),
+    bottom_idxs = (nrow(A)+1):n_ts
+  )
   bottom_base_forecasts <- split_hierarchy.res$bottom
   bottom_distr <- distr[split_hierarchy.res$bottom_idxs]
 
@@ -148,7 +155,7 @@ reconc_MCMC <- function(S,
 
     prop <- .proposal(old_prop, cov_mat_prop)
     b_prop <- prop$b
-    alpha <- .accept_prob(b_prop, b[i-1,], S, distr, base_forecasts)
+    alpha <- .accept_prob(b_prop, b[i-1,], A, distr, base_forecasts)
 
     if (stats::runif(1) < alpha) {
       b[i,] <- b_prop
@@ -168,7 +175,7 @@ reconc_MCMC <- function(S,
 
   b_samples <- t(b[(burn_in+1) : num_samples, ]) #output shape: n_bottom x num_samples
   u_samples <- A %*% b_samples
-  y_samples <- S %*% b_samples
+  y_samples <- rbind(u_samples,b_samples)
 
   out = list(
     bottom_reconciled_samples = b_samples,
@@ -201,13 +208,13 @@ reconc_MCMC <- function(S,
 # @title Compute acceptance probability
 # @param b proposal state
 # @param b0 current state
-# @param S aggregating matrix
+# @param A aggregating matrix
 # @param distr list of strings specifying the distribution of each variable
 # @param params list of the parameters of the distributions
 # @return the acceptance probability alpha
-.accept_prob <- function(b, b0, S, distr, params) {
+.accept_prob <- function(b, b0, A, distr, params) {
 
-  alpha <- .target_pmf(b, S, distr, params) / .target_pmf(b0, S, distr, params)
+  alpha <- .target_pmf(b, A, distr, params) / .target_pmf(b0, A, distr, params)
 
   return(min(1,alpha))
 
@@ -215,11 +222,11 @@ reconc_MCMC <- function(S,
 
 
 ##################################
-.target_pmf <- function(b, S, distr, params) {
+.target_pmf <- function(b, A, distr, params) {
 
-  n_ts <- nrow(S)
+  n_ts <- nrow(A)+ncol(A)
 
-  y <- S %*% b
+  y <- rbind(A,diag(nrow=ncol(A),ncol=ncol(A))) %*% b
 
   pmf <- 1
   for (j in 1:n_ts) {
