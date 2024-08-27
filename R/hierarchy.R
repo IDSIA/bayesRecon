@@ -403,8 +403,10 @@ get_reconc_matrices <- function(agg_levels, h) {
   
   # The sum of the rows corresponding to the lowest level should be a vector of 1 
   if (any(colSums(A[low_rows_A,,drop=FALSE])!=1)) {
-    stop("It is impossible to find the lowest upper level. 
-         Check if the hierarchy is balanced.")
+    unbal_bott = which(colSums(A[low_rows_A,,drop=FALSE])!=1) 
+    err_mess = "It is impossible to find the lowest upper level. Probably the hierarchy is unbalanced, the following bottom should be duplicated (see example): "
+    err_mess = paste0(c(err_mess, unbal_bott), collapse = " ")
+    stop(err_mess)
   }
   
   return(low_rows_A)
