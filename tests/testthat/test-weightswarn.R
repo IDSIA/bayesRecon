@@ -12,7 +12,7 @@ test_that("Test effective sample size", {
   
   w = .compute_weights(b, u, "samples", "continuous")
   
-  check_w = .check_weigths(w, n_eff_min=200)
+  check_w = .check_weights(w, n_eff_min=200)
   expect_equal(check_w$warning, TRUE)
   expect_equal(check_w$warning_code, 1)
   expect_equal(check_w$n_eff, n)
@@ -33,7 +33,7 @@ test_that("Test effective sample size", {
   
   w = .compute_weights(b, u, "samples", "continuous")
   
-  check_w = .check_weigths(w, n_eff_min=200)
+  check_w = .check_weights(w, n_eff_min=200)
   expect_equal(check_w$warning, TRUE)
   expect_equal(check_w$warning_code, 1)
   expect_equal(check_w$n_eff, n)
@@ -54,7 +54,7 @@ test_that("Test effective sample size", {
   
   w = .compute_weights(b, u, "samples", "continuous")
   
-  check_w = .check_weigths(w, n_eff_min=200, p_n_eff=0.01)
+  check_w = .check_weights(w, n_eff_min=200, p_n_eff=0.01)
   expect_equal(check_w$warning, TRUE)
   expect_equal(check_w$warning_code, c(2,3))
   expect_equal(check_w$n_eff < 200, TRUE)

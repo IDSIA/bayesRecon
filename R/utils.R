@@ -266,7 +266,7 @@
 }
 
 # Check importance sampling weights
-.check_weigths <- function(w, n_eff_min=200, p_n_eff=0.01) {
+.check_weights <- function(w, n_eff_min=200, p_n_eff=0.01) {
   warning = FALSE
   warning_code = c()
   warning_msg = c()
@@ -283,7 +283,8 @@
   }else{
     
     # Effective sample size
-    n_eff = (sum(w)^2) / sum(w^2)
+    w = w / sum(w)
+    n_eff = 1 / sum(w^2)
     
     # 2. n_eff < threshold
     if (n_eff < n_eff_min) {

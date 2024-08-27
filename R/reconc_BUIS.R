@@ -289,7 +289,7 @@ reconc_BUIS <- function(A,
       in_type_ = in_typeH[[hi]],
       distr_ = distr_H[[hi]]
     )
-    check_weights.res = .check_weigths(weights)
+    check_weights.res = .check_weights(weights)
     if (check_weights.res$warning & !suppress_warnings) {
       warning_msg = check_weights.res$warning_msg
       # add information to the warning message
@@ -317,7 +317,7 @@ reconc_BUIS <- function(A,
         distr_ = distr_G[[gi]]
       )
     }
-    check_weights.res = .check_weigths(weights)
+    check_weights.res = .check_weights(weights)
     if (check_weights.res$warning & !suppress_warnings) {
       warning_msg = check_weights.res$warning_msg
       # add information to the warning message

@@ -162,7 +162,7 @@ reconc_MixCond = function(A, fc_bottom, fc_upper,
   weights = .MVN_density(x=U, mu = mu_u, Sigma = Sigma_u)
   
   
-  check_weights.res = .check_weigths(weights)
+  check_weights.res = .check_weights(weights)
   if (check_weights.res$warning & !suppress_warnings) {
     warning_msg = check_weights.res$warning_msg
     warning(warning_msg)
