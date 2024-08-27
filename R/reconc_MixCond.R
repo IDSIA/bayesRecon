@@ -24,7 +24,9 @@
 #' The base upper forecasts `fc_upper` must be a list containing the parameters of 
 #' the multivariate Gaussian distribution of the upper forecasts.
 #' The list must contain only the named elements `mu` (vector of length n_upper) 
-#' and `Sigma` (n_upper x n_upper matrix) 
+#' and `Sigma` (n_upper x n_upper matrix).
+#' 
+#' The order of the upper and bottom base forecasts must match the order of (respectively) the rows and the columns of A.
 #'  
 #' A PMF object is a numerical vector containing the probability mass function of a discrete distribution.
 #' Each element corresponds to the probability of the integers from 0 to the last value of the support.

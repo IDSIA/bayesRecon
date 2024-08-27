@@ -62,9 +62,9 @@
 #'
 #' @details
 #'
-#' The parameter `base_forecast` is a list containing n=n_upper + n_bottom elements.
-#' The first n_upper elements of the list are the upper base forecasts, in the order given by A.
-#' The elements from n_upper+1 until the end of the list are the bottom base forecasts. 
+#' The parameter `base_forecast` is a list containing n = n_upper + n_bottom elements.
+#' The first n_upper elements of the list are the upper base forecasts, in the order given by the rows of A.
+#' The elements from n_upper+1 until the end of the list are the bottom base forecasts, in the order given by the columns of A.
 #' 
 #' The i-th element depends on the values of `in_type[[i]]` and `distr[[i]]`.
 #'

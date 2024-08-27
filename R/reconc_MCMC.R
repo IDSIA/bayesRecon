@@ -25,15 +25,15 @@
 #'
 #' @details
 #'
-#' The parameter `base_forecast` is a list containing n=n_upper + n_bottom elements.
+#' The parameter `base_forecast` is a list containing n = n_upper + n_bottom elements.
 #' Each element is a list containing the estimated:
 #'
 #' * mean and sd for the Gaussian base forecast, see \link[stats]{Normal}, if `distr`='gaussian';
 #' * lambda for the Poisson base forecast, see \link[stats]{Poisson}, if `distr`='poisson';
 #' * size and prob (or mu) for the negative binomial base forecast, see \link[stats]{NegBinomial}, if `distr`='nbinom'.
 #'
-#' The first n_upper elements of the list are the upper base forecasts, in the order given by A.
-#' The elements from n_upper+1 until the end of the list are the bottom base forecasts. 
+#' The first n_upper elements of the list are the upper base forecasts, in the order given by the rows of A.
+#' The elements from n_upper+1 until the end of the list are the bottom base forecasts, in the order given by the columns of A.
 #'
 #' @return A list containing the reconciled forecasts. The list has the following named elements:
 #'
