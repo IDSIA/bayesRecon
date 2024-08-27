@@ -1,8 +1,6 @@
 test_that("MCMC Monthly, in_type=='params', distr='poisson'", {
-  S = read.csv(file = "dataForTests/Monthly-Poisson_S.csv", header = FALSE)
-  S = as.matrix(S)
-  A = .get_A_from_S(S)$A  # temporary; eventually: changed all saved S into A, run everything with A
-  
+  A = read.csv(file = "dataForTests/Monthly-Poisson_A.csv", header = FALSE)
+  A = as.matrix(A)
   base_forecasts_in = read.csv(file = "dataForTests/Monthly-Poisson_basef.csv", header = FALSE)
   base_forecasts = list()
   for (i in 1:nrow(base_forecasts_in)) {

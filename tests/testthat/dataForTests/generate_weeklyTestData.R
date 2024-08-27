@@ -5,9 +5,8 @@ library(bayesRecon)
 
 # Generate A matrix for weekly hierarchy
 A <- .gen_weekly()
-S <- rbind(A, diag(nrow=52,ncol=52))+0e-3
 # Save matrix to file
-write.table(S,file="./Weekly-Gaussian_S.csv",row.names = FALSE,sep=',',col.names = FALSE,quote = FALSE)
+write.table(A,file="./Weekly-Gaussian_A.csv",row.names = FALSE,sep=',',col.names = FALSE,quote = FALSE)
 
 # Generate randomly bottom means
 set.seed(1)
