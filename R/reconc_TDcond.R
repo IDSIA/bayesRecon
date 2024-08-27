@@ -44,6 +44,12 @@
                         toll=.TOLL, Rtoll=.RTOLL, smoothing=TRUE, 
                         al_smooth=.ALPHA_SMOOTHING, lap_smooth=.LAP_SMOOTHING) {
   
+  # If the bottom pmf list contains only 1 element,
+  # then the TD samples are simply a copy of the upper samples. 
+  if(length(bott_pmf)==1){
+    return(matrix(u, nrow=1))
+  }
+  
   l_l_pmf = rev(PMF.bottom_up(bott_pmf, toll = toll, Rtoll = Rtoll, return_all = TRUE, 
                               smoothing=smoothing, al_smooth=al_smooth, lap_smooth=lap_smooth))
   
@@ -163,6 +169,67 @@
 #' # The upper distribution remains similar
 #' PMF.summary(res.TDcond$upper_reconciled$pmf[[1]])
 #' PMF.get_var(res.TDcond$upper_reconciled$pmf[[1]])
+#' 
+#' ## Example 2: reconciliation with unbalanced hierarchy
+#' # We consider the example in Fig. 9 of Zambon et al. (2024).
+#' 
+#' # The hierarchy has 5 bottoms and 3 uppers
+#' A <- matrix(c(1,1,1,1,1,
+#'               1,1,0,0,0,
+#'               0,0,1,1,0),nrow=3,byrow = TRUE)
+#' # Note that the 5th bottom only appears in the highest level, this is an unbalanced hierarchy. 
+#' n_upper  = nrow(A)
+#' n_bottom = ncol(A)
+#' 
+#' # The bottom forecasts are Poisson with lambda=15
+#' lambda <- 15
+#' n_tot <- 60
+#' fc_bottom <- list()
+#' for(i in seq(n_bottom)){
+#'   fc_bottom[[i]] <- apply(matrix(seq(0,n_tot)),MARGIN=1,FUN=function(x) dpois(x,lambda=lambda))
+#' }
+#'
+#' # The upper forecasts are a multivariate Gaussian
+#' mu = c(75, 30, 30)
+#' Sigma = matrix(c(5^2,5,5,
+#'                  5, 10, 0,
+#'                  5, 0,10), nrow=3, byrow = TRUE)
+#'                  
+#' fc_upper<- list(mu=mu, Sigma=Sigma)
+#' \dontrun{
+#' # If we reconcile with reconc_TDcond it won't work
+#' res.TDcond <- reconc_TDcond(A, fc_bottom, fc_upper)
+#' }
+#' 
+#' # We can balance the hierarchy with by duplicating the node b5
+#' # In practice this means: 
+#' # i) consider the time series observations for b5 as the upper u4,
+#' # ii) fit the multivariate ts model for u1, u2, u3, u4. 
+#' 
+#' # In this example we simply assume that the forecast for u1-u4 is 
+#' # Gaussian with the mean and variance of u4 given by the parameters in b5. 
+#' mean_b5 <- lambda
+#' var_b5  <- lambda
+#' mu = c(75, 30, 30,mean_b5)
+#' Sigma = matrix(c(5^2,5,5,5,
+#'                  5, 10, 0, 0,
+#'                  5, 0, 10, 0,
+#'                  5, 0,  0, var_b5), nrow=4, byrow = TRUE)
+#' fc_upper<- list(mu=mu, Sigma=Sigma)
+#' 
+#' # We also need to update the aggregating matrix
+#' A <- matrix(c(1,1,1,1,1,
+#'               1,1,0,0,0,
+#'               0,0,1,1,0,
+#'               0,0,0,0,1),nrow=4,byrow = TRUE)
+#'               
+#' # We can now reconcile with TDcond
+#' res.TDcond <- reconc_TDcond(A, fc_bottom, fc_upper)
+#' 
+#' # Note that the reconciled distribution of b5 and u4 are identical, 
+#' # keep this in mind when using the results of your reconciliation!
+#' max(abs(res.TDcond$bottom_reconciled$pmf[[5]]- res.TDcond$upper_reconciled$pmf[[4]]))
+#' 
 #' 
 #' @references
 #' Corani, G., Azzimonti, D., Augusto, J.P.S.C., Zaffalon, M. (2021). 

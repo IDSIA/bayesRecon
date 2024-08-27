@@ -275,6 +275,16 @@ PMF.bottom_up = function(l_pmf, toll=.TOLL, Rtoll=.RTOLL, return_all=FALSE,
   if (smoothing) l_pmf = lapply(l_pmf, PMF.smoothing, 
                                 alpha=al_smooth, laplace=lap_smooth)
   
+  # In case we have an upper which is a duplicate of a bottom,
+  # the bottom up is simply that bottom.
+  if(length(l_pmf)==1){
+    if (return_all) {
+      return(list(l_pmf))
+    } else {
+      return(l_pmf[[1]])
+    }
+  }
+  
   # Doesn't do convolutions sequentially 
   # Instead, for each iteration (while) it creates a new list of vectors 
   # by doing convolution between 1 and 2, 3 and 4, ...
