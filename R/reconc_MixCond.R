@@ -24,7 +24,9 @@
 #' The base upper forecasts `fc_upper` must be a list containing the parameters of 
 #' the multivariate Gaussian distribution of the upper forecasts.
 #' The list must contain only the named elements `mu` (vector of length n_upper) 
-#' and `Sigma` (n_upper x n_upper matrix) 
+#' and `Sigma` (n_upper x n_upper matrix).
+#' 
+#' The order of the upper and bottom base forecasts must match the order of (respectively) the rows and the columns of A.
 #'  
 #' A PMF object is a numerical vector containing the probability mass function of a discrete distribution.
 #' Each element corresponds to the probability of the integers from 0 to the last value of the support.
@@ -40,7 +42,7 @@
 #' Note that warnings are an indication that the base forecasts might have issues. 
 #' Please check the base forecasts in case of warnings.
 #'
-#' @param S Summing matrix (n x n_bottom).  
+#' @param A Aggregation matrix (n_upper x n_bottom).  
 #' @param fc_bottom A list containing the bottom base forecasts, see details.
 #' @param fc_upper A list containing the upper base forecasts, see details.
 #' @param bottom_in_type A string with three possible values:
@@ -81,7 +83,6 @@
 #' 
 #' # Consider a simple hierarchy with two bottom and one upper
 #' A <- matrix(c(1,1),nrow=1)
-#' S <- rbind(A,diag(nrow=2))
 #' # The bottom forecasts are Poisson with lambda=15
 #' lambda <- 15
 #' n_tot <- 60
@@ -93,7 +94,7 @@
 #' fc_upper<- list(mu=40, Sigma=matrix(5^2))
 #' 
 #' # We can reconcile with reconc_MixCond
-#' res.mixCond <- reconc_MixCond(S, fc_bottom, fc_upper)
+#' res.mixCond <- reconc_MixCond(A, fc_bottom, fc_upper)
 #' 
 #' # Note that the bottom distributions are slightly shifted to the right
 #' PMF.summary(res.mixCond$bottom_reconciled$pmf[[1]])
@@ -107,16 +108,6 @@
 #' PMF.get_var(res.mixCond$upper_reconciled$pmf[[1]])
 #' 
 #' @references
-#' Corani, G., Azzimonti, D., Augusto, J.P.S.C., Zaffalon, M. (2021). 
-#' *Probabilistic Reconciliation of Hierarchical Forecast via Bayes' Rule*. 
-#' ECML PKDD 2020. Lecture Notes in Computer Science, vol 12459.
-#' \doi{10.1007/978-3-030-67664-3_13}.
-#'
-#' Zambon, L., Agosto, A., Giudici, P., Corani, G. (2024). 
-#' *Properties of the reconciled distributions for Gaussian and count forecasts*. 
-#' International Journal of Forecasting (in press).
-#' \doi{10.1016/j.ijforecast.2023.12.004}.
-#'
 #' Zambon, L., Azzimonti, D., Rubattu, N., Corani, G. (2024). 
 #' *Probabilistic reconciliation of mixed-type hierarchical time series*. 
 #' The 40th Conference on Uncertainty in Artificial Intelligence, accepted.
@@ -124,31 +115,18 @@
 #' @seealso [reconc_TDcond()], [reconc_BUIS()]
 #'
 #' @export
-reconc_MixCond = function(S, fc_bottom, fc_upper, 
+reconc_MixCond = function(A, fc_bottom, fc_upper, 
                          bottom_in_type = "pmf", distr = NULL,
                          num_samples = 2e4, return_type = "pmf", 
                          suppress_warnings = FALSE, seed = NULL) {
   
   if (!is.null(seed)) set.seed(seed)
   
-  # Parameters for convolution
-  # toll=1e-16
-  # Rtoll=1e-7
-  # smooth_bottom=TRUE
-  # al_smooth=NULL
-  # lap_smooth=FALSE 
-  
-  # After testing the convolution parameters:
-  # remove dots, remove comment above, and set the "best parameters" as default in 
-  # PMF.check_support and .TD_sampling
-  
   # Check inputs
-  .check_input_TD(S, fc_bottom, fc_upper, 
+  .check_input_TD(A, fc_bottom, fc_upper, 
                   bottom_in_type, distr,
                   return_type)
   
-  # Get aggr. matrix A 
-  A = .get_A_from_S(S)$A
   n_u = nrow(A)
   n_b = ncol(A)
   
@@ -174,7 +152,7 @@ reconc_MixCond = function(S, fc_bottom, fc_upper,
   weights = .MVN_density(x=U, mu = mu_u, Sigma = Sigma_u)
   
   
-  check_weights.res = .check_weigths(weights)
+  check_weights.res = .check_weights(weights)
   if (check_weights.res$warning & !suppress_warnings) {
     warning_msg = check_weights.res$warning_msg
     warning(warning_msg)

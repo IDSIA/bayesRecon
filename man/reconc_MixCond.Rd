@@ -5,7 +5,7 @@
 \title{Probabilistic forecast reconciliation of mixed hierarchies via conditioning}
 \usage{
 reconc_MixCond(
-  S,
+  A,
   fc_bottom,
   fc_upper,
   bottom_in_type = "pmf",
@@ -17,7 +17,7 @@ reconc_MixCond(
 )
 }
 \arguments{
-\item{S}{Summing matrix (n x n_bottom).}
+\item{A}{Aggregation matrix (n_upper x n_bottom).}
 
 \item{fc_bottom}{A list containing the bottom base forecasts, see details.}
 
@@ -80,7 +80,9 @@ see \link[stats]{NegBinomial}.
 The base upper forecasts \code{fc_upper} must be a list containing the parameters of
 the multivariate Gaussian distribution of the upper forecasts.
 The list must contain only the named elements \code{mu} (vector of length n_upper)
-and \code{Sigma} (n_upper x n_upper matrix)
+and \code{Sigma} (n_upper x n_upper matrix).
+
+The order of the upper and bottom base forecasts must match the order of (respectively) the rows and the columns of A.
 
 A PMF object is a numerical vector containing the probability mass function of a discrete distribution.
 Each element corresponds to the probability of the integers from 0 to the last value of the support.
@@ -103,7 +105,6 @@ library(bayesRecon)
 
 # Consider a simple hierarchy with two bottom and one upper
 A <- matrix(c(1,1),nrow=1)
-S <- rbind(A,diag(nrow=2))
 # The bottom forecasts are Poisson with lambda=15
 lambda <- 15
 n_tot <- 60
@@ -115,7 +116,7 @@ fc_bottom[[2]] <- apply(matrix(seq(0,n_tot)),MARGIN=1,FUN=function(x) dpois(x,la
 fc_upper<- list(mu=40, Sigma=matrix(5^2))
 
 # We can reconcile with reconc_MixCond
-res.mixCond <- reconc_MixCond(S, fc_bottom, fc_upper)
+res.mixCond <- reconc_MixCond(A, fc_bottom, fc_upper)
 
 # Note that the bottom distributions are slightly shifted to the right
 PMF.summary(res.mixCond$bottom_reconciled$pmf[[1]])
@@ -130,16 +131,6 @@ PMF.get_var(res.mixCond$upper_reconciled$pmf[[1]])
 
 }
 \references{
-Corani, G., Azzimonti, D., Augusto, J.P.S.C., Zaffalon, M. (2021).
-\emph{Probabilistic Reconciliation of Hierarchical Forecast via Bayes' Rule}.
-ECML PKDD 2020. Lecture Notes in Computer Science, vol 12459.
-\doi{10.1007/978-3-030-67664-3_13}.
-
-Zambon, L., Agosto, A., Giudici, P., Corani, G. (2024).
-\emph{Properties of the reconciled distributions for Gaussian and count forecasts}.
-International Journal of Forecasting (in press).
-\doi{10.1016/j.ijforecast.2023.12.004}.
-
 Zambon, L., Azzimonti, D., Rubattu, N., Corani, G. (2024).
 \emph{Probabilistic reconciliation of mixed-type hierarchical time series}.
 The 40th Conference on Uncertainty in Artificial Intelligence, accepted.

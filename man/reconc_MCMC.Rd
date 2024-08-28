@@ -5,7 +5,7 @@
 \title{MCMC for Probabilistic Reconciliation of forecasts via conditioning}
 \usage{
 reconc_MCMC(
-  S,
+  A,
   base_forecasts,
   distr,
   num_samples = 10000,
@@ -16,7 +16,7 @@ reconc_MCMC(
 )
 }
 \arguments{
-\item{S}{summing matrix (n x n_bottom).}
+\item{A}{aggregation matrix (n_upper x n_bottom).}
 
 \item{base_forecasts}{list of the parameters of the base forecast distributions, see details.}
 
@@ -51,7 +51,7 @@ The function only works with Poisson or Negative Binomial base forecasts.
 The function \code{\link[=reconc_BUIS]{reconc_BUIS()}} is generally faster on most hierarchies.
 }
 \details{
-The parameter \code{base_forecast} is a list containing n elements.
+The parameter \code{base_forecast} is a list containing n = n_upper + n_bottom elements.
 Each element is a list containing the estimated:
 \itemize{
 \item mean and sd for the Gaussian base forecast, see \link[stats]{Normal}, if \code{distr}='gaussian';
@@ -59,7 +59,8 @@ Each element is a list containing the estimated:
 \item size and prob (or mu) for the negative binomial base forecast, see \link[stats]{NegBinomial}, if \code{distr}='nbinom'.
 }
 
-The order of the \code{base_forecast} list is given by the order of the time series in the summing matrix.
+The first n_upper elements of the list are the upper base forecasts, in the order given by the rows of A.
+The elements from n_upper+1 until the end of the list are the bottom base forecasts, in the order given by the columns of A.
 }
 \examples{
 
@@ -67,7 +68,7 @@ library(bayesRecon)
 
 # Create a minimal hierarchy with 2 bottom and 1 upper variable
 rec_mat <- get_reconc_matrices(agg_levels=c(1,2), h=2)
-S <- rec_mat$S
+A <- rec_mat$A
 
 #Set the parameters of the Poisson base forecast distributions
 lambda1 <- 2
@@ -76,17 +77,17 @@ lambdaY <- 9
 lambdas <- c(lambdaY,lambda1,lambda2)
 
 base_forecasts = list()
-for (i in 1:nrow(S)) {
+for (i in 1:length(lambdas)) {
  base_forecasts[[i]] = list(lambda = lambdas[i])
 }
 
 #Sample from the reconciled forecast distribution using MCMC
-mcmc = reconc_MCMC(S, base_forecasts, distr = "poisson",
+mcmc = reconc_MCMC(A, base_forecasts, distr = "poisson",
                   num_samples = 30000, seed = 42)
 samples_mcmc <- mcmc$reconciled_samples
 
 #Compare the reconciled means with those obtained via BUIS
-buis = reconc_BUIS(S, base_forecasts, in_type="params",
+buis = reconc_BUIS(A, base_forecasts, in_type="params",
                    distr="poisson", num_samples=100000, seed=42)
 samples_buis <- buis$reconciled_samples
 

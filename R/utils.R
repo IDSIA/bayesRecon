@@ -22,22 +22,35 @@
     stop("Input error in S: S must be a matrix containing only 0s and 1s.")
   }
   
-  
   if(!all(colSums(S)>1)){
     stop("Input error in S: all bottom level forecasts must aggregate into an upper.")
   }
   
-  
   if(nrow(unique(S))!=nrow(S)){
-    stop("Input error in S: S has a repeated row.")
+    warning("S has some repeated rows.")
   }
   
   # Check that each bottom has a corresponding row with with one 1 and the rest 0s.
-  if(sum(rowSums(S) ==1) != ncol(S)){
+  if (nrow(unique(S[rowSums(S)==1,])) < ncol(S)) {
     stop("Input error in S: there is at least one bottom that does not have a row with one 1 and the rest 0s.")
   }
   
+}
+
+# Function to check aggregation matrix A
+.check_A <- function(A) {
+  if (!all(A %in% c(0,1))) {
+    stop("Input error in A: A must be a matrix containing only 0s and 1s.")
+  }
   
+  if(any(colSums(A)==0)){
+    stop("Input error in A: some columns do not have any 1.
+          All bottom level forecasts must aggregate into an upper.")
+  }
+  
+  if(nrow(unique(A))!=nrow(A)){
+    warning("A has some repeated rows.")
+  }
 }
 
 # Check if it is a covariance matrix (i.e. symmetric p.d.)
@@ -151,18 +164,20 @@
 
 # Check input for BUIS (and for MH)
 # base_forecasts, in_type, and distr must be list
-.check_input_BUIS <- function(S, base_forecasts, in_type, distr) {
+.check_input_BUIS <- function(A, base_forecasts, in_type, distr) {
   
-  .check_S(S)
+  .check_A(A)
+  
+  n_tot_A <- ncol(A)+nrow(A)
   
   # Check in_type
   if (!is.list(in_type)) {
     stop("Input error: in_type must be a list")
   }
-  if (!(nrow(S) == length(in_type))) {
-    stop("Input error: nrow(S) != length(in_type)")
+  if (!(n_tot_A == length(in_type))) {
+    stop("Input error: ncol(A)+nrow(A) != length(in_type)")
   }
-  for(i in 1:nrow(S)){
+  for(i in 1:n_tot_A){
     if (!(in_type[[i]] %in% c("params", "samples"))) {
       stop("Input error: in_type[[",i,"]] must be either 'samples' or 'params'")
     }
@@ -172,16 +187,16 @@
   if (!is.list(distr)) {
     stop("Input error: distr must be a list")
   }
-  if (!(nrow(S) == length(distr))) {
-    stop("Input error: nrow(S) != length(distr)")
+  if (!(n_tot_A == length(distr))) {
+    stop("Input error: ncol(A)+nrow(A) != length(distr)")
   }
   if (!is.list(base_forecasts)) {
     stop("Input error: base_forecasts must be a list")
   }
-  if (!(nrow(S) == length(base_forecasts))) {
-    stop("Input error: nrow(S) != length(base_forecasts)")
+  if (!(n_tot_A == length(base_forecasts))) {
+    stop("Input error: ncol(A)+nrow(A) != length(base_forecasts)")
   }
-  for(i in 1:nrow(S)){
+  for(i in 1:n_tot_A){
     if (in_type[[i]] == "params") {
       .check_distr_params(distr[[i]], base_forecasts[[i]])
     } else if (in_type[[i]] == "samples") {
@@ -201,14 +216,14 @@
 }
 
 # Check input for TDcond
-.check_input_TD <- function(S, fc_bottom, fc_upper, 
+.check_input_TD <- function(A, fc_bottom, fc_upper, 
                            bottom_in_type, distr,
                            return_type) {
   
-  .check_S(S)
+  .check_A(A)
   
-  n_b = ncol(S)        # number of bottom TS
-  n_u = nrow(S) - n_b  # number of upper TS
+  n_b = ncol(A)        # number of bottom TS
+  n_u = nrow(A)        # number of upper TS
   
   if (!(bottom_in_type %in% c("pmf", "samples", "params"))) {
     stop("Input error: bottom_in_type must be either 'pmf', 'samples', or 'params'")
@@ -217,7 +232,7 @@
     stop("Input error: return_type must be either 'pmf', 'samples', or 'all'")
   } 
   if (length(fc_bottom) != n_b) {
-    stop("Input error: length of fc_bottom does not match with S")
+    stop("Input error: length of fc_bottom does not match with A")
   }
   # If Sigma is a number, transform into a matrix 
   if (length(fc_upper$Sigma) == 1) { 
@@ -225,7 +240,7 @@
   } 
   # Check the dimensions of mu and Sigma
   if (length(fc_upper$mu) != n_u | any(dim(fc_upper$Sigma) != c(n_u, n_u))) {
-    stop("Input error: the dimensions of the upper parameters do not match with S")
+    stop("Input error: the dimensions of the upper parameters do not match with A")
   }
   # Check that Sigma is a covariance matrix (symmetric positive semi-definite)
   .check_cov(fc_upper$Sigma, "Upper covariance matrix", symm_check=TRUE)
@@ -251,7 +266,7 @@
 }
 
 # Check importance sampling weights
-.check_weigths <- function(w, n_eff_min=200, p_n_eff=0.01) {
+.check_weights <- function(w, n_eff_min=200, p_n_eff=0.01) {
   warning = FALSE
   warning_code = c()
   warning_msg = c()
@@ -268,7 +283,8 @@
   }else{
     
     # Effective sample size
-    n_eff = (sum(w)^2) / sum(w^2)
+    w = w / sum(w)
+    n_eff = 1 / sum(w^2)
     
     # 2. n_eff < threshold
     if (n_eff < n_eff_min) {

@@ -5,7 +5,7 @@
 \title{BUIS for Probabilistic Reconciliation of forecasts via conditioning}
 \usage{
 reconc_BUIS(
-  S,
+  A,
   base_forecasts,
   in_type,
   distr,
@@ -15,11 +15,11 @@ reconc_BUIS(
 )
 }
 \arguments{
-\item{S}{Summing matrix (n x n_bottom).}
+\item{A}{aggregation matrix (n_upper x n_bottom).}
 
 \item{base_forecasts}{A list containing the base_forecasts, see details.}
 
-\item{in_type}{A string or a list of length n. If it is a list the i-th element is a string with two possible values:
+\item{in_type}{A string or a list of length n_upper + n_bottom. If it is a list the i-th element is a string with two possible values:
 \itemize{
 \item 'samples' if the i-th base forecasts are in the form of samples;
 \item 'params'  if the i-th base forecasts are in the form of estimated parameters.
@@ -27,7 +27,7 @@ reconc_BUIS(
 
 If it \code{in_type} is a string it is assumed that all base forecasts are of the same type.}
 
-\item{distr}{A string or a list of length n describing the type of base forecasts.
+\item{distr}{A string or a list of length n_upper + n_bottom describing the type of base forecasts.
 If it is a list the i-th element is a string with two possible values:
 \itemize{
 \item 'continuous' or 'discrete' if \code{in_type[[i]]}='samples';
@@ -58,8 +58,11 @@ Uses the Bottom-Up Importance Sampling algorithm to draw samples from the reconc
 forecast distribution, obtained via conditioning.
 }
 \details{
-The parameter \code{base_forecast} is a list containing n elements where the i-th element depends on
-the values of \code{in_type[[i]]} and \code{distr[[i]]}.
+The parameter \code{base_forecast} is a list containing n = n_upper + n_bottom elements.
+The first n_upper elements of the list are the upper base forecasts, in the order given by the rows of A.
+The elements from n_upper+1 until the end of the list are the bottom base forecasts, in the order given by the columns of A.
+
+The i-th element depends on the values of \code{in_type[[i]]} and \code{distr[[i]]}.
 
 If \code{in_type[[i]]}='samples', then \code{base_forecast[[i]]} is a vector containing samples from the base forecast distribution.
 
@@ -71,8 +74,6 @@ If \code{in_type[[i]]}='params', then \code{base_forecast[[i]]} is a list contai
 }
 
 See the description of the parameters \code{in_type} and \code{distr} for more details.
-
-The order of the \code{base_forecast} list is given by the order of the time series in the summing matrix.
 
 Warnings are triggered from the Importance Sampling step if:
 \itemize{
@@ -90,6 +91,7 @@ library(bayesRecon)
 
 # Create a minimal hierarchy with 2 bottom and 1 upper variable
 rec_mat <- get_reconc_matrices(agg_levels=c(1,2), h=2)
+A <- rec_mat$A
 S <- rec_mat$S
 
 
@@ -107,13 +109,13 @@ sigmaY <- 3
 sigmas <- c(sigmaY,sigma1,sigma2)
 
 base_forecasts = list()
-for (i in 1:nrow(S)) {
+for (i in 1:length(mus)) {
 base_forecasts[[i]] = list(mean = mus[[i]], sd = sigmas[[i]])
 }
 
 
 #Sample from the reconciled forecast distribution using the BUIS algorithm
-buis <- reconc_BUIS(S, base_forecasts, in_type="params",
+buis <- reconc_BUIS(A, base_forecasts, in_type="params",
                  distr="gaussian", num_samples=100000, seed=42)
 
 samples_buis <- buis$reconciled_samples
@@ -121,7 +123,7 @@ samples_buis <- buis$reconciled_samples
 #In the Gaussian case, the reconciled distribution is still Gaussian and can be
 #computed in closed form
 Sigma <- diag(sigmas^2)  #transform into covariance matrix
-analytic_rec <- reconc_gaussian(S, base_forecasts.mu = mus,
+analytic_rec <- reconc_gaussian(A, base_forecasts.mu = mus,
                                 base_forecasts.Sigma = Sigma)
 
 #Compare the reconciled means obtained analytically and via BUIS
@@ -138,12 +140,12 @@ lambdaY <- 9
 lambdas <- c(lambdaY,lambda1,lambda2)
 
 base_forecasts <- list()
-for (i in 1:nrow(S)) {
+for (i in 1:length(lambdas)) {
  base_forecasts[[i]] = list(lambda = lambdas[i])
 }
 
 #Sample from the reconciled forecast distribution using the BUIS algorithm
-buis <- reconc_BUIS(S, base_forecasts, in_type="params",
+buis <- reconc_BUIS(A, base_forecasts, in_type="params",
                           distr="poisson", num_samples=100000, seed=42)
 samples_buis <- buis$reconciled_samples
 

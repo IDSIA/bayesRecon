@@ -62,8 +62,11 @@
 #'
 #' @details
 #'
-#' The parameter `base_forecast` is a list containing n elements where the i-th element depends on
-#' the values of `in_type[[i]]` and `distr[[i]]`.
+#' The parameter `base_forecast` is a list containing n = n_upper + n_bottom elements.
+#' The first n_upper elements of the list are the upper base forecasts, in the order given by the rows of A.
+#' The elements from n_upper+1 until the end of the list are the bottom base forecasts, in the order given by the columns of A.
+#' 
+#' The i-th element depends on the values of `in_type[[i]]` and `distr[[i]]`.
 #'
 #' If `in_type[[i]]`='samples', then `base_forecast[[i]]` is a vector containing samples from the base forecast distribution.
 #'
@@ -74,8 +77,6 @@
 #' * size and prob (or mu) for the negative binomial base forecast if `distr[[i]]`='nbinom', see \link[stats]{NegBinomial}.
 #' 
 #' See the description of the parameters `in_type` and `distr` for more details. 
-#'
-#' The order of the `base_forecast` list is given by the order of the time series in the summing matrix.
 #' 
 #' Warnings are triggered from the Importance Sampling step if:
 #' 
@@ -86,16 +87,16 @@
 #' Note that warnings are an indication that the base forecasts might have issues. 
 #' Please check the base forecasts in case of warnings.
 #'
-#' @param S Summing matrix (n x n_bottom).
+#' @param A aggregation matrix (n_upper x n_bottom).
 #' @param base_forecasts A list containing the base_forecasts, see details.
-#' @param in_type A string or a list of length n. If it is a list the i-th element is a string with two possible values:
+#' @param in_type A string or a list of length n_upper + n_bottom. If it is a list the i-th element is a string with two possible values:
 #'
 #' * 'samples' if the i-th base forecasts are in the form of samples;
 #' * 'params'  if the i-th base forecasts are in the form of estimated parameters.
 #' 
 #' If it `in_type` is a string it is assumed that all base forecasts are of the same type. 
 #'
-#' @param distr A string or a list of length n describing the type of base forecasts. 
+#' @param distr A string or a list of length n_upper + n_bottom describing the type of base forecasts. 
 #' If it is a list the i-th element is a string with two possible values:
 #'
 #' * 'continuous' or 'discrete' if `in_type[[i]]`='samples';
@@ -123,6 +124,7 @@
 #'
 #'# Create a minimal hierarchy with 2 bottom and 1 upper variable
 #'rec_mat <- get_reconc_matrices(agg_levels=c(1,2), h=2)
+#'A <- rec_mat$A
 #'S <- rec_mat$S
 #'
 #'
@@ -140,13 +142,13 @@
 #'sigmas <- c(sigmaY,sigma1,sigma2)
 #'
 #'base_forecasts = list()
-#'for (i in 1:nrow(S)) {
+#'for (i in 1:length(mus)) {
 #' base_forecasts[[i]] = list(mean = mus[[i]], sd = sigmas[[i]])
 #'}
 #'
 #'
 #'#Sample from the reconciled forecast distribution using the BUIS algorithm
-#'buis <- reconc_BUIS(S, base_forecasts, in_type="params",
+#'buis <- reconc_BUIS(A, base_forecasts, in_type="params",
 #'                  distr="gaussian", num_samples=100000, seed=42)
 #'
 #'samples_buis <- buis$reconciled_samples
@@ -154,7 +156,7 @@
 #'#In the Gaussian case, the reconciled distribution is still Gaussian and can be
 #'#computed in closed form
 #'Sigma <- diag(sigmas^2)  #transform into covariance matrix
-#'analytic_rec <- reconc_gaussian(S, base_forecasts.mu = mus,
+#'analytic_rec <- reconc_gaussian(A, base_forecasts.mu = mus,
 #'                                 base_forecasts.Sigma = Sigma)
 #'
 #'#Compare the reconciled means obtained analytically and via BUIS
@@ -171,12 +173,12 @@
 #'lambdas <- c(lambdaY,lambda1,lambda2)
 #'
 #'base_forecasts <- list()
-#'for (i in 1:nrow(S)) {
+#'for (i in 1:length(lambdas)) {
 #'  base_forecasts[[i]] = list(lambda = lambdas[i])
 #'}
 #'
 #'#Sample from the reconciled forecast distribution using the BUIS algorithm
-#'buis <- reconc_BUIS(S, base_forecasts, in_type="params",
+#'buis <- reconc_BUIS(A, base_forecasts, in_type="params",
 #'                           distr="poisson", num_samples=100000, seed=42)
 #'samples_buis <- buis$reconciled_samples
 #'
@@ -194,7 +196,7 @@
 #' [reconc_gaussian()]
 #'
 #' @export
-reconc_BUIS <- function(S,
+reconc_BUIS <- function(A,
                    base_forecasts,
                    in_type,
                    distr,
@@ -203,21 +205,33 @@ reconc_BUIS <- function(S,
                    seed = NULL) {
   
   if (!is.null(seed)) set.seed(seed)
+  
+  n_upper = nrow(A)
+  n_bottom = ncol(A)
+  n_tot <- length(base_forecasts)
 
   # Transform distr and in_type into lists
   if (!is.list(distr)) {
-    distr = rep(list(distr), nrow(S))
+    distr = rep(list(distr), n_tot)
   }
   if (!is.list(in_type)) {
-    in_type = rep(list(in_type), nrow(S))
+    in_type = rep(list(in_type), n_tot)
   }
   
   # Ensure that data inputs are valid
-  .check_input_BUIS(S, base_forecasts, in_type, distr)
+  .check_input_BUIS(A, base_forecasts, in_type, distr)
 
   # Split bottoms, uppers
-  split_hierarchy.res = .split_hierarchy(S, base_forecasts)
-  A = split_hierarchy.res$A
+  # the first nrow(A) elements of base_forecasts are upper
+  # the second ncol(A) elements of base_forecasts are lower
+  
+  split_hierarchy.res = list(
+    A = A,
+    upper = base_forecasts[1:nrow(A)],
+    bottom = base_forecasts[(nrow(A)+1):n_tot],
+    upper_idxs = 1:nrow(A),
+    bottom_idxs = (nrow(A)+1):n_tot
+  )
   upper_base_forecasts = split_hierarchy.res$upper
   bottom_base_forecasts = split_hierarchy.res$bottom
   
@@ -249,8 +263,7 @@ reconc_BUIS <- function(S,
   }
   
   # Reconciliation using BUIS
-  n_upper = nrow(A)
-  n_bottom = ncol(A)
+  
   # 1. Bottom samples
   B = list()
   in_type_bottom = in_type[split_hierarchy.res$bottom_idxs]
@@ -276,13 +289,13 @@ reconc_BUIS <- function(S,
       in_type_ = in_typeH[[hi]],
       distr_ = distr_H[[hi]]
     )
-    check_weights.res = .check_weigths(weights)
+    check_weights.res = .check_weights(weights)
     if (check_weights.res$warning & !suppress_warnings) {
       warning_msg = check_weights.res$warning_msg
       # add information to the warning message
-      upper_fromS_i = which(lapply(seq_len(nrow(S)), function(i) sum(abs(S[i,] - c))) == 0)
+      upper_fromA_i = which(lapply(seq_len(nrow(A)), function(i) sum(abs(A[i,] - c))) == 0)
       for (wmsg in warning_msg) {
-        wmsg = paste(wmsg, paste0("Check the upper forecast at index: ", upper_fromS_i,"."))
+        wmsg = paste(wmsg, paste0("Check the upper forecast at index: ", upper_fromA_i,"."))
         warning(wmsg)
       }
     }
@@ -304,18 +317,18 @@ reconc_BUIS <- function(S,
         distr_ = distr_G[[gi]]
       )
     }
-    check_weights.res = .check_weigths(weights)
+    check_weights.res = .check_weights(weights)
     if (check_weights.res$warning & !suppress_warnings) {
       warning_msg = check_weights.res$warning_msg
       # add information to the warning message
-      upper_fromS_i = c()
+      upper_fromA_i = c()
       for (gi in 1:nrow(G)) {
         c = G[gi, ]
-        upper_fromS_i = c(upper_fromS_i,
-                          which(lapply(seq_len(nrow(S)), function(i) sum(abs(S[i,] - c))) == 0))
+        upper_fromA_i = c(upper_fromA_i,
+                          which(lapply(seq_len(nrow(A)), function(i) sum(abs(A[i,] - c))) == 0))
       }
       for (wmsg in warning_msg) {
-        wmsg = paste(wmsg, paste0("Check the upper forecasts at index: ", paste0("{",paste(upper_fromS_i, collapse = ","), "}.")))
+        wmsg = paste(wmsg, paste0("Check the upper forecasts at index: ", paste0("{",paste(upper_fromA_i, collapse = ","), "}.")))
         warning(wmsg)
       }
     }

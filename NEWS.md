@@ -1,3 +1,9 @@
+# bayesRecon 0.3.1
+
+* IMPORTANT CHANGE IN THE API OF THE `reconc_*` functions: they now require the aggregating matrix A and not the summing matrix S.
+
+* The examples section of the `reconc_TDcond` now contains an example showing how to handle the case of an unbalanced hierarchy. 
+
 # bayesRecon 0.3.0
 
 * Added `reconc_MixCond`, the implementation of Mixed conditioning for the reconciliation of mixed-type hierarchical forecasts.

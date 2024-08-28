@@ -4,10 +4,10 @@
 \alias{reconc_gaussian}
 \title{Analytical reconciliation of Gaussian base forecasts}
 \usage{
-reconc_gaussian(S, base_forecasts.mu, base_forecasts.Sigma)
+reconc_gaussian(A, base_forecasts.mu, base_forecasts.Sigma)
 }
 \arguments{
-\item{S}{summing matrix (n x n_bottom).}
+\item{A}{aggregation matrix (n_upper x n_bottom).}
 
 \item{base_forecasts.mu}{a vector containing the means of the base forecasts.}
 
@@ -24,10 +24,14 @@ A list containing the bottom reconciled forecasts. The list has the following na
 Closed form computation of the reconciled forecasts in case of Gaussian base forecasts.
 }
 \details{
-The order of the base forecast means and covariance is given by the order of the time series in the summing matrix.
+In the vector of the means of the base forecasts the order must be: first the upper,
+then the bottom; the order within the uppers is given by the rows of A,
+the order within the bottoms by the columns of A.
+The order of the rows of the covariance matrix of the base forecasts is the same.
 
 The function returns only the reconciled parameters of the bottom variables.
-The reconciled upper parameters and the reconciled samples for the entire hierarchy can be obtained from the reconciled bottom parameters.
+The reconciled upper parameters and the reconciled samples for the entire hierarchy
+can be obtained from the reconciled bottom parameters.
 See the example section.
 }
 \examples{
@@ -35,9 +39,7 @@ See the example section.
 library(bayesRecon)
 
 # Create a minimal hierarchy with 2 bottom and 1 upper variable
-rec_mat <- get_reconc_matrices(agg_levels=c(1,2), h=2)
-S <- rec_mat$S
-A <- rec_mat$A
+A <- get_reconc_matrices(agg_levels=c(1,2), h=2)$A
 
 #Set the parameters of the Gaussian base forecast distributions
 mu1 <- 2
@@ -50,8 +52,8 @@ sigma2 <- 2
 sigmaY <- 3
 sigmas <- c(sigmaY,sigma1,sigma2)
 
-Sigma <- diag(sigmas^2)  #need to transform into covariance matrix
-analytic_rec <- reconc_gaussian(S, base_forecasts.mu = mus,
+Sigma <- diag(sigmas^2)  # need to transform into covariance matrix
+analytic_rec <- reconc_gaussian(A, base_forecasts.mu = mus,
                                base_forecasts.Sigma = Sigma)
 
 bottom_mu_reconc <- analytic_rec$bottom_reconciled_mean
@@ -62,8 +64,9 @@ upper_mu_reconc <- A \%*\% bottom_mu_reconc
 upper_Sigma_reconc <- A \%*\% bottom_Sigma_reconc \%*\% t(A)
 
 # Obtain reconciled mu and Sigma for the entire hierarchy
+S <- rbind(A, diag(2))  # first, get summing matrix S
 Y_mu_reconc <- S \%*\% bottom_mu_reconc
-Y_Sigma_reconc <- S \%*\% bottom_Sigma_reconc \%*\% t(S)  # note: singular matrix
+Y_Sigma_reconc <- S \%*\% bottom_Sigma_reconc \%*\% t(S)  # note that this is a singular matrix
 
 # Obtain reconciled samples for the entire hierarchy:
 # i.e., sample from the reconciled bottoms and multiply by S

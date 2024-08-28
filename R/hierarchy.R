@@ -293,7 +293,12 @@ get_reconc_matrices <- function(agg_levels, h) {
 
 # Get A from S
 .get_A_from_S <- function(S) {
-  bottom_idxs = which(rowSums(S) == 1)
+  # Bottom rows are those with a single 1; if there are replicated bottom rows,
+  # only one is treated as bottom, the copies will be upper
+  bottom_idxs = which(rowSums(S) == 1 & !duplicated(S))
+  if (length(bottom_idxs) < ncol(S)) {
+    stop("Check S: some bottom rows are missing")
+  }
   upper_idxs = setdiff(1:nrow(S), bottom_idxs)
   A = matrix(S[upper_idxs, ], ncol=ncol(S))
   out = list(A = A,
@@ -331,7 +336,7 @@ get_reconc_matrices <- function(agg_levels, h) {
   for (i in 1:k) {
     for (j in 1:k) {
       if (i < j) {
-        cond1 = A[i,] %*% A[j,] != 0  # Upper i and j have some common descendants
+        cond1 = c(A[i,] %*% A[j,] != 0)  # Upper i and j have some common descendants
         cond2 = any(A[j,] > A[i,])    # Upper j is not a descendant of upper i
         cond3 = any(A[i,] > A[j,])    # Upper i is not a descendant of upper j
         if (cond1 & cond2 & cond3) {
@@ -371,17 +376,20 @@ get_reconc_matrices <- function(agg_levels, h) {
   
   if (!.check_hierarchical(A)) stop("Matrix A is not hierarchical")
   
-  k = nrow(A)
-  m = ncol(A)
+  # First, only keep unique rows of A
+  A_uni = unique(A)
   
-  rows = c()
+  k = nrow(A_uni)
+  m = ncol(A_uni)
+  
+  low_rows_A_uni = c()
   for (i in 1:k) {
-    rows = c(rows, i)
+    low_rows_A_uni = c(low_rows_A_uni, i)
     for (j in 1:k) {
       if (i != j) {
         # If upper j is a descendant of upper i, remove i and exit loop
-        if (all(A[j,] <= A[i,])) {
-          rows = rows[-length(rows)] 
+        if (all(A_uni[j,] <= A_uni[i,])) {
+          low_rows_A_uni = low_rows_A_uni[-length(low_rows_A_uni)] 
           break
         }
       }
@@ -389,12 +397,19 @@ get_reconc_matrices <- function(agg_levels, h) {
   }
   # keep all rows except those that have no descendants among the uppers
   
+  # Now, change the indices of the lowest rows to match with A (instead of A_un)
+  # If there are duplicated rows for some lowest rows, only take one copy
+  low_rows_A = (1:nrow(A))[!duplicated(A)][low_rows_A_uni]
+  
   # The sum of the rows corresponding to the lowest level should be a vector of 1 
-  if (any(colSums(A[rows,,drop=FALSE])!=1)) {
-    stop("The hierarchy is not balanced")
+  if (any(colSums(A[low_rows_A,,drop=FALSE])!=1)) {
+    unbal_bott = which(colSums(A[low_rows_A,,drop=FALSE])!=1) 
+    err_mess = "It is impossible to find the lowest upper level. Probably the hierarchy is unbalanced, the following bottom should be duplicated (see example): "
+    err_mess = paste0(c(err_mess, unbal_bott), collapse = " ")
+    stop(err_mess)
   }
   
-  return(rows)
+  return(low_rows_A)
 }
 
 
@@ -409,15 +424,13 @@ get_reconc_matrices <- function(agg_levels, h) {
   }
   
   A_ = A[-lowest_rows,,drop=FALSE]
-  n_bott = ncol(A_)
   n_upp_u = nrow(A_)
   n_bott_u = length(lowest_rows)
   A_u = matrix(nrow=n_upp_u, ncol=n_bott_u)
   for (j in 1:n_bott_u) {
     l = lowest_rows[[j]]
-    mask = A[l,]==1
     for (i in 1:n_upp_u) {
-      A_u[i,j] = sum(A_[i, mask]==1) == sum(mask)  # check that is a vector of 1
+      A_u[i,j] = all(A[l,] <= A_[i,])  # check that "lower upper" j is a descendant of "upper upper" i
     }
   }
   

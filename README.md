@@ -77,19 +77,17 @@ and the year by $S_1, S_2, Y$ respectively.
 
 <img src="./man/figures/minimal_hierarchy.png" width="50%" style="display: block; margin: auto;" />
 
-The hierarchy is described by the *aggregating matrix* S, which can be
+The hierarchy is described by the *aggregation matrix* A, which can be
 obtained using the function `get_reconc_matrices`.
 
 ``` r
 library(bayesRecon)
 
 rec_mat <- get_reconc_matrices(agg_levels = c(1, 2), h = 2)
-S <- rec_mat$S
-print(S)
+A <- rec_mat$A
+print(A)
 #>      [,1] [,2]
 #> [1,]    1    1
-#> [2,]    1    0
-#> [3,]    0    1
 ```
 
 ### Example 1: Poisson base forecasts
@@ -103,9 +101,10 @@ lambdaS1 <- 2
 lambdaS2 <- 4
 lambdaY <- 9
 lambdas <- c(lambdaY, lambdaS1, lambdaS2)
+n_tot = length(lambdas)
 
 base_forecasts = list()
-for (i in 1:nrow(S)) {
+for (i in 1:n_tot) {
   base_forecasts[[i]] = list(lambda = lambdas[i])
 }
 ```
@@ -115,7 +114,7 @@ from the reconciled distribution.
 
 ``` r
 buis <- reconc_BUIS(
-  S,
+  A,
   base_forecasts,
   in_type = "params",
   distr = "poisson",
@@ -188,7 +187,7 @@ We also provide a function for sampling using Markov Chain Monte Carlo
 
 ``` r
 mcmc = reconc_MCMC(
-  S,
+  A,
   base_forecasts,
   distr = "poisson",
   num_samples = 30000,
@@ -218,7 +217,7 @@ sigmaY <- 3
 sigmas <- c(sigmaY, sigmaS1, sigmaS2)
 
 base_forecasts = list()
-for (i in 1:nrow(S)) {
+for (i in 1:n_tot) {
   base_forecasts[[i]] = list(mean = mus[[i]], sd = sigmas[[i]])
 }
 ```
@@ -227,7 +226,7 @@ We use the BUIS algorithm to sample from the reconciled distribution:
 
 ``` r
 buis <- reconc_BUIS(
-  S,
+  A,
   base_forecasts,
   in_type = "params",
   distr = "gaussian",
@@ -243,11 +242,12 @@ Gaussian and can be computed in closed form:
 
 ``` r
 Sigma <- diag(sigmas ^ 2)  #transform into covariance matrix
-analytic_rec <- reconc_gaussian(S,
+analytic_rec <- reconc_gaussian(A,
                                 base_forecasts.mu = mus,
                                 base_forecasts.Sigma = Sigma)
 analytic_means_bottom <- analytic_rec$bottom_reconciled_mean
-analytic_means <- S %*% analytic_means_bottom
+analytic_means_upper <- A %*% analytic_means_bottom
+analytic_means <- rbind(analytic_means_upper,analytic_means_bottom)
 ```
 
 The base means of $Y$, $S_1$, and $S_2$ are 9, 2, 4.

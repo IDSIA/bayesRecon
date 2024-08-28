@@ -15,9 +15,6 @@ test_that("reconc_TDcond simple example", {
                      0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1),
               nrow=10,byrow = TRUE)
   
-  
-  S <- rbind(A,diag(nrow=12))
-  
   # Define means and vars for the forecasts
   means <- c(90,31,32,31,33,31,32,62,63,64,rep(15,12))
   vars  <- c(20,4,4,4,4,4,4,8,8,8,rep(2,12))^2
@@ -29,24 +26,24 @@ test_that("reconc_TDcond simple example", {
   
   ## bottom
   fc_bottom <- list()
-  for(i in seq(ncol(S))){
+  for(i in seq(ncol(A))){
     fc_bottom[[i]] <-as.integer(.distr_sample(list(mean=means[i+10],sd = vars[i+10]), "gaussian", 2e4))
     fc_bottom[[i]][which(fc_bottom[[i]]<0)] <- 0 # set-negative-to-zero
   }
   
 
   # reconciliation with TDcond
-  res.TDcond <- reconc_TDcond(S, fc_bottom, fc_upper,
+  res.TDcond <- reconc_TDcond(A, fc_bottom, fc_upper,
                 bottom_in_type = "samples",
                 num_samples = 2e4, return_type = "pmf",
                 seed = 42)
   
-  res.TDcond2 <- reconc_TDcond(S, fc_bottom, fc_upper,
+  res.TDcond2 <- reconc_TDcond(A, fc_bottom, fc_upper,
                               bottom_in_type = "samples",
                               num_samples = 2e4, return_type = "samples",
                               seed = 42)
   
-  res.TDcond3 <- reconc_TDcond(S, fc_bottom, fc_upper,
+  res.TDcond3 <- reconc_TDcond(A, fc_bottom, fc_upper,
                               bottom_in_type = "samples",
                               num_samples = 2e4, return_type = "all",
                               seed = 42)

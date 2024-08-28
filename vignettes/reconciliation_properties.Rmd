@@ -61,7 +61,6 @@ n_u <- 1
 n <- n_b + n_u   
 
 A <- matrix(1, ncol = n_b, nrow = n_u)  # aggregating matrix
-S <- rbind(A, diag(n_b))                # summing matrix
 
 # Actual values:
 actuals <- data.frame(extr_mkt_events)  # convert to data frame
@@ -113,7 +112,7 @@ for (j in 1:N) {
   }
   
   # Reconcile via importance sampling:
-  buis <- reconc_BUIS(S, base_fc_j, "params", "nbinom", 
+  buis <- reconc_BUIS(A, base_fc_j, "params", "nbinom", 
                       num_samples = N_samples, seed = 42)
   samples_y <- buis$reconciled_samples
   
@@ -217,7 +216,7 @@ base_fc_j <- c()
 for (i in 1:n) base_fc_j[[i]] <- list(size = extr_mkt_events_basefc$size[[i]],
                                       mu = extr_mkt_events_basefc$mu[[j,i]])
 # Reconcile
-buis <- reconc_BUIS(S, base_fc_j, "params", "nbinom", 
+buis <- reconc_BUIS(A, base_fc_j, "params", "nbinom", 
                     num_samples = N_samples, seed = 42)
 samples_y <- buis$reconciled_samples
 
@@ -234,7 +233,7 @@ base_fc_j <- c()
 for (i in 1:n) base_fc_j[[i]] <- list(size = extr_mkt_events_basefc$size[[i]],
                                       mu = extr_mkt_events_basefc$mu[[j,i]])
 # Reconcile 
-buis <- reconc_BUIS(S, base_fc_j, "params", "nbinom", 
+buis <- reconc_BUIS(A, base_fc_j, "params", "nbinom", 
                     num_samples = N_samples, seed = 42)
 samples_y <- buis$reconciled_samples
 
@@ -257,7 +256,7 @@ base_fc_j <- c()
 for (i in 1:n) base_fc_j[[i]] <- list(size = extr_mkt_events_basefc$size[[i]],
                                       mu = extr_mkt_events_basefc$mu[[j,i]])
 # Reconcile
-buis <- reconc_BUIS(S, base_fc_j, "params", "nbinom", num_samples = N_samples, seed = 42)
+buis <- reconc_BUIS(A, base_fc_j, "params", "nbinom", num_samples = N_samples, seed = 42)
 samples_y <- buis$reconciled_samples
 
 # Compute the variance of the base and reconciled bottom forecasts
