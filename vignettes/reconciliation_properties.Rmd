@@ -60,7 +60,7 @@ n_b <- 5
 n_u <- 1
 n <- n_b + n_u   
 
-A <- matrix(1, ncol = n_b, nrow = n_u)  # aggregating matrix
+A <- matrix(1, ncol = n_b, nrow = n_u)  # aggregation matrix
 
 # Actual values:
 actuals <- data.frame(extr_mkt_events)  # convert to data frame

@@ -154,15 +154,15 @@ for (l in seq_along(train.agg)) {
 ```
 
 
-Reconciliation requires the aggregating matrix $\mathbf{A}$, which we obtain using the function `get_reconc_matrices`. 
+Reconciliation requires the aggregation matrix $\mathbf{A}$, which we obtain using the function `get_reconc_matrices`. 
 It requires: 
 
 *   the aggregation factors of the hierarchy, which in this example are $\{2, 3, 4, 6, 12\}$;
 *   the length of the forecasting horizon at the  bottom level, which is 12 in this example.
 
-``` {r aggregatingMatrix}
+``` {r aggregationMatrix}
 recon.matrices <- bayesRecon::get_reconc_matrices(agg_levels = c(2, 3, 4, 6, 12), h = 12)
-# Aggregating matrix
+# Aggregation matrix
 A <- recon.matrices$A 
 ```
 
@@ -279,7 +279,7 @@ for (level in train.agg) {
 
 Using the function `get_reconc_matrices`,  we get  matrix $\mathbf{A}$.
 
-```{r m3-rmat, dpi=300, out.width = '70%', fig.align='center', fig.cap="**Figure 4**: M3 - The aggregating matrix A (red=1, yellow=0).", fig.dim = c(8, 8)}
+```{r m3-rmat, dpi=300, out.width = '70%', fig.align='center', fig.cap="**Figure 4**: M3 - The aggregation matrix A (red=1, yellow=0).", fig.dim = c(8, 8)}
 rmat <- get_reconc_matrices(agg_levels = c(2, 3, 4, 6, 12), h = 18)
 
 par(mai = c(1,1,0.5,0.5))
@@ -392,7 +392,7 @@ for (s in infantMortality) {
 
 Now we build the $\mathbf{A}$ matrix.
 
-```{r infants-s, dpi=300, out.width = '70%', fig.align='center', fig.cap="**Figure 6**: Infants mortality - The aggregating matrix A (red=1, yellow=0).", fig.dim = c(8, 8)}
+```{r infants-s, dpi=300, out.width = '70%', fig.align='center', fig.cap="**Figure 6**: Infants mortality - The aggregation matrix A (red=1, yellow=0).", fig.dim = c(8, 8)}
 # we have 16 bottom time series, and 11 upper time series
 A <- matrix(data = c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
                      1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,

@@ -208,7 +208,7 @@ reconc_MCMC <- function(A,
 # @title Compute acceptance probability
 # @param b proposal state
 # @param b0 current state
-# @param A aggregating matrix
+# @param A aggregation matrix
 # @param distr list of strings specifying the distribution of each variable
 # @param params list of the parameters of the distributions
 # @return the acceptance probability alpha

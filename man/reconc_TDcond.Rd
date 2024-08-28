@@ -173,7 +173,7 @@ Sigma = matrix(c(5^2,5,5,5,
                  5, 0,  0, var_b5), nrow=4, byrow = TRUE)
 fc_upper<- list(mu=mu, Sigma=Sigma)
 
-# We also need to update the aggregating matrix
+# We also need to update the aggregation matrix
 A <- matrix(c(1,1,1,1,1,
               1,1,0,0,0,
               0,0,1,1,0,

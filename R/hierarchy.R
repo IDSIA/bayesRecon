@@ -413,7 +413,7 @@ get_reconc_matrices <- function(agg_levels, h) {
 }
 
 
-# Get the aggregating matrix Au of the sub-hierarchy composed just by the uppers 
+# Get the aggregation matrix Au of the sub-hierarchy composed just by the uppers 
 .get_Au <- function(A, lowest_rows=NULL) {
   
   if (is.null(lowest_rows)) lowest_rows = .lowest_lev(A)
