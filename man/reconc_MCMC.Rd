@@ -51,7 +51,7 @@ The function only works with Poisson or Negative Binomial base forecasts.
 The function \code{\link[=reconc_BUIS]{reconc_BUIS()}} is generally faster on most hierarchies.
 }
 \details{
-The parameter \code{base_forecast} is a list containing n=n_upper + n_bottom elements.
+The parameter \code{base_forecast} is a list containing n = n_upper + n_bottom elements.
 Each element is a list containing the estimated:
 \itemize{
 \item mean and sd for the Gaussian base forecast, see \link[stats]{Normal}, if \code{distr}='gaussian';
@@ -59,8 +59,8 @@ Each element is a list containing the estimated:
 \item size and prob (or mu) for the negative binomial base forecast, see \link[stats]{NegBinomial}, if \code{distr}='nbinom'.
 }
 
-The first n_upper elements of the list are the upper base forecasts, in the order given by A.
-The elements from n_upper+1 until the end of the list are the bottom base forecasts.
+The first n_upper elements of the list are the upper base forecasts, in the order given by the rows of A.
+The elements from n_upper+1 until the end of the list are the bottom base forecasts, in the order given by the columns of A.
 }
 \examples{
 

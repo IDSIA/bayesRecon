@@ -58,9 +58,9 @@ Uses the Bottom-Up Importance Sampling algorithm to draw samples from the reconc
 forecast distribution, obtained via conditioning.
 }
 \details{
-The parameter \code{base_forecast} is a list containing n=n_upper + n_bottom elements.
-The first n_upper elements of the list are the upper base forecasts, in the order given by A.
-The elements from n_upper+1 until the end of the list are the bottom base forecasts.
+The parameter \code{base_forecast} is a list containing n = n_upper + n_bottom elements.
+The first n_upper elements of the list are the upper base forecasts, in the order given by the rows of A.
+The elements from n_upper+1 until the end of the list are the bottom base forecasts, in the order given by the columns of A.
 
 The i-th element depends on the values of \code{in_type[[i]]} and \code{distr[[i]]}.
 

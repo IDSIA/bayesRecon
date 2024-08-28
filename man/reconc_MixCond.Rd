@@ -80,7 +80,9 @@ see \link[stats]{NegBinomial}.
 The base upper forecasts \code{fc_upper} must be a list containing the parameters of
 the multivariate Gaussian distribution of the upper forecasts.
 The list must contain only the named elements \code{mu} (vector of length n_upper)
-and \code{Sigma} (n_upper x n_upper matrix)
+and \code{Sigma} (n_upper x n_upper matrix).
+
+The order of the upper and bottom base forecasts must match the order of (respectively) the rows and the columns of A.
 
 A PMF object is a numerical vector containing the probability mass function of a discrete distribution.
 Each element corresponds to the probability of the integers from 0 to the last value of the support.
@@ -129,16 +131,6 @@ PMF.get_var(res.mixCond$upper_reconciled$pmf[[1]])
 
 }
 \references{
-Corani, G., Azzimonti, D., Augusto, J.P.S.C., Zaffalon, M. (2021).
-\emph{Probabilistic Reconciliation of Hierarchical Forecast via Bayes' Rule}.
-ECML PKDD 2020. Lecture Notes in Computer Science, vol 12459.
-\doi{10.1007/978-3-030-67664-3_13}.
-
-Zambon, L., Agosto, A., Giudici, P., Corani, G. (2024).
-\emph{Properties of the reconciled distributions for Gaussian and count forecasts}.
-International Journal of Forecasting (in press).
-\doi{10.1016/j.ijforecast.2023.12.004}.
-
 Zambon, L., Azzimonti, D., Rubattu, N., Corani, G. (2024).
 \emph{Probabilistic reconciliation of mixed-type hierarchical time series}.
 The 40th Conference on Uncertainty in Artificial Intelligence, accepted.
