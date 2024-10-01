@@ -7,7 +7,10 @@
 PMF.from_samples = function(v) {
   if (sum(is.na(v))) {
     v = v[!is.na(v)]
-    warning("Some samples are NA, they have been removed")
+    if (!length(v)) {
+      stop("Impossible to compute the empirical PMF: the samples are all NaN!")
+    }
+    warning("Some samples are NA, they have been removed before computing the empirical PMF")
   }
   .check_discrete_samples(v)
   pmf = tabulate(v+1) / length(v)  # the support starts from 0 

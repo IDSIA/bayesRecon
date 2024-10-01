@@ -57,15 +57,15 @@ temper_sample = function(MVN_params, pmf_list, num_samples) {
   .check_cov(Sigma, "Covariance matrix", symm_check=TRUE)
   
   # Compute list of marginal PMFs
-  gauss_marginal_pmfs = mapply(PMF.from_gauss, mu, diag(Sigma)**0.5)  # discretize gaussian marginal
-  marginal_pmfs = mapply(PMF.prod, pmf_list, gauss_marginal_pmfs)     # multiply by pmf in pmf_list
+  gauss_marginal_pmfs = mapply(PMF.from_gauss, mu, diag(Sigma)**0.5, SIMPLIFY = FALSE)  # discretize gaussian marginal
+  marginal_pmfs = mapply(PMF.prod, pmf_list, gauss_marginal_pmfs, SIMPLIFY = FALSE)     # multiply by pmf in pmf_list
   
   # Sample from Gaussian copula
   R = stats::cov2cor(Sigma)         
   U = stats::pnorm(.MVN_sample(num_samples, rep(0,n), R))  # samples from Gaussian copula (dim: n_samples x n)
   
   # Get multivariate samples
-  samples = mapply(PMF.sample_from_u, marginal_pmfs, asplit(U,2))
+  samples = mapply(PMF.sample_from_u, marginal_pmfs, asplit(U,2), SIMPLIFY = FALSE)
   samples = matrix(unlist(samples), nrow = num_samples)
   
   return(samples)

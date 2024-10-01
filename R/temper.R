@@ -71,8 +71,8 @@ reconc_MixTemp = function(fc_bottom, fc_upper, temp,
     # If temp = Inf --> TD-cond 
     # Sample from MVN on the lowest level of the upper (dim: num_samples x n_u_low)
     U = .MVN_sample(n_samples = num_samples,
-                    mu    = rec_gauss_u$bottom_reconciled_mean, 
-                    Sigma = rec_gauss_u$bottom_reconciled_covariance)  
+                    mu    = MVN_lower_params$mu, 
+                    Sigma = MVN_lower_params$Sigma)  
     U = round(U)  # round to integer
   } else {
     # sample from MVN * pi_bu^(1/temp)
