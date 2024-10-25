@@ -11,3 +11,4 @@
 ^Meta$
 ^data-raw$
 ^\./tests/testthat/dataForTests/generate_weeklyTestData\.R$
+^bayesRecon\.Rproj$
