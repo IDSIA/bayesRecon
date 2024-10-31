@@ -1,4 +1,4 @@
-# Workflow derived from https://github.com/r-lib/actions/tree/v2/examples
+# Workflow derived from https://github.com/r-lib/actions/tree/master/examples
 # Need help debugging build failures? Start at https://github.com/r-lib/actions#where-to-find-help
 on:
   push:
@@ -6,15 +6,15 @@ on:
   pull_request:
     branches: [main, master]
 
-name: test-coverage.yaml
-
-permissions: read-all
+name: test-coverage
 
 jobs:
   test-coverage:
     runs-on: ubuntu-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      COVERALLS_TOKEN: ${{ secrets.COVERALLS_API }}
+      CI_BRANCH: "main"
 
     steps:
       - uses: actions/checkout@v4
@@ -25,37 +25,27 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::covr, any::xml2
-          needs: coverage
+          extra-packages: covr
 
-      - name: Test coverage
+      - name: Enable Repo on Coveralls
+        id: enable_coveralls
         run: |
-          cov <- covr::package_coverage(
-            quiet = FALSE,
-            clean = FALSE,
-            install_path = file.path(normalizePath(Sys.getenv("RUNNER_TEMP"), winslash = "/"), "package")
-          )
-          covr::to_cobertura(cov)
+          curl -s -H "Accept: application/json" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: token $COVERALLS_TOKEN" \
+            -d '{"repo": {"service": "github","name": "'$GITHUB_REPOSITORY'"}}' \
+            -X POST https://coveralls.io/api/repos
+     
+      - name: Get Coveralls Repo Token
+        id: get_coverall_repo_token
+        run: |
+          echo "COVERALLS_REPO_TOKEN=$(\
+            curl -s -H "Accept: application/json" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: token $COVERALLS_TOKEN" \
+            https://coveralls.io/api/repos/github/$GITHUB_REPOSITORY \
+            | jq '.token')" >> $GITHUB_ENV
+
+      - name: Generate and Upload R Package Coverage
+        run: covr::coveralls(service_name='travis-pro', repo_token=${{ env.COVERALLS_REPO_TOKEN }}, type='all')
         shell: Rscript {0}
-
-      - uses: codecov/codecov-action@v4
-        with:
-          fail_ci_if_error: ${{ github.event_name != 'pull_request' && true || false }}
-          file: ./cobertura.xml
-          plugin: noop
-          disable_search: true
-          token: ${{ secrets.CODECOV_TOKEN }}
-
-      - name: Show testthat output
-        if: always()
-        run: |
-          ## --------------------------------------------------------------------
-          find '${{ runner.temp }}/package' -name 'testthat.Rout*' -exec cat '{}' \; || true
-        shell: bash
-
-      - name: Upload test results
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-test-failures
-          path: ${{ runner.temp }}/package
