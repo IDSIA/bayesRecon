@@ -24,6 +24,7 @@ knitr::opts_chunk$set(
 [![](http://cranlogs.r-pkg.org/badges/grand-total/bayesRecon)](https://cran.r-project.org/package=bayesRecon)
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![License: LGPL (>= 3)](https://img.shields.io/badge/license-LGPL (>= 3)-yellow.svg)](https://www.gnu.org/licences/lgpl-3.0)
+[![Codecov test coverage](https://codecov.io/gh/IDSIA/bayesRecon/graph/badge.svg)](https://app.codecov.io/gh/IDSIA/bayesRecon)
 <!-- badges: end -->
 
 The package `bayesRecon` implements several methods for probabilistic reconciliation of hierarchical time series forecasts.

@@ -106,4 +106,48 @@ test_that("Monthly, in_type=='samples', distr='discrete'",{
   expect_equal(abs(m) < 1.5e-2, TRUE)
 })
 
+test_that("Monthly simple, in_type=='params', distr='nbinom'",{
+
+  # Read samples from dataForTests (reproducibility)
+  vals <- read.csv(file = "dataForTests/Monthly-Count_ts.csv", header = FALSE)
+  
+  # Create a count time series with monthly observations for 10 years
+  y <- ts(data=vals,frequency = 12)
+  
+  # Create the aggregated yearly time series
+  y_agg <- temporal_aggregation(y,agg_levels = c(1,12))
+  
+  # We use a marginal forecast that computes for each month 
+  # the empirical mean and variance
+  # the forecast is a negative binomial with those params
+  fc_bottom <- list()
+  for(i in seq(12)){
+    mm <- mean(y_agg$`f=12`[seq(i,120,12)])
+    vv <- max(var(y_agg$`f=12`[seq(i,120,12)]), mm+0.5)
+    #cat("i: ",i, "mean: ",mm, "var: ",vv, "size: ",mm^2/(vv-mm), "prob: ",mm/vv, "\n")
+    
+    fc_bottom[[i]] <- list(size=mm^2/(vv-mm),mu=mm)
+  }
+  
+  # We compute the empirical mean and variance of the yearly ts
+  # we forecast with a negative binomial with those parameters
+  mm <- mean(y_agg$`f=1`)
+  vv <- var(y_agg$`f=1`)
+  fc_upper <- list(size=mm^2/(vv-mm), prob= mm/vv)
+  
+  # Obtain the aggregation matrix for this hierarchy
+  rec_mat <- get_reconc_matrices(c(1,12),12)
+  
+  base_forecasts = append(list(fc_upper),fc_bottom)
+  res.buis_params = reconc_BUIS(rec_mat$A, base_forecasts, in_type = "params", distr = "nbinom", seed=42)
+  
+  
+  fc_upper_gauss <- list(mu=mm, Sigma = matrix(vv))
+  res.mixCond <- reconc_MixCond(rec_mat$A, fc_bottom, fc_upper_gauss, bottom_in_type = "params", distr = 'nbinom')
+  upp_pmf <- PMF.from_samples(as.integer(res.buis_params$upper_reconciled_samples))
+  
+  expect_equal(res.mixCond$upper_reconciled$pmf[[1]],upp_pmf,tolerance = 0.1)
+  
+})
+
 ##############################################################################
