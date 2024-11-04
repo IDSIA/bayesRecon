@@ -12,3 +12,4 @@
 ^data-raw$
 ^\./tests/testthat/dataForTests/generate_weeklyTestData\.R$
 ^bayesRecon\.Rproj$
+^tests/testthat/dataForTests/generate_monthlyCountData\.R$

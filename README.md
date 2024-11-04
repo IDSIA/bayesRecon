@@ -16,7 +16,7 @@ status](https://www.r-pkg.org/badges/version/bayesRecon)](https://CRAN.R-project
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![License: LGPL (\>=
 3)](https://img.shields.io/badge/license-LGPL%20(%3E=%203)-yellow.svg)](https://www.gnu.org/licences/lgpl-3.0)
-[![coverage](https://coveralls.io/repos/github/IDSIA/bayesRecon/badge.svg)](https://coveralls.io/r/IDSIA/bayesRecon?branch=main)
+[![coverage](https://coveralls.io/repos/github/IDSIA/bayesRecon/badge.svg)](https://coveralls.io/github/IDSIA/bayesRecon)
 <!-- badges: end -->
 
 The package `bayesRecon` implements several methods for probabilistic

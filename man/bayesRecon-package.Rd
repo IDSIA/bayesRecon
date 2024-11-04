@@ -70,6 +70,14 @@ Zambon, L., Azzimonti, D., Rubattu, N., Corani, G. (2024).
 \emph{Probabilistic reconciliation of mixed-type hierarchical time series}.
 The 40th Conference on Uncertainty in Artificial Intelligence, accepted.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/IDSIA/bayesRecon}
+  \item Report bugs at \url{https://github.com/IDSIA/bayesRecon/issues}
+}
+
+}
 \author{
 \strong{Maintainer}: Dario Azzimonti \email{dario.azzimonti@gmail.com} (\href{https://orcid.org/0000-0001-5080-3061}{ORCID})
 
