@@ -15,6 +15,23 @@ PMF.from_samples = function(v) {
   return(pmf)
 }
 
+# Compute the empirical pmf from a vector of samples. 
+# Performs a smoothing of the pmf via Kernel Density Estimation.
+# Samples may be non-integer, but must be non-negative
+PMF.KDE_from_samples = function(v, Rtoll=.RTOLL) {
+  
+  if (any(v<0)) stop("Samples must be non-negative")
+  
+  kde = stats::density(v, bw = "SJ", n = 2**16)
+  M = ceiling(max(kde$x))  # last point of the support
+  pmf = approx(kde$x, kde$y, xout = 0:M)$y
+  pmf = pmf / sum(pmf)
+  last_pos = max(which(pmf > Rtoll))  
+  pmf = pmf[1:last_pos]       # cut the support on the right  
+  
+  return(pmf/sum(pmf))
+}
+
 # Compute the pmf from a parametric distribution
 PMF.from_params = function(params, distr, Rtoll = .RTOLL) {
   # Check that the distribution is implemented, and that the params are ok
@@ -337,3 +354,5 @@ PMF.tempering = function(pmf, temp) {
   temp_pmf = pmf**(1/temp)
   return(temp_pmf / sum(temp_pmf))
 }
+
+
