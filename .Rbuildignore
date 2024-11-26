@@ -4,6 +4,7 @@
 ^README\.Rmd$
 ^TODO\.Rmd$
 ^TODO\.md$
+^index\.md$
 ^examples$
 ^\.github$
 ^codecov\.yml$

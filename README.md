@@ -275,12 +275,14 @@ Statistics and Computing 34 (1), 21.
 
 Zambon, L., Agosto, A., Giudici, P., Corani, G. (2024). *Properties of
 the reconciled distributions for Gaussian and count forecasts*.
-International Journal of Forecasting (in press).
+International Journal of Forecasting 40 (4), 1438-1448.
 [DOI](https://doi.org/10.1016/j.ijforecast.2023.12.004)
 
 Zambon, L., Azzimonti, D., Rubattu, N., Corani, G. (2024).
 *Probabilistic reconciliation of mixed-type hierarchical time series*.
-The 40th Conference on Uncertainty in Artificial Intelligence, accepted.
+Proceedings of the Fortieth Conference on Uncertainty in Artificial
+Intelligence, in Proceedings of Machine Learning Research 244:4078-4095.
+[Available here](https://proceedings.mlr.press/v244/zambon24a.html).
 
 ## Contributors
 
