@@ -74,6 +74,7 @@ The 40th Conference on Uncertainty in Artificial Intelligence, accepted.
 Useful links:
 \itemize{
   \item \url{https://github.com/IDSIA/bayesRecon}
+  \item \url{https://idsia.github.io/bayesRecon/}
   \item Report bugs at \url{https://github.com/IDSIA/bayesRecon/issues}
 }
 
