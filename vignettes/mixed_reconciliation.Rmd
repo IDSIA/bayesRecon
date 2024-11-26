@@ -37,7 +37,7 @@ Sect. 5 of the paper presents the results for 10  stores, each reconciled
 The M5 competition [@MAKRIDAKIS20221325] is about daily time series of sales data referring to 10 different stores. 
 Each store has the same hierarchy: 3049 bottom time series (single items) and 11 upper time series,  obtained by aggregating the items by department, product category, and store; see the figure below.
 
-```{r out.width = '100%', echo = FALSE}
+```{r M5hier, fig.cap="**Figure 1**: graph of the M5 hierarchy.", out.width = '100%', echo = FALSE}
 knitr::include_graphics("img/M5store_hier.png")
 ```
 
@@ -45,7 +45,7 @@ We reproduce  the results of the store "CA_1". The  base forecasts (for h=1)  of
 The base forecast are computed  using ADAM [@svetunkov2023iets], implemented in the R package smooth [@smooth_pkg]. 
 
 
-```{r}
+```{r InitializeHierarchy}
 # Hierarchy composed by 3060 time series: 3049 bottom and 11 upper
 n_b <- 3049
 n_u <- 11
@@ -74,7 +74,7 @@ It assumes  all forecasts to be Gaussian, even though the bottom base forecasts 
 We assume the upper base forecasts to be a multivariate Gaussian and we estimate their  covariance matrix from the in-sample residuals. We assume also the bottom base forecasts to be independent Gaussians.
 
 
-```{r}
+```{r readBaseForecasts}
 # Parameters of the upper base forecast distributions
 mu_u <- unlist(lapply(base_fc_upper, "[[", "mu"))  # upper means
 # Compute the (shrinked) covariance matrix of the residuals
@@ -107,7 +107,7 @@ We reconcile using the function `reconc_gaussian()`, which takes as input:
 
 The function returns the reconciled mean and covariance for the bottom time series. 
 
-```{r}    
+```{r GaussianReconciliation}    
 # Gaussian reconciliation 
 start <- Sys.time()       
 gauss <- reconc_gaussian(A, base_forecasts.mu, base_forecasts.Sigma)
@@ -136,7 +136,7 @@ The algorithm is implemented in the function `reconc_MixCond()`. The function ta
 
 The function returns the reconciled forecasts in the form of probability mass functions for both the upper and bottom time series. The function parameter `return_type` can be changed to `samples` or `all` to obtain the IS samples. 
 
-```{r}
+```{r MixedCondReconciliation}
 seed <- 1
 N_samples_IS <- 5e4
 
@@ -169,7 +169,7 @@ Moreover, forecasts for count time series are usually biased and their sum tends
 Top down conditioning (TD-cond; see @zambon2024mixed, Sect. 4) is a more reliable approach for reconciling  mixed variables in high dimensions.
 The algorithm is implemented in the function `reconc_TDcond()`; it takes the same arguments as `reconc_MixCond()` and returns reconciled forecasts in the same format. 
 
-```{r}
+```{r TDcondReconciliation}
 N_samples_TD <- 1e4
 
 # TDcond reconciliation
@@ -182,7 +182,7 @@ stop <- Sys.time()
 The algorithm TD-cond raises a warning regarding the incoherence between the joint bottom-up and the upper base forecasts. 
 We will see that this warning does not impact the performances of TD-cond.
 
-```{r}
+```{r print computational time TD cond}
 rec_fc$TD_cond <- list(
   bottom = td$bottom_reconciled$pmf,
   upper  = td$upper_reconciled$pmf
@@ -206,7 +206,7 @@ For each time series in the hierarchy, we compute the following scores for each 
 
 - RPS: Ranked Probability Score
 
-```{r}
+```{r InitializeMetrics}
 # Parameters for computing the scores
 alpha <- 0.1   # MIS uses 90% coverage intervals
 jitt <- 1e-9   # jitter for numerical stability 
@@ -236,7 +236,7 @@ The following functions are used for computing the scores:
 
 The implementation of these functions is available in the source code of the vignette but not shown here. 
 
-```{r,include=FALSE}
+```{r metricFunctions,include=FALSE}
 # Functions for computing the scores of a PMF
 AE_pmf <- function(pmf, actual) {
   return(abs(PMF.get_quantile(pmf,p=0.5) - actual))
@@ -278,7 +278,7 @@ MIS_gauss <- function(mus, sds, actuals, alpha, trunc=FALSE) {
 
 
 
-```{r}
+```{r computeScores}
 # Compute scores for the base forecasts
 # Upper
 mu_u <- unlist(lapply(base_fc_upper, "[[", "mu"))
@@ -324,7 +324,7 @@ $$ \text{Skill}_{\%}\,(\text{RPS, }Gauss) = 100 \cdot
 
 This formula is implemented in the function `skill.score`, available in the source code of the vignette but not shown here.
 
-```{r,include=FALSE}
+```{r skillScoreFunction,include=FALSE}
 # Function for computing the skill score
 skill.score <- function(ref, met) {
   s <- (2 * (ref - met) / (ref + met)) * 100
@@ -334,7 +334,7 @@ skill.score <- function(ref, met) {
 ```
 
 
-```{r}
+```{r ComputeScores}
 scores <- list(
         mase = mase,
         mis  = mis,
@@ -361,7 +361,7 @@ for (s in scores_) {
 We report in the tables below the mean values for each skill score. 
 
 
-```{r}
+```{r AverageScores}
 mean_skill_scores <- list()
 
 for (s in scores_) {
@@ -372,17 +372,17 @@ for (s in scores_) {
 }
 ```
 
-```{r}
+```{r printMASETable}
 knitr::kable(mean_skill_scores$mase,digits = 2,caption = "Mean skill score on MASE.",align = 'lccc')
 ```
 The mean MASE skill score is positive only for the TD-cond reconciliation. Both Mix-cond and Gauss achieve scores lower than the base forecasts, even if Mix-cond degrades less the base forecasts compared to Gauss. 
 
-```{r}
+```{r PrintMIStable}
 knitr::kable(mean_skill_scores$mis,digits = 2,caption = "Mean skill score on MIS.")
 ```
 The mean MIS score of TD-cond is slightly above that of the base forecasts. Mix-cond achieves slightly higher scores than the base forecasts only on the bottom variables. Gauss strongly degrades the base forecasts according to this metric.
 
-```{r}
+```{r printRPStable}
 knitr::kable(mean_skill_scores$rps,digits = 2,caption = "Mean skill score on RPS.")
 ```
 The mean RPS skill score for TD-cond is positive for both upper and bottom time series. Mix-cond slightly improves the base forecasts on the bottom variables, however it degrades the upper base forecasts. Gauss strongly degrades both upper and bottom base forecasts. 
@@ -391,7 +391,7 @@ The mean RPS skill score for TD-cond is positive for both upper and bottom time 
 
 Finally, we show the boxplots of the skill scores for each method divided in upper and bottom levels. 
 
-```{r,fig.width=7,fig.height=8}
+```{r MASEboxplots, fig.cap="**Figure 2**: boxplot of MASE skill scores for upper and bottom time series.", fig.width=7,fig.height=8}
 custom_colors <- c("#a8a8e4", 
                   "#a9c7e4",
                   "#aae4df")
@@ -405,13 +405,13 @@ boxplot(skill_scores$mase$bottom, main = "MASE bottom time series",
         col = custom_colors, ylim = c(-200,200))
 abline(h=0,lty=3)
 ```
-```{r,eval=TRUE,include=FALSE}
+```{r setupParams,eval=TRUE,include=FALSE}
 par(mfrow = c(1, 1))
 ```
 
 Both Mix-cond and TD-cond do not improve the bottom MASE over the base forecasts (boxplot flattened on the value zero), however TD-cond provides a slight improvement over the upper base forecasts (boxplot over the zero line).
 
-```{r,fig.width=7,fig.height=8}
+```{r MISboxplots, fig.cap="**Figure 3**: boxplot of MIS skill scores for upper and bottom time series.", fig.width=7,fig.height=8}
 # Boxplots of MIS skill scores
 par(mfrow = c(2, 1))
 boxplot(skill_scores$mis$upper, main = "MIS upper time series", 
@@ -428,7 +428,7 @@ par(mfrow = c(1, 1))
 Both Mix-cond and TD-cond do not improve nor degrade the bottom base forecasts in MIS score as shown by the small boxplots centered around zero. On the upper variables instead only TD-cond does not degrade the MIS score of the base forecasts. 
 
 
-```{r,fig.width=7,fig.height=8}
+```{r RPSboxplots,fig.cap="**Figure 4**: boxplot of RPS skill scores for upper and bottom time series.", fig.width=7,fig.height=8}
 # Boxplots of RPS skill scores
 par(mfrow = c(2,1))
 boxplot(skill_scores$rps$upper, main = "RPS upper time series", 

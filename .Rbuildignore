@@ -13,3 +13,6 @@
 ^\./tests/testthat/dataForTests/generate_weeklyTestData\.R$
 ^bayesRecon\.Rproj$
 ^tests/testthat/dataForTests/generate_monthlyCountData\.R$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
