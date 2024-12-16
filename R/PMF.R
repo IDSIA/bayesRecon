@@ -1,41 +1,128 @@
 # A pmf is represented as normalized numeric vector v: 
 # for each j = 0, ..., M, the probability of j is the value v[[j+1]]
 
+.NEGBIN_TOLL = 1e-6  # used when fitting a Negative Binomial distribution
+
 ###
 
-# Compute the empirical pmf from a vector of samples
-# If there are NA, they are removed before computing the pmf
-PMF.from_samples = function(v_) {
+# # Compute the empirical pmf from a vector of samples
+# # If there are NA, they are removed before computing the pmf
+# PMF.from_samples = function(v_) {
+#   v = v_[!is.na(v_)]  # remove NA
+#   .check_discrete_samples(v)
+#   pmf = tabulate(v+1) / length(v)  # the support starts from 0 
+#   # Tabulate only counts values above 1: if sum(tabulate(v+1)) > length(v),
+#   # it means that there were negative samples
+#   if (!isTRUE(all.equal(sum(pmf), 1))) {
+#     stop("Input error: same samples are negative")
+#   }
+#   return(pmf)
+# }
+
+# # Compute the empirical pmf from a vector of samples. 
+# # Performs a smoothing of the pmf via Kernel Density Estimation.
+# # Samples may be non-integer, but must be non-negative
+# PMF.KDE_from_samples = function(v_, Rtoll=.RTOLL) {
+#   
+#   v = v_[!is.na(v_)]  # remove NA
+#   
+#   if (any(v<0)) stop("Samples must be non-negative")
+#   
+#   kde = stats::density(v, bw = "SJ", n = 2**16)
+#   M = ceiling(max(kde$x))  # last point of the support
+#   pmf = approx(kde$x, kde$y, xout = 0:M)$y
+#   pmf[is.na(pmf)] = 0  # replace NA with 0
+#   pmf = pmf / sum(pmf)
+#   last_pos = max(which(pmf > Rtoll))  
+#   pmf = pmf[1:last_pos]       # cut the support on the right  
+#   
+#   return(pmf/sum(pmf))
+# }
+
+
+# Fit a Negative Binomial distribution on a given vector of samples.
+# If data are underdispersed, fit a Poisson.
+# If min_supp is specified, the returned pmf must have minimum length of min_supp+1
+# Use Rtoll instead of 1e-6? 
+.fit_static_negbin = function(v_, toll = .NEGBIN_TOLL, min_supp = NULL) {
   v = v_[!is.na(v_)]  # remove NA
-  .check_discrete_samples(v)
-  pmf = tabulate(v+1) / length(v)  # the support starts from 0 
-  # Tabulate only counts values above 1: if sum(tabulate(v+1)) > length(v),
-  # it means that there were negative samples
-  if (!isTRUE(all.equal(sum(pmf), 1))) {
-    stop("Input error: same samples are negative")
+  Mu = mean(v)
+  Var  = var(v)
+  if (Var <= Mu) {  # if data are underdispersed, fit Poisson
+    M = max(qpois(1-toll, Mu), min_supp)
+    pmf = dpois(0:M, Mu)
+  } else {          # else, fit Negative Binomial
+    size = Mu^2 / (Var - Mu)
+    M = max(qnbinom(1-toll, size = size, mu = Mu), min_supp)
+    pmf = dnbinom(0:M, size = size, mu = Mu)
   }
+  return(pmf/sum(pmf))
+}
+
+# Get pmf from cdf
+PMF.from_cdf = function(F1) {
+  pmf = diff(c(0,F1))
   return(pmf)
 }
 
-# Compute the empirical pmf from a vector of samples. 
-# Performs a smoothing of the pmf via Kernel Density Estimation.
-# Samples may be non-integer, but must be non-negative
-PMF.KDE_from_samples = function(v_, Rtoll=.RTOLL) {
+# Estimate the pmf from a vector of non-negative discrete samples.
+# If there are NA, they are removed before computing the pmf.
+# Several estimates are possible: naive empirical pmf, parametric, KDE (...)
+PMF.from_samples = function(v_, 
+                            estim_type = "naive", 
+                            weights_ = NULL,
+                            estim_params = NULL,
+                            min_supp = NULL,
+                            check_in = TRUE) {
   
-  v = v_[!is.na(v_)]  # remove NA
+  # First, remove NA
+  v = v_[!is.na(v_)] 
   
-  if (any(v<0)) stop("Samples must be non-negative")
+  if (check_in) {
+    # Check that samples are discrete and non-negative
+    .check_discrete_samples(v)
+    if (any(v<0)) stop("Input error: the are negative samples")
+  }
   
-  kde = stats::density(v, bw = "SJ", n = 2**16)
-  M = ceiling(max(kde$x))  # last point of the support
-  pmf = approx(kde$x, kde$y, xout = 0:M)$y
-  pmf[is.na(pmf)] = 0  # replace NA with 0
-  pmf = pmf / sum(pmf)
-  last_pos = max(which(pmf > Rtoll))  
-  pmf = pmf[1:last_pos]       # cut the support on the right  
+  if (estim_type == "naive") {
+    if (!is.null(estim_params)) {
+      warning("Not yet implemented. Do not specify estim_params if estim_type = 'naive'")
+    } 
+    
+    # TODO: add possibility of doing a smoothing (e.g. Laplace)
+    # TODO: implement min_supp
+    
+    if (is.null(weights_)) {
+      pmf = tabulate(v+1) / length(v)  # the support starts from 0
+    } else {
+      weights = weights_[!is.na(v_)]
+      weights = weights / sum(weights)
+      pmf = rep(0, max(v)+1)
+      for (vv in unique(v)) {
+        pmf[[vv+1]] = sum(weights[v==vv])
+      }
+    }
   
-  return(pmf/sum(pmf))
+    } else if (estim_type == "parametric") {
+      if (!is.null(estim_params)) {
+        stop("Not yet implemented. Do not specify estim_params if estim_type = 'parametric'")
+      }
+      # TODO: add more flexibility in the parametric estim (add other distr, e.g. for underdispersed data)
+    
+      pmf = .fit_static_negbin(v, min_supp = min_supp)
+      
+    } else if (estim_type == "kde") {
+    
+      stop("Kernel density estimation not yet implemented")
+      # TODO
+    
+      } else {
+    stop("The choice of estim_type is not valid")
+  }
+  
+  return(pmf)
 }
+
 
 # Compute the pmf from a parametric distribution
 PMF.from_params = function(params, distr, Rtoll = .RTOLL) {
