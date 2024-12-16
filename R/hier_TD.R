@@ -42,20 +42,51 @@
   Sums = row(bpmf)-1 + col(bpmf)-1  # matrix with the values of the support of the sum
   for (u_uniq in unique(u)) {  # loop over different values of u
     
-    p = bpmf[Sums==u_uniq]  # probabilities
-    p = p / sum(p)
+    if (u_uniq < 0 | u_uniq > s1+s2) {
+      stop("Samples are outside the support")
+      # TODO: manage these cases
+      
+    } else if (u_uniq == s1+s2) {
+      b1[u == s1+s2] = s1
+      
+    } else if (u_uniq == 0) {
+      b1[u == 0] = 0
+      
+    } else {
+      
+      mask = (Sums == u_uniq)
+      p = bpmf[mask]
+      
+      if (any(p<0)) {
+        print("Negative probabilities:")
+        print(p[p<0])
+        warning("Some probabilities are lower than zero")
+        p[p<0] = 0   # set neg to zero
+      }
+      if (sum(p) == 0) {
+        l = length(p)
+        p = rep(1/l, l)   # if p is zero, set uniform probabilities
+        warning("Probabilities are all zero")
+      }
+      
+      p = p / sum(p)
+      
+      # supp1 = row(bpmf)[mask] - 1
+      # more efficient implementation:
+      supp1 = min(u_uniq, s1) : max(u_uniq - s2, 0)
+      
+      u_posit = (u == u_uniq)
+      b1[u_posit] = sample(supp1, size = sum(u_posit), replace = TRUE, prob = p)
+      
+    }
     
-    supp1 = row(bpmf)[Sums==u_uniq]
-    
-    u_posit = (u == u_uniq)
-    b1[u_posit] = sample(supp1, size = sum(u_posit), replace = TRUE, prob = p)
   }
   return(list(b1, u-b1))
 }
 
 # (...) TODO: add explanation
 # TODO: test the function
-.TD_emp = function(u, b_train) {
+.TD_emp = function(u, b_train, copula_family, L_max_copula = NULL, max_frac_NA = 0.05) {
   
   n_b = nrow(b_train)
   if (n_b == 1) {return(u)}
@@ -67,10 +98,20 @@
     L = length(l_idx)
     b_new = matrix(ncol = length(u), nrow = L)
     for (j in 1:(L%/%2)) {
-      # TODO: bPMF.from_samples
-      bpmf = bPMF.from_samples_kde(colSums(train[l_idx[[2*j-1]]]),
-                                  colSums(train[l_idx[[2*j]]]))
-      b = .cond_joint_biv_sampling(b_old[j,], bpmf)
+      # fictitious aggregated series (+ imputation):
+      b1 = .aggr_ts(b_train[l_idx[[2*j-1]],,drop=F], max_frac_NA = max_frac_NA)  
+      b2 = .aggr_ts(b_train[l_idx[[2*j]],,drop=F],   max_frac_NA = max_frac_NA)
+      u_  = b_old[j,]
+      # Ensure that all the upper samples are covered by the distribution:
+      min_supp1 = ceiling(max(u_) * max(b1, na.rm=T) / (max(b1, na.rm=T)+max(b2, na.rm=T)))
+      min_supp2 = ceiling(max(u_) * max(b2, na.rm=T) / (max(b1, na.rm=T)+max(b2, na.rm=T)))
+      bpmf = bPMF.from_samples(b1, b2,
+                               copula_family = copula_family,
+                               # TODO: add parameters
+                               min_supp1 = min_supp1, min_supp2 = min_supp2,
+                               L_max_copula = L_max_copula
+                               )
+      b = .cond_joint_biv_sampling(u_, bpmf)
       b_new[2*j-1,] = b[[1]]
       b_new[2*j,]   = b[[2]]
     }
@@ -89,6 +130,8 @@
 # bottom_train: matrix n_b x T
 #
 hier_TD = function(A, fc_upper, bottom_train, 
+                   copula_family,
+                   L_max_copula = NULL, max_frac_NA = 0.05,
                    num_samples = 2e4, return_type = "pmf", 
                    suppress_warnings = FALSE, seed = NULL) {
   
@@ -136,17 +179,23 @@ hier_TD = function(A, fc_upper, bottom_train,
                     mu    = rec_gauss_u$bottom_reconciled_mean, 
                     Sigma = rec_gauss_u$bottom_reconciled_covariance)  
     U = round(U)                 # round to integer
+    
+    # TODO: fix upper threshold (e.g. qnorm(1-1e-5, ...)) and remove samples 
+    # that fall above; also remove negative samples
+    # TODO: return correct number of samples
+    U[U<0] = 0  # temporary
+    
     U_js = asplit(U, MARGIN = 2) # split into list of column vectors
   }
-  
-  # TODO: check that samples are in the support?
-  num_samples_ok = num_samples
-  
-  # Probabilistic top-down using empirical pmf 
-  B = matrix(nrow = n_b, ncol = num_samples_ok)
+
+  # Probabilistic top-down 
+  B = matrix(nrow = n_b, ncol = num_samples)
   for (j in 1:n_u_low) {
+    print(paste0("Lowest upper n.", j))
     mask_j = as.logical(A[lowest_rows[j], ])  # mask for the position of the bottom referring to lowest upper j
-    B[mask_j, ] = .TD_emp(U_js[[j]], bottom_train[mask_j,])
+    B[mask_j, ] = .TD_emp(U_js[[j]], bottom_train[mask_j,],
+                          copula_family = copula_family, L_max_copula = L_max_copula)
+    # TODO: pass parameters to .TD_emp
   }
   U = A %*% B              # dim: n_upper x num_samples
   
