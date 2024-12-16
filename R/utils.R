@@ -478,6 +478,46 @@
   print(paste0("(", nrow(m), ",", ncol(m), ")"))
 }
 
+# Impute NA values in a time series via bootstrapping.
+# If freq is specified, use seasonal bootstrapping.
+.impute_ts <- function(series, freq = NULL) {
+  
+  if (is.null(freq)) {
+    pmf = PMF.from_samples(series)
+    mask = is.na(series)
+    series[mask] = PMF.sample(pmf, sum(mask))
+    return(series)
+    
+  } else if (!is.numeric(freq) | length(freq)!=1 | abs(freq-round(freq))>1e-8) {
+    stop("The frequency must be an integer")
+  } else if (freq < 2) {
+    stop("The frequency must be an integer greater or equal to 2")
+  } else {
+    
+    # Pad the series with NA at the end to make it divisible by freq:
+    series_ = c(series, rep(NA, freq - (length(series)%%freq)))  
+    S = matrix(series_, nrow = freq)  # each row corresponds to e.g. a different day of the week (if freq=7) 
+    S_ = t(apply(S, 1, .impute_ts))   # impute each row independently
+    return(S_[1:length(series)])    
+  }
+}
+
+
+# Compute the aggregated series from a matrix bottom_series with dim: N_series x T
+# If max_frax_NA is specified, when 
+.aggr_ts <- function(bottom_series, max_frac_NA = NULL, imp_freq = NULL) {
+  
+  if (!is.null(max_frac_NA)) {    # impute 
+    n_NA = colSums(is.na(bottom_series))
+    # time stamps where at most max_fraq_NA time series have NA 
+    mask = (n_NA <= max_frac_NA * nrow(bottom_series))  
+    # impute each series on those time stamps
+    bottom_series[,mask] = t(apply(bottom_series[,mask,drop=F], 1, .impute_ts, freq = imp_freq))
+  } 
+  
+  return(colSums(bottom_series))
+}
+
 ################################################################################
 # Functions for tests
 
