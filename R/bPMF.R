@@ -52,8 +52,6 @@
   F_grid = expand.grid(F1,F2)
   cdf = .gumbel_cdf(F_grid[,1], F_grid[,2], theta)
   
-  if (any(is.na(cdf))) browser()
-  
   cdf = matrix(cdf, nrow = M, ncol = N)
   
   return(cdf)
@@ -84,22 +82,38 @@
   return(bpmf)
 }
 
-# Shrink bpmf towards the uniform
-.shrink_bpmf = function(bpmf, lambda_shr = .LAMBDA_SHR) {
-  bpmf = (1 - lambda_shr) * bpmf + 
-               lambda_shr * matrix(1 / (nrow(bpmf)*ncol(bpmf)),
-                                   nrow = nrow(bpmf), ncol = ncol(bpmf))
+# Shrink bpmf; the options for target (the target matrix) are:
+# -"uniform" (default);
+# -"independent";
+# -a specified target matrix
+.shrink_bpmf = function(bpmf, target = NULL, lambda_shr = .LAMBDA_SHR) {
+  
+  if (is.matrix(target)) {
+    if (!all.equal(dim(bpmf), dim(target))) {
+      stop("The dimensions of the target matrix must be the same of the bpmf")
+    }
+  } else if (is.null(target) | target=="uniform") {
+    target = matrix(1 / (nrow(bpmf)*ncol(bpmf)),
+                    nrow = nrow(bpmf), ncol = ncol(bpmf))
+  } else if (target == "independent") {
+    target = outer(rowSums(bpmf), colSums(bpmf))
+  } else {
+    stop("The choice of the target is not allowed")
+  }
+  
+  bpmf = (1 - lambda_shr) * bpmf + lambda_shr  * target
+  
   return(bpmf)
 }
 
-# Compute L1 distance between the 1st marginal of bpmf and pmf
+# Compute L-inf distance between the 1st marginal of bpmf and pmf
 .dist_marg_rows = function(bpmf, pmf) {
-  return(sum(abs(rowSums(bpmf) - pmf)))
+  return(max(abs(rowSums(bpmf) - pmf)))
 }
 
-# Compute L1 distance between the 2nd marginal of bpmf and pmf
+# Compute L-inf distance between the 2nd marginal of bpmf and pmf
 .dist_marg_cols = function(bpmf, pmf) {
-  return(sum(abs(colSums(bpmf) - pmf)))
+  return(max(abs(colSums(bpmf) - pmf)))
 }
 
 # Iterative Proportional Fitting Procedure (IPFP)
@@ -112,10 +126,12 @@
     if (d < toll) break()
     # Alternate projection on rows and columns
     if (i %% 2 == 1) {
-      bpmf = bpmf / rowSums(bpmf) * pmf1            # divide and multiply each row
+      # divide and multiply each row:
+      bpmf = bpmf / rowSums(bpmf) * pmf1            
       d = .dist_marg_rows(bpmf, pmf1) + .dist_marg_cols(bpmf, pmf2)
     } else {
-      bpmf = bpmf %*% diag(pmf2 / colSums(bpmf))    # divide and multiply each column
+      # divide and multiply each column:
+      bpmf = bpmf * tcrossprod(rep.int(1L, nrow(bpmf)), pmf2/colSums(bpmf))
       d = .dist_marg_rows(bpmf, pmf1) + .dist_marg_cols(bpmf, pmf2)
     }
   }
@@ -127,9 +143,9 @@
 # Copula PMFs
 
 # Compute the bivariate Gaussian density at x, y (which can be vectors) 
-.biv_gauss_pdf <- function(x, y, rho) {
-  z     = (x^2 + y^2 - 2 * rho * x * y) / (2 * (1 - rho^2))
-  coeff = 1 / (2 * pi * sqrt(1 - rho^2))
+.biv_gauss_pdf <- function(x, y, ro) {
+  z     = (x^2 + y^2 - 2 * ro * x * y) / (2 * (1 - ro^2))
+  coeff = 1 / (2 * pi * sqrt(1 - ro^2))
   return(coeff * exp(-z))
 }
 
@@ -148,6 +164,42 @@
   
   numer = .biv_gauss_pdf(x, y, ro)
   denom = dnorm(x) * dnorm(y)
+  
+  bpmf = matrix(numer/denom, nrow = length(F1), ncol = length(F2))
+  
+  if (any(bpmf < -neg_toll)) {
+    warning("In the computation of the copula pmf same values were negative. 
+             They have been set to zero.")
+  } 
+  bpmf[bpmf<0] = 0
+  bpmf = bpmf / sum(bpmf)
+  
+  return(bpmf)
+}
+
+# Compute the bivariate t density at x, y (which can be vectors) 
+# f(x,y) = 1 / (2pi * sqrt(1-ro^2)) * [1 + 1 / (nu * (1-ro^2)) * (x^2+y^2-2ro*x*y)]^(-(nu+2)/2)
+.biv_t_pdf <- function(x, y, ro, nu) {
+  z     = (1 + (x^2 + y^2 - 2 * ro * x * y) / (nu * (1 - ro^2)))^(-(nu+2)/2)
+  coeff = 1 / (2 * pi * sqrt(1 - ro^2))
+  return(coeff * z)
+}
+
+# Compute t CDF at given points u and v, which can be vectors
+# C(u,v) = F(F1^(-1)(u), F2^(-1)(v))
+.tC_pmf = function(F1, F2, ro, nu, neg_toll = .NEG_TOLL_BPMF) {
+  # Clip u and v between toll and 1-toll
+  toll = 1e-9
+  F1 = pmax(toll, pmin(F1, 1-toll))
+  F2 = pmax(toll, pmin(F2, 1-toll))
+  
+  F_grid = expand.grid(F1,F2)
+  
+  x = qnorm(F_grid[,1])
+  y = qnorm(F_grid[,2])
+  
+  numer = .biv_t_pdf(x, y, ro, nu)
+  denom = dt(x, nu) * dt(y, nu)
   
   bpmf = matrix(numer/denom, nrow = length(F1), ncol = length(F2))
   
@@ -220,7 +272,7 @@
     # Here we directly compute the bpmf, not the cdf
     bpmf = .gaussC_pmf(F1, F2, ro)
     
-    ### t Student ##############################################################
+    ### t-Student ##############################################################
   } else if (family == "t") {                                        
     
     # Estimate ro via kendall's tau
@@ -228,19 +280,33 @@
     ro = sin(pi * tau / 2)
     
     # Estimate coefficient of tail dependence lambda_t
-    # lambda_t = (...)
+    # see https://www.ressources-actuarielles.net/EXT/ISFA/1226.nsf/0/303eb11b4d617b79c1257b0800744575/$FILE/t%20copula%20demarta%20mcneil.pdf
+    q_upp = 0.95
+    q_low = 0.05
+    upp_1 = v1 > quantile(v1, q_upp)
+    upp_2 = v2 > quantile(v2, q_upp)
+    low_1 = v1 <= quantile(v1, q_low)
+    low_2 = v2 <= quantile(v2, q_low)
+    lambda_t = mean(c(sum(upp_1 & upp_2) / sum(upp_1),   # lambda_upp
+                      sum(low_1 & low_2) / sum(low_1)))  # lambda_low
     
     # Grid search to find nu
     nus = 1:20
     lambdas = 2 * pt(-((nus+1)*(1-ro)/(1+ro))^0.5, nus+1)
     nu = nus[which.min(abs(lambdas - lambda_t))]
     
-    # build copula pmf (TODO)
+    bpmf = .tC_pmf(F1, F2, ro, nu)
+    
+    ### skewed t-Student #######################################################
+  } else if (family == "skewed-t") { 
+    
+    stop("Skewed t copula not yet implemented")
+    # TODO
     
     ### Independent ############################################################
   } else if (family == "independent") {                            
     
-    bpmf = matrix(1/(length(F1)*length(F2)), nrow = length(F1), ncol = length(F2))
+    bpmf = outer(PMF.from_cdf(F1), PMF.from_cdf(F2))
     
     ### Automatic selection ####################################################
   } else if (family == "auto") {            
@@ -250,8 +316,10 @@
     
   }
   
-  ### Shrinkage towards the uniform ###
-  bpmf = .shrink_bpmf(bpmf, .LAMBDA_SHR)
+  ### Shrinkage towards indep(pmf1, pmf2) ###
+  bpmf = .shrink_bpmf(bpmf, 
+                      target = outer(PMF.from_cdf(F1), PMF.from_cdf(F2)),
+                      lambda_shr = .LAMBDA_SHR)
   
   # Iterative Proportional Fitting Procedure (IPFP)
   bpmf = .IPFP(bpmf, PMF.from_cdf(F1), PMF.from_cdf(F2))
