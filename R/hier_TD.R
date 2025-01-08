@@ -37,6 +37,13 @@
   }
   # TODO: manage these cases
   
+  # If one of the dimensions of the bpmf is 1, no sampling is needed
+  if (s1 == 0) {
+    return(list(rep(0,length(u)), u))
+  } else if (s2 == 0) {
+    return(list(u, rep(0,length(u))))
+  }
+  
   b1 = rep(NA, length(u))  # initialize empty vector
   
   Sums = row(bpmf)-1 + col(bpmf)-1  # matrix with the values of the support of the sum
