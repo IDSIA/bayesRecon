@@ -1,4 +1,52 @@
 
+.get_upper_sample = function(mu_u, Sigma_u, 
+                             A_u, n_u, n_u_low, num_samples) {
+  
+  if (n_u == n_u_low) {     
+    # If all the upper are lowest-upper, just use the base distribution parameters
+    mu    = mu_u
+    Sigma = Sigma_u
+    
+  } else {
+    # Else, analytically reconcile the upper and then sample from the lowest-uppers
+    
+    n_u_upp = n_u - n_u_low
+    
+    # Analytically reconcile the upper
+    # The entries of mu_u must be in the correct order, i.e. rows of A_u (upper), columns of A_u (bottom)
+    mu_u_ord = c(mu_u[-lowest_rows],mu_u[lowest_rows])  
+    # Same for Sigma_u
+    Sigma_u_ord = matrix(nrow=n_u, ncol=n_u)
+    Sigma_u_ord[1:n_u_upp, 1:n_u_upp]             = Sigma_u[-lowest_rows,-lowest_rows]
+    Sigma_u_ord[1:n_u_upp, (n_u_upp+1):n_u]       = Sigma_u[-lowest_rows,lowest_rows]
+    Sigma_u_ord[(n_u_upp+1):n_u, 1:n_u_upp]       = Sigma_u[lowest_rows,-lowest_rows]
+    Sigma_u_ord[(n_u_upp+1):n_u, (n_u_upp+1):n_u] = Sigma_u[lowest_rows,lowest_rows]
+    rec_gauss_u = reconc_gaussian(A_u, mu_u_ord, Sigma_u_ord)
+    
+    mu    = rec_gauss_u$bottom_reconciled_mean
+    Sigma = rec_gauss_u$bottom_reconciled_covariance
+  }
+  
+  # Sample from reconciled MVN on the lowest level of the upper (dim: num_samples x n_u_low)
+  U = .MVN_sample(n_samples = num_samples,
+                  mu    = mu, 
+                  Sigma = Sigma) 
+  U = round(U)          # round to integer
+  mode(U) = "integer"   # change type for memory reasons
+  
+  # TODO: fix upper threshold (e.g. qnorm(1-1e-5, ...)) and remove samples 
+  # that fall above; also remove negative samples
+  # TODO: return correct number of samples
+  U[U<0] = 0  # temporary
+  
+  return(U)
+}
+  
+
+
+### Get upper samples
+
+
 # Compute list of lists of vectors of indices
 # (...) TODO: add explanation
 .BU_idxs = function(m) {
@@ -224,6 +272,78 @@ hier_TD = function(A, fc_upper, bottom_train,
 
 
 
-
+# Function similar to hier_TD, but for multiple steps ahead
+# Much faster than running H times the function hier_TD
+# There might be memory issues; set a low num_samples 
+# fc_upper is a list of length H, each entry is a list with $mu and $Sigma 
+hier_TD_Hstep = function(A, fc_upper, bottom_train, 
+                         copula_family,
+                         L_max_copula = NULL, max_frac_NA = 0.05,
+                         num_samples = 1e3, return_type = "pmf", 
+                         suppress_warnings = FALSE, seed = NULL) {
+                   
+  if (!is.null(seed)) set.seed(seed)
+  
+  ### Check input ###
+  # TODO: check_input
+  # The forecast horizon is the length of the input upper fc list
+  H = length(fc_upper)
+  
+  
+  ### Pre-process aggregation matrix ###
+  # Find the "lowest upper" 
+  n_u = nrow(A)
+  n_b = ncol(A)
+  lowest_rows = .lowest_lev(A)
+  n_u_low = length(lowest_rows)  # number of lowest upper
+  n_u_upp = n_u - n_u_low        # number of "upper upper" 
+  if (n_u_upp > 0) {
+    # Get the aggregation matrix A_u for the upper sub-hierarchy
+    A_u = .get_Au(A, lowest_rows)
+  }
+  
+  
+  ### Get upper samples ###
+  U = matrix(nrow = num_samples*H, ncol = n_u_low)
+  for (h in 1:H) {
+    pos_h = (1+num_samples*(h-1)):(num_samples*h)
+    U[pos_h,] = .get_upper_sample(fc_upper[[h]]$mu, as.matrix(fc_upper[[h]]$Sigma), 
+                                  A_u, n_u, n_u_low, num_samples)
+  }
+  # Create a list of column vectors
+  U_js = lapply(seq_len(n_u_low), function(i) U[,i])
+  rm(U)   # for memory reasons
+  
+  
+  ### Probabilistic top-down ###
+  B = matrix(nrow = n_b, ncol = num_samples*H)
+  for (j in 1:n_u_low) {
+    # print(paste0("Lowest upper n.", j))
+    mask_j = as.logical(A[lowest_rows[j], ])  # mask for the position of the bottom referring to lowest upper j
+    B[mask_j, ] = .TD_emp(U_js[[j]], bottom_train[mask_j,],
+                          copula_family = copula_family, L_max_copula = L_max_copula)
+    # TODO: pass parameters to .TD_emp
+  }
+  U = A %*% B              # dim: n_upper x num_samples
+  
+  # Output: a list of length H, each entry is a list with the results 
+  # Include the marginal pmfs and/or the samples (depending on "return" inputs)
+  out = rep(list(list(bottom_reconciled=list(), upper_reconciled=list())), H)
+  for (h in 1:H) {
+    pos_h = (1+num_samples*(h-1)):(num_samples*h)
+    if (return_type %in% c('pmf', 'all')) {
+      upper_pmf  = lapply(1:n_u, function(i) PMF.from_samples(U[i,pos_h]))
+      bottom_pmf = lapply(1:n_b, function(i) PMF.from_samples(B[i,pos_h]))
+      out[[h]]$bottom_reconciled$pmf = bottom_pmf
+      out[[h]]$upper_reconciled$pmf = upper_pmf
+    }
+    if (return_type %in% c('samples','all')) {
+      out[[h]]$bottom_reconciled$samples = B[,pos_h]
+      out[[h]]$upper_reconciled$samples = U[,pos_h]
+    } 
+  }
+  
+  return(out)
+}
 
 
