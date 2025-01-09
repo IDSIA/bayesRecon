@@ -292,7 +292,7 @@ reconc_TDcond = function(A, fc_bottom, fc_upper,
     U = .MVN_sample(n_samples = num_samples,
                     mu    = rec_gauss_u$bottom_reconciled_mean, 
                     Sigma = rec_gauss_u$bottom_reconciled_covariance)  
-    U = round(U)                 # round to integer
+    U = as.integer(round(U))                 # round and convert to integer
     U_js = asplit(U, MARGIN = 2) # split into list of column vectors
   }
 
