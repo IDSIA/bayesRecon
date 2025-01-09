@@ -16,21 +16,6 @@
   return(z^(-1/theta))
 }
 
-# Function to compute the Clayton copula CDF, given the marginal CDFs F1 and F2.
-# Vectorized implementation
-.get_cdf_clayton = function(F1, F2, theta) {
-  
-  M = length(F1)
-  N = length(F2)
-  
-  F_grid = expand.grid(F1,F2)
-  cdf = .clayton_cdf(F_grid[,1], F_grid[,2], theta)
-  
-  cdf = matrix(cdf, nrow = M, ncol = N)
-  
-  return(cdf)
-}
-
 # Compute Gumbel CDF at given points u and v, which can be vectors
 .gumbel_cdf = function(u, v, theta) {
   # Clip u and v between toll and 1
@@ -42,15 +27,40 @@
   return(z)
 }
 
-# Function to compute the Gumbel copula CDF, given the marginal CDFs F1 and F2.
-# Vectorized implementation
-.get_cdf_gumbel = function(F1, F2, theta) {
+.debye_fun <- function(theta) {
+  integrate(function(t) t / (exp(t) - 1) * exp(-theta * t), 0, Inf)$value
+}
+
+# Define the relationship between Frank's theta and Kendall's Tau
+.theta_frank_from_tau <- function(tau) {
+  # Solve the equation relating tau and theta
+  uniroot(function(theta) 1 + 4 * (.debye_fun(theta) / theta - 1) - tau,
+          lower = 1e-5, upper = 20)$root
+}
+
+# Compute Frank CDF at given points u and v, which can be vectors
+.frank_cdf = function(u, v, theta) {
+  
+  if (theta == 0) return(u * v)
+  
+  num   = (1 - exp(-theta * u)) * (1 - exp(-theta * v))
+  denom = 1 - exp(-theta)
+  
+  z = -1/theta * log(1 + num / denom)
+  return(z)
+}
+
+# Function to compute the copula CDF, given:
+# -the marginal CDFs F1 and F2
+# -the function copula_fun for computing the copula in a given point
+# -the parameters of the copula to be passed to copula_fun
+.get_copula_cdf = function(F1, F2, copula_fun, ...) {
   
   M = length(F1)
   N = length(F2)
   
   F_grid = expand.grid(F1,F2)
-  cdf = .gumbel_cdf(F_grid[,1], F_grid[,2], theta)
+  cdf = copula_fun(F_grid[,1], F_grid[,2], ...)
   
   cdf = matrix(cdf, nrow = M, ncol = N)
   
@@ -202,6 +212,7 @@
   denom = dt(x, nu) * dt(y, nu)
   
   bpmf = matrix(numer/denom, nrow = length(F1), ncol = length(F2))
+  bpmf[is.na(bpmf)] = 0
   
   if (any(bpmf < -neg_toll)) {
     warning("In the computation of the copula pmf same values were negative. 
@@ -249,7 +260,7 @@
       bpmf = matrix(1/(length(F1)*length(F2)), nrow = length(F1), ncol = length(F2)) 
       return(bpmf)
     } else {
-      cdf  = .get_cdf_clayton(F1, F2, theta)
+      cdf  = .get_copula_cdf(F1, F2, .clayton_cdf, theta)
       bpmf = .from_cdf_to_bpmf(cdf)
     }
     
@@ -260,7 +271,17 @@
     tau = min(tau, 1 - 1e-3)  # set max to tau to avoid numerical problems
     theta = 1 / (1-tau)
     
-    cdf  = .get_cdf_gumbel(F1, F2, theta)
+    cdf  = .get_copula_cdf(F1, F2, .gumbel_cdf, theta)
+    bpmf = .from_cdf_to_bpmf(cdf)
+    
+    ### Frank ##################################################################
+  } else if (family == "frank") {
+    
+    tau = cor(v1, v2, method = "kendall")
+    tau = min(tau, 1 - 1e-3)  # set max to tau to avoid numerical problems
+    theta = .theta_frank_from_tau(tau)
+    
+    cdf  = .get_copula_cdf(F1, F2, .frank_cdf, theta)
     bpmf = .from_cdf_to_bpmf(cdf)
     
     ### Gaussian ###############################################################
@@ -296,6 +317,8 @@
     nu = nus[which.min(abs(lambdas - lambda_t))]
     
     bpmf = .tC_pmf(F1, F2, ro, nu)
+    
+    # TO FIX!
     
     ### skewed t-Student #######################################################
   } else if (family == "skewed-t") { 
