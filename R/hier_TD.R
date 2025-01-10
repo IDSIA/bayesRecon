@@ -1,6 +1,6 @@
 
 .get_upper_sample = function(mu_u, Sigma_u, 
-                             A_u, n_u, n_u_low, num_samples) {
+                             lowest_rows, A_u, n_u, n_u_low, num_samples) {
   
   if (n_u == n_u_low) {     
     # If all the upper are lowest-upper, just use the base distribution parameters
@@ -308,7 +308,7 @@ hier_TD_Hstep = function(A, fc_upper, bottom_train,
   for (h in 1:H) {
     pos_h = (1+num_samples*(h-1)):(num_samples*h)
     U[pos_h,] = .get_upper_sample(fc_upper[[h]]$mu, as.matrix(fc_upper[[h]]$Sigma), 
-                                  A_u, n_u, n_u_low, num_samples)
+                                  lowest_rows, A_u, n_u, n_u_low, num_samples)
   }
   # Create a list of column vectors
   U_js = lapply(seq_len(n_u_low), function(i) U[,i])

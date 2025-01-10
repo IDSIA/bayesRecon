@@ -44,7 +44,7 @@
   if (theta == 0) return(u * v)
   
   num   = (1 - exp(-theta * u)) * (1 - exp(-theta * v))
-  denom = 1 - exp(-theta)
+  denom = exp(-theta) - 1
   
   z = -1/theta * log(1 + num / denom)
   return(z)
