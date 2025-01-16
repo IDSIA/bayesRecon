@@ -1,4 +1,44 @@
 
+.compute_upper_fc = function(upper_train, 
+                             upper_fc_model,
+                             upper_fc_args,
+                             H = 1) {
+  
+  if (upper_fc_model == "ets") {
+    model_func = function(x) forecast::ets(x, additive.only = T)
+  } else if (upper_fc_model == "arima") {
+    model_func = forecast::auto.arima
+  } else {
+    stop("The specified model for the upper forecasts is not implemented")
+  }
+  
+  L = ncol(upper_train)
+  n_u = nrow(upper_train)
+  
+  mus = matrix(nrow = n_u, ncol = H)
+  sds = matrix(nrow = n_u, ncol = H)
+  res = matrix(nrow = n_u, ncol = L)
+  for (j in 1:n_u) {
+    u = ts(upper_train[j,], frequency = upper_fc_args$freq)
+    model = model_func(u)
+    fc = forecast::forecast(model, h=H, level=90)
+    mus[j,] = fc$mean
+    sds[j,] = (fc$upper - fc$mean) / qnorm(0.95)
+    res[j,] = model$residuals
+  }
+  
+  fc_u = list()
+  corr = cov2cor(schaferStrimmer_cov(t(res))$shrink_cov)
+  for (h in 1:H) {
+    fc_u[[h]] = list(
+      mu = mus[,h],
+      Sigma = corr * outer(sds[,h], sds[,h])
+    )
+  }
+  
+  return(fc_u)
+}
+
 .get_upper_sample = function(mu_u, Sigma_u, 
                              lowest_rows, A_u, n_u, n_u_low, num_samples) {
   
@@ -41,11 +81,6 @@
   
   return(U)
 }
-  
-
-
-### Get upper samples
-
 
 # Compute list of lists of vectors of indices
 # (...) TODO: add explanation
@@ -280,6 +315,7 @@ hier_TD_Hstep = function(A, fc_upper, bottom_train,
                          copula_family,
                          L_max_copula = NULL, max_frac_NA = 0.05,
                          num_samples = 1e3, return_type = "pmf", 
+                         parallel_run = FALSE, n_cpu = NULL,
                          suppress_warnings = FALSE, seed = NULL) {
                    
   if (!is.null(seed)) set.seed(seed)
@@ -316,17 +352,38 @@ hier_TD_Hstep = function(A, fc_upper, bottom_train,
   
   
   ### Probabilistic top-down ###
-  B = matrix(nrow = n_b, ncol = num_samples*H)
-  for (j in 1:n_u_low) {
-    # print(paste0("Lowest upper n.", j))
-    mask_j = as.logical(A[lowest_rows[j], ])  # mask for the position of the bottom referring to lowest upper j
-    B[mask_j, ] = .TD_emp(U_js[[j]], bottom_train[mask_j,],
-                          copula_family = copula_family, L_max_copula = L_max_copula)
-    # TODO: pass parameters to .TD_emp
+  if (!parallel_run) {
+    B = matrix(nrow = n_b, ncol = num_samples*H)
+    for (j in 1:n_u_low) {
+      # print(paste0("Lowest upper n.", j))
+      mask_j = as.logical(A[lowest_rows[j], ])  # mask for the position of the bottom referring to lowest upper j
+      B[mask_j, ] = .TD_emp(U_js[[j]], bottom_train[mask_j,],
+                            copula_family = copula_family, L_max_copula = L_max_copula)
+      # TODO: pass parameters to .TD_emp
+    }
+    
+  } else {
+    if (is.null(n_cpu)) {
+      n_cpu = detectCores() - 2  
+    }
+    
+    plan(multisession, workers = n_cpu)
+    
+    par_data = lapply(1:n_u_low, function(j) list(U = U_js[[j]],
+                                                  mask = as.logical(A[lowest_rows[j], ]),
+                                                  bottom_train = bottom_train[as.logical(A[lowest_rows[j], ]), ]))
+    B = foreach(data_j = par_data, .combine = rbind, .options.future = list(seed = TRUE)) %dofuture% {
+      .TD_emp(data_j$U, data_j$bottom_train,
+              copula_family = copula_family, L_max_copula = L_max_copula)
+    }
+    
+    # Recover correct order of rows in B
+    order_bottom = unlist(sapply(lowest_rows, function(lr) which(as.logical(A[lr,]))))
+    B[order_bottom,] = B
   }
   U = A %*% B              # dim: n_upper x num_samples
-  
-  # Output: a list of length H, each entry is a list with the results 
+
+  # Output: a list of length H, each entry is a list with the results
   # Include the marginal pmfs and/or the samples (depending on "return" inputs)
   out = rep(list(list(bottom_reconciled=list(), upper_reconciled=list())), H)
   for (h in 1:H) {
@@ -340,10 +397,128 @@ hier_TD_Hstep = function(A, fc_upper, bottom_train,
     if (return_type %in% c('samples','all')) {
       out[[h]]$bottom_reconciled$samples = B[,pos_h]
       out[[h]]$upper_reconciled$samples = U[,pos_h]
-    } 
+    }
   }
-  
+
   return(out)
 }
 
 
+# ...
+hier_TD_e2e = function(A, 
+                       bottom_train, 
+                       upper_fc_model,
+                       upper_fc_args,
+                       H = 1,
+                       copula_family = "gauss",
+                       L_max_copula = NULL, 
+                       max_frac_NA = 0.1,
+                       num_samples = 1e3, 
+                       return_type = "pmf", 
+                       parallel_run = FALSE, 
+                       n_cpu = NULL,
+                       suppress_warnings = FALSE, 
+                       seed = NULL) {
+  
+  if (!is.null(seed)) set.seed(seed)
+  
+  ### Check input ###
+  # TODO: check_input
+  n_u = nrow(A)
+  n_b = ncol(A)
+  
+  ### Compute upper forecasts ###
+  # First, compute aggregated series
+  print("Computing aggregated series...")
+  # find first time for which at least (1-max_frac_NA) of the bottom are not NA
+  first_ind = min(which(colSums(is.na(bottom_train)) < max_frac_NA*n_b))
+  # TODO: da sistemare? Se ci sono NA in mezzo non li vede...
+  # impute bottom and compute upper series
+  upper_train = A %*% t(apply(bottom_train[,first_ind:ncol(bottom_train)], 1,
+                              .impute_ts))
+  
+  # Compute upper forecasts
+  print("Computing upper forecasts...")
+  fc_upper = .compute_upper_fc(upper_train, 
+                               upper_fc_model,
+                               upper_fc_args,
+                               H) 
+  
+  
+  ### Pre-process aggregation matrix ###
+  # Find the "lowest upper" 
+  print("Preprocessing of the A matrix...")
+  lowest_rows = .lowest_lev(A)
+  n_u_low = length(lowest_rows)  # number of lowest upper
+  n_u_upp = n_u - n_u_low        # number of "upper upper" 
+  if (n_u_upp > 0) {
+    # Get the aggregation matrix A_u for the upper sub-hierarchy
+    A_u = .get_Au(A, lowest_rows)
+  }
+  
+  
+  ### Get upper samples ###
+  print("Drawing reconciled upper samples...")
+  U_low = matrix(nrow = n_u_low, ncol = num_samples*H) # matrix of samples from the lowest upper
+  for (h in 1:H) {
+    pos_h = (1+num_samples*(h-1)):(num_samples*h)
+    U_low[,pos_h] = .get_upper_sample(fc_upper[[h]]$mu, as.matrix(fc_upper[[h]]$Sigma), 
+                                      lowest_rows, A_u, n_u, n_u_low, num_samples)
+  }
+  
+  ### Probabilistic top-down ###
+  if (!parallel_run) {
+    print("Top-down algorithm, sequentially")
+    B = matrix(nrow = n_b, ncol = num_samples*H)
+    for (j in 1:n_u_low) {
+      # print(paste0("Lowest upper n.", j))
+      mask_j = as.logical(A[lowest_rows[j], ])  # mask for the position of the bottom referring to lowest upper j
+      B[mask_j, ] = .TD_emp(U_low[j,], bottom_train[mask_j,],
+                            copula_family = copula_family, L_max_copula = L_max_copula)
+      # TODO: pass parameters to .TD_emp
+    }
+    
+  } else {
+    if (is.null(n_cpu)) {
+      n_cpu = detectCores() - 2  
+    }
+    print(paste0("Top-down algorithm, in parallel, using ", n_cpu, " cores..."))
+    
+    plan(multisession, workers = n_cpu)
+    
+    par_data = lapply(1:n_u_low, function(j) list(U = U_low[j,],
+                                                  mask = as.logical(A[lowest_rows[j], ]),
+                                                  bottom_train = bottom_train[as.logical(A[lowest_rows[j], ]), ]))
+    B = foreach(data_j = par_data, .combine = rbind, .options.future = list(seed = TRUE)) %dofuture% {
+      .TD_emp(data_j$U, data_j$bottom_train,
+              copula_family = copula_family, L_max_copula = L_max_copula)
+    }
+    
+    # Recover correct order of rows in B
+    order_bottom = unlist(sapply(lowest_rows, function(lr) which(as.logical(A[lr,]))))
+    B[order_bottom,] = B
+  }
+  print("Computing upper samples")
+  U = rbind(A_u %*% U_low, 
+            U_low)
+  
+  # Output: a list of length H, each entry is a list with the results
+  # Include the marginal pmfs and/or the samples (depending on "return" inputs)
+  print("Preparing output")
+  out = rep(list(list(bottom_reconciled=list(), upper_reconciled=list())), H)
+  for (h in 1:H) {
+    pos_h = (1+num_samples*(h-1)):(num_samples*h)
+    if (return_type %in% c('pmf', 'all')) {
+      upper_pmf  = lapply(1:n_u, function(i) PMF.from_samples(U[i,pos_h]))
+      bottom_pmf = lapply(1:n_b, function(i) PMF.from_samples(B[i,pos_h]))
+      out[[h]]$bottom_reconciled$pmf = bottom_pmf
+      out[[h]]$upper_reconciled$pmf = upper_pmf
+    }
+    if (return_type %in% c('samples','all')) {
+      out[[h]]$bottom_reconciled$samples = B[,pos_h]
+      out[[h]]$upper_reconciled$samples = U[,pos_h]
+    }
+  }
+  
+  return(out)
+}

@@ -233,7 +233,7 @@
                                   F1, F2,                        
                                   family = "clayton",
                                   lambda_shr = .LAMBDA_SHR,
-                                  neg_toll = .NEG_TOLL,
+                                  neg_toll = .NEG_TOLL_BPMF,
                                   check_in = TRUE) {
   
   # Check input if required

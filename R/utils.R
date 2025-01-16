@@ -504,7 +504,7 @@
 
 
 # Compute the aggregated series from a matrix bottom_series with dim: N_series x T
-# If max_frax_NA is specified, when 
+# If max_frac_NA is specified, when (... TODO)
 .aggr_ts <- function(bottom_series, max_frac_NA = NULL, imp_freq = NULL) {
   
   if (!is.null(max_frac_NA)) {    # impute 

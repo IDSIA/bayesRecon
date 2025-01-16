@@ -90,6 +90,7 @@ PMF.from_samples = function(v_,
     } 
     
     # TODO: add possibility of doing a smoothing (e.g. Laplace)
+    #       maybe default = TRUE only if there are holes?
     # TODO: implement min_supp
     
     if (is.null(weights_)) {
