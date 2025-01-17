@@ -49,7 +49,7 @@
   Mu = mean(v)
   Var  = var(v)
   if (Var <= Mu) {  # if data are underdispersed, fit Poisson
-    M = max(qpois(1-toll, Mu), min_supp)
+    M = qpois(1-toll, Mu)
     pmf = dpois(0:M, Mu)
   } else {          # else, fit Negative Binomial
     size = Mu^2 / (Var - Mu)
