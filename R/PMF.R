@@ -44,7 +44,7 @@
 # If data are underdispersed, fit a Poisson.
 # If min_supp is specified, the returned pmf must have minimum length of min_supp+1
 # Use Rtoll instead of 1e-6? 
-.fit_static_negbin = function(v_, toll = .NEGBIN_TOLL, min_supp = NULL) {
+.fit_static_negbin = function(v_, toll = .NEGBIN_TOLL) {
   v = v_[!is.na(v_)]  # remove NA
   Mu = mean(v)
   Var  = var(v)
@@ -53,7 +53,7 @@
     pmf = dpois(0:M, Mu)
   } else {          # else, fit Negative Binomial
     size = Mu^2 / (Var - Mu)
-    M = max(qnbinom(1-toll, size = size, mu = Mu), min_supp)
+    M = qnbinom(1-toll, size = size, mu = Mu)
     pmf = dnbinom(0:M, size = size, mu = Mu)
   }
   return(pmf/sum(pmf))
@@ -73,6 +73,7 @@ PMF.from_samples = function(v_,
                             weights_ = NULL,
                             estim_params = NULL,
                             min_supp = NULL,
+                            al_smooth = .ALPHA_SMOOTHING,
                             check_in = TRUE) {
   
   # First, remove NA
@@ -110,7 +111,7 @@ PMF.from_samples = function(v_,
       }
       # TODO: add more flexibility in the parametric estim (add other distr, e.g. for underdispersed data)
     
-      pmf = .fit_static_negbin(v, min_supp = min_supp)
+      pmf = .fit_static_negbin(v)
       
     } else if (estim_type == "kde") {
     
@@ -119,7 +120,14 @@ PMF.from_samples = function(v_,
     
       } else {
     stop("The choice of estim_type is not valid")
-  }
+      }
+  
+  # pad with zeros to reach the specified length
+  if (!is.null(min_supp) && length(pmf) <= min_supp) {
+    pmf = c(pmf, rep(0,min_supp-length(pmf)+1))
+  } 
+  
+  if (!is.null(al_smooth)) pmf = PMF.smoothing(pmf, al_smooth, laplace = T)
   
   return(pmf)
 }
@@ -328,20 +336,18 @@ PMF.summary = function(pmf, Ltoll=.TOLL, Rtoll=.RTOLL) {
   return(all_summaries)
 }
 
-# Apply smoothing to a pmf to "cover the holes" in the support.
-# If there is no hole, it doesn't do anything.
+# Apply smoothing to a pmf.
 # If the smoothing parameter alpha is not specified, it is set to the min of pmf. 
 # If laplace is set to TRUE, add alpha to all the points. 
 # Otherwise, add alpha only to points with zero mass.
-PMF.smoothing = function(pmf, alpha = 1e-9, laplace=FALSE) {
+PMF.smoothing = function(pmf, alpha = .ALPHA_SMOOTHING, laplace=FALSE) {
   
   if (is.null(alpha)) alpha = min(pmf[pmf!=0])
+
+  if (laplace) { 
+    pmf = pmf + rep(alpha, length(pmf))
+  } else pmf[pmf==0] = alpha
   
-  # apply smoothing only if there are holes
-  if (sum(pmf==0)) {
-    if (laplace) { pmf = pmf + rep(alpha, length(pmf))
-    } else pmf[pmf==0] = alpha
-  }
   
   return(pmf / sum(pmf))
 }

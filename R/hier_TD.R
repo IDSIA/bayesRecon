@@ -2,6 +2,7 @@
 .compute_upper_fc = function(upper_train, 
                              upper_fc_model,
                              upper_fc_args,
+                             parallel_run = F, n_cpu = NULL,
                              H = 1) {
   
   if (upper_fc_model == "ets") {
@@ -18,15 +19,40 @@
   mus = matrix(nrow = n_u, ncol = H)
   sds = matrix(nrow = n_u, ncol = H)
   res = matrix(nrow = n_u, ncol = L)
-  for (j in 1:n_u) {
-    u = ts(upper_train[j,], frequency = upper_fc_args$freq)
-    model = model_func(u)
-    fc = forecast::forecast(model, h=H, level=90)
-    mus[j,] = fc$mean
-    sds[j,] = (fc$upper - fc$mean) / qnorm(0.95)
-    res[j,] = model$residuals
-  }
   
+  if (!parallel_run) {
+    for (j in 1:n_u) {
+      u = ts(upper_train[j,], frequency = upper_fc_args$freq)
+      model = model_func(u)
+      fc = forecast::forecast(model, h=H, level=90)
+      mus[j,] = fc$mean
+      sds[j,] = c(fc$upper - fc$mean) / qnorm(0.95)
+      res[j,] = model$residuals
+    }
+    
+  } else {
+    if (is.null(n_cpu)) {
+      n_cpu = detectCores() - 2  
+    }
+    
+    plan(multisession, workers = n_cpu)
+    
+    l = foreach(j = 1:n_u, .options.future = list(seed = TRUE)) %dofuture% {
+      u = ts(upper_train[j,], frequency = upper_fc_args$freq)
+      model = model_func(u)
+      fc = forecast::forecast(model, h=H, level=90)
+      list(
+        mu  = fc$mean,
+        sd  = c(fc$upper - fc$mean) / qnorm(0.95),
+        res = model$residuals
+      )
+    }
+    
+    mus = do.call(rbind, lapply(l, "[[", "mu"))
+    sds = do.call(rbind, lapply(l, "[[", "sd"))
+    res = do.call(rbind, lapply(l, "[[", "res"))
+  }
+
   fc_u = list()
   corr = cov2cor(schaferStrimmer_cov(t(res))$shrink_cov)
   for (h in 1:H) {
@@ -115,10 +141,9 @@
   s1 = nrow(bpmf) - 1
   s2 = ncol(bpmf) - 1
   
-  if (any(u<0 | u>(s1+s2))) {
-    stop("Samples are outside the support")
+  if (any(u<0)) {
+    stop("There are negative samples!")
   }
-  # TODO: manage these cases
   
   # If one of the dimensions of the bpmf is 1, no sampling is needed
   if (s1 == 0) {
@@ -132,15 +157,19 @@
   Sums = row(bpmf)-1 + col(bpmf)-1  # matrix with the values of the support of the sum
   for (u_uniq in unique(u)) {  # loop over different values of u
     
-    if (u_uniq < 0 | u_uniq > s1+s2) {
-      stop("Samples are outside the support")
-      # TODO: manage these cases
+    if (u_uniq > s1+s2) {
+      # If the upper sample is outside the support of the sum of the bottom distributions,
+      # split it proportionally to the lengths of the supports
+      # E.g. supp1 = {0,1,2,3}; supp2 = {0,1,2}; u = 10
+      # --> b1 = 6, b2 = 4
+      b1_prop = u_uniq * s1 / (s1 + s2)
+      b1[u == u_uniq] = round(jitter(b1_prop, amount = 1e-9)) # add jitter so that .5 is split randomly
       
     } else if (u_uniq == s1+s2) {
-      b1[u == s1+s2] = s1
+      b1[u == u_uniq] = s1
       
     } else if (u_uniq == 0) {
-      b1[u == 0] = 0
+      b1[u == u_uniq] = 0
       
     } else {
       
@@ -148,8 +177,6 @@
       p = bpmf[mask]
       
       if (any(p<0)) {
-        print("Negative probabilities:")
-        print(p[p<0])
         warning("Some probabilities are lower than zero")
         p[p<0] = 0   # set neg to zero
       }
@@ -198,7 +225,7 @@
       bpmf = bPMF.from_samples(b1, b2,
                                copula_family = copula_family,
                                # TODO: add parameters
-                               min_supp1 = min_supp1, min_supp2 = min_supp2,
+                               # min_supp1 = min_supp1, min_supp2 = min_supp2,  # no need to specify the min_supp anymore!
                                L_max_copula = L_max_copula
                                )
       b = .cond_joint_biv_sampling(u_, bpmf)
@@ -442,6 +469,8 @@ hier_TD_e2e = function(A,
   fc_upper = .compute_upper_fc(upper_train, 
                                upper_fc_model,
                                upper_fc_args,
+                               parallel_run = parallel_run, 
+                               n_cpu = n_cpu,
                                H) 
   
   
