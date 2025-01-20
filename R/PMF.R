@@ -12,14 +12,14 @@
 .fit_static_negbin = function(v_, toll = .NEGBIN_TOLL) {
   v = v_[!is.na(v_)]  # remove NA
   Mu = mean(v)
-  Var  = var(v)
+  Var  = stats::var(v)
   if (Var <= Mu) {  # if data are underdispersed, fit Poisson
-    M = qpois(1-toll, Mu)
-    pmf = dpois(0:M, Mu)
+    M = stats::qpois(1-toll, Mu)
+    pmf = stats::dpois(0:M, Mu)
   } else {          # else, fit Negative Binomial
     size = Mu^2 / (Var - Mu)
-    M = qnbinom(1-toll, size = size, mu = Mu)
-    pmf = dnbinom(0:M, size = size, mu = Mu)
+    M = stats::qnbinom(1-toll, size = size, mu = Mu)
+    pmf = stats::dnbinom(0:M, size = size, mu = Mu)
   }
   return(pmf/sum(pmf))
 }
