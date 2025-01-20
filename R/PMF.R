@@ -5,41 +5,6 @@
 
 ###
 
-# # Compute the empirical pmf from a vector of samples
-# # If there are NA, they are removed before computing the pmf
-# PMF.from_samples = function(v_) {
-#   v = v_[!is.na(v_)]  # remove NA
-#   .check_discrete_samples(v)
-#   pmf = tabulate(v+1) / length(v)  # the support starts from 0 
-#   # Tabulate only counts values above 1: if sum(tabulate(v+1)) > length(v),
-#   # it means that there were negative samples
-#   if (!isTRUE(all.equal(sum(pmf), 1))) {
-#     stop("Input error: same samples are negative")
-#   }
-#   return(pmf)
-# }
-
-# # Compute the empirical pmf from a vector of samples. 
-# # Performs a smoothing of the pmf via Kernel Density Estimation.
-# # Samples may be non-integer, but must be non-negative
-# PMF.KDE_from_samples = function(v_, Rtoll=.RTOLL) {
-#   
-#   v = v_[!is.na(v_)]  # remove NA
-#   
-#   if (any(v<0)) stop("Samples must be non-negative")
-#   
-#   kde = stats::density(v, bw = "SJ", n = 2**16)
-#   M = ceiling(max(kde$x))  # last point of the support
-#   pmf = approx(kde$x, kde$y, xout = 0:M)$y
-#   pmf[is.na(pmf)] = 0  # replace NA with 0
-#   pmf = pmf / sum(pmf)
-#   last_pos = max(which(pmf > Rtoll))  
-#   pmf = pmf[1:last_pos]       # cut the support on the right  
-#   
-#   return(pmf/sum(pmf))
-# }
-
-
 # Fit a Negative Binomial distribution on a given vector of samples.
 # If data are underdispersed, fit a Poisson.
 # If min_supp is specified, the returned pmf must have minimum length of min_supp+1
@@ -57,12 +22,6 @@
     pmf = dnbinom(0:M, size = size, mu = Mu)
   }
   return(pmf/sum(pmf))
-}
-
-# Get pmf from cdf
-PMF.from_cdf = function(F1) {
-  pmf = diff(c(0,F1))
-  return(pmf)
 }
 
 # Estimate the pmf from a vector of non-negative discrete samples.
