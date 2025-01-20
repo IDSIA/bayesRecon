@@ -1,19 +1,96 @@
 # A pmf is represented as normalized numeric vector v: 
 # for each j = 0, ..., M, the probability of j is the value v[[j+1]]
 
+.NEGBIN_TOLL = 1e-6  # used when fitting a Negative Binomial distribution
+
 ###
 
-# Compute the empirical pmf from a vector of samples
-PMF.from_samples = function(v) {
-  .check_discrete_samples(v)
-  pmf = tabulate(v+1) / length(v)  # the support starts from 0 
-  # Tabulate only counts values above 1: if sum(tabulate(v+1)) > length(v),
-  # it means that there were negative samples
-  if (!isTRUE(all.equal(sum(pmf), 1))) {
-    stop("Input error: same samples are negative")
+# Fit a Negative Binomial distribution on a given vector of samples.
+# If data are underdispersed, fit a Poisson.
+# If min_supp is specified, the returned pmf must have minimum length of min_supp+1
+# Use Rtoll instead of 1e-6? 
+.fit_static_negbin = function(v_, toll = .NEGBIN_TOLL) {
+  v = v_[!is.na(v_)]  # remove NA
+  Mu = mean(v)
+  Var  = stats::var(v)
+  if (Var <= Mu) {  # if data are underdispersed, fit Poisson
+    M = stats::qpois(1-toll, Mu)
+    pmf = stats::dpois(0:M, Mu)
+  } else {          # else, fit Negative Binomial
+    size = Mu^2 / (Var - Mu)
+    M = stats::qnbinom(1-toll, size = size, mu = Mu)
+    pmf = stats::dnbinom(0:M, size = size, mu = Mu)
   }
+  return(pmf/sum(pmf))
+}
+
+# Estimate the pmf from a vector of non-negative discrete samples.
+# If there are NA, they are removed before computing the pmf.
+# Several estimates are possible: naive empirical pmf, parametric, KDE (...)
+PMF.from_samples = function(v_, 
+                            estim_type = "naive", 
+                            weights_ = NULL,
+                            estim_params = NULL,
+                            min_supp = NULL,
+                            al_smooth = .ALPHA_SMOOTHING,
+                            check_in = TRUE) {
+  
+  # First, remove NA
+  v = v_[!is.na(v_)] 
+  
+  if (check_in) {
+    # Check that samples are discrete and non-negative
+    .check_discrete_samples(v)
+    if (any(v<0)) stop("Input error: the are negative samples")
+  }
+  
+  if (estim_type == "naive") {
+    if (!is.null(estim_params)) {
+      warning("Not yet implemented. Do not specify estim_params if estim_type = 'naive'")
+    } 
+    
+    # TODO: add possibility of doing a smoothing (e.g. Laplace)
+    #       maybe default = TRUE only if there are holes?
+    # TODO: implement min_supp
+    
+    if (is.null(weights_)) {
+      pmf = tabulate(v+1) / length(v)  # the support starts from 0
+    } else {
+      weights = weights_[!is.na(v_)]
+      weights = weights / sum(weights)
+      pmf = rep(0, max(v)+1)
+      for (vv in unique(v)) {
+        pmf[[vv+1]] = sum(weights[v==vv])
+      }
+    }
+  
+    } else if (estim_type == "parametric") {
+      if (!is.null(estim_params)) {
+        stop("Not yet implemented. Do not specify estim_params if estim_type = 'parametric'")
+      }
+      # TODO: add more flexibility in the parametric estim (add other distr, e.g. for underdispersed data)
+    
+      pmf = .fit_static_negbin(v)
+      
+    } else if (estim_type == "kde") {
+    
+      stop("Kernel density estimation not yet implemented")
+      # TODO
+    
+      } else {
+    stop("The choice of estim_type is not valid")
+      }
+  
+  # pad with zeros to reach the specified length
+  if (!is.null(min_supp) && length(pmf) <= min_supp) {
+    pmf = c(pmf, rep(0,min_supp-length(pmf)+1))
+  } 
+  
+  if (!is.null(al_smooth)) pmf = PMF.smoothing(pmf, al_smooth, laplace = T)
+  
   return(pmf)
 }
+
 
 # Compute the pmf from a parametric distribution
 PMF.from_params = function(params, distr, Rtoll = .RTOLL) {
@@ -218,20 +295,18 @@ PMF.summary = function(pmf, Ltoll=.TOLL, Rtoll=.RTOLL) {
   return(all_summaries)
 }
 
-# Apply smoothing to a pmf to "cover the holes" in the support.
-# If there is no hole, it doesn't do anything.
+# Apply smoothing to a pmf.
 # If the smoothing parameter alpha is not specified, it is set to the min of pmf. 
 # If laplace is set to TRUE, add alpha to all the points. 
 # Otherwise, add alpha only to points with zero mass.
-PMF.smoothing = function(pmf, alpha = 1e-9, laplace=FALSE) {
+PMF.smoothing = function(pmf, alpha = .ALPHA_SMOOTHING, laplace=FALSE) {
   
   if (is.null(alpha)) alpha = min(pmf[pmf!=0])
+
+  if (laplace) { 
+    pmf = pmf + rep(alpha, length(pmf))
+  } else pmf[pmf==0] = alpha
   
-  # apply smoothing only if there are holes
-  if (sum(pmf==0)) {
-    if (laplace) { pmf = pmf + rep(alpha, length(pmf))
-    } else pmf[pmf==0] = alpha
-  }
   
   return(pmf / sum(pmf))
 }
@@ -337,3 +412,5 @@ PMF.tempering = function(pmf, temp) {
   temp_pmf = pmf**(1/temp)
   return(temp_pmf / sum(temp_pmf))
 }
+
+

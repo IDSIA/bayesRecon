@@ -336,11 +336,12 @@ get_reconc_matrices <- function(agg_levels, h) {
   for (i in 1:k) {
     for (j in 1:k) {
       if (i < j) {
-        cond1 = c(A[i,] %*% A[j,] != 0)  # Upper i and j have some common descendants
-        cond2 = any(A[j,] > A[i,])    # Upper j is not a descendant of upper i
-        cond3 = any(A[i,] > A[j,])    # Upper i is not a descendant of upper j
-        if (cond1 & cond2 & cond3) {
-          return(FALSE)
+        if (sum(A[i,] * A[j,]) != 0) {  # Upper i and j have some common descendants
+          if (any(A[j,] > A[i,])) {    # Upper j is not a descendant of upper i
+            if (any(A[i,] > A[j,])) {  # Upper i is not a descendant of upper j
+              return(FALSE)
+            }
+          }
         }
       }
     }
