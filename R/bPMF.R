@@ -252,7 +252,9 @@
   ### Clayton ##################################################################
   if (family == "clayton") {                                           
     
-    tau = cor(v1, v2, method = "kendall")
+    # TODO: develop more efficient computation of tau without relying on external package
+    # tau = cor(v1, v2, method = "kendall")
+    tau = pcaPP::cor.fk(v1, v2)
     tau = min(tau, 1 - 1e-3)  # set max to tau to avoid numerical problems
     theta = 2 * tau / (1-tau)
     
@@ -267,7 +269,8 @@
     ### Gumbel #################################################################
   } else if (family == "gumbel") {                                      
     
-    tau = cor(v1, v2, method = "kendall")
+    # tau = cor(v1, v2, method = "kendall")
+    tau = pcaPP::cor.fk(v1, v2)
     tau = min(tau, 1 - 1e-3)  # set max to tau to avoid numerical problems
     theta = 1 / (1-tau)
     
@@ -277,7 +280,8 @@
     ### Frank ##################################################################
   } else if (family == "frank") {
     
-    tau = cor(v1, v2, method = "kendall")
+    # tau = cor(v1, v2, method = "kendall")
+    tau = pcaPP::cor.fk(v1, v2)
     tau = min(tau, 1 - 1e-3)  # set max to tau to avoid numerical problems
     theta = .theta_frank_from_tau(tau)
     
@@ -287,36 +291,39 @@
     ### Gaussian ###############################################################
   } else if (family == "gauss") {                                     
     
-    tau = cor(v1, v2, method = "kendall")
+    # tau = cor(v1, v2, method = "kendall")
+    tau = pcaPP::cor.fk(v1, v2)
     ro = sin(pi * tau / 2)
     
     # Here we directly compute the bpmf, not the cdf
     bpmf = .gaussC_pmf(F1, F2, ro)
     
     ### t-Student ##############################################################
-  } else if (family == "t") {                                        
+  } else if (family == "t") {          
     
-    # Estimate ro via kendall's tau
-    tau = cor(v1, v2, method = "kendall")
-    ro = sin(pi * tau / 2)
+    stop("t copula not yet implemented")
     
-    # Estimate coefficient of tail dependence lambda_t
-    # see https://www.ressources-actuarielles.net/EXT/ISFA/1226.nsf/0/303eb11b4d617b79c1257b0800744575/$FILE/t%20copula%20demarta%20mcneil.pdf
-    q_upp = 0.95
-    q_low = 0.05
-    upp_1 = v1 > quantile(v1, q_upp)
-    upp_2 = v2 > quantile(v2, q_upp)
-    low_1 = v1 <= quantile(v1, q_low)
-    low_2 = v2 <= quantile(v2, q_low)
-    lambda_t = mean(c(sum(upp_1 & upp_2) / sum(upp_1),   # lambda_upp
-                      sum(low_1 & low_2) / sum(low_1)))  # lambda_low
-    
-    # Grid search to find nu
-    nus = 1:20
-    lambdas = 2 * pt(-((nus+1)*(1-ro)/(1+ro))^0.5, nus+1)
-    nu = nus[which.min(abs(lambdas - lambda_t))]
-    
-    bpmf = .tC_pmf(F1, F2, ro, nu)
+    # # Estimate ro via kendall's tau
+    # tau = cor(v1, v2, method = "kendall")
+    # ro = sin(pi * tau / 2)
+    # 
+    # # Estimate coefficient of tail dependence lambda_t
+    # # see https://www.ressources-actuarielles.net/EXT/ISFA/1226.nsf/0/303eb11b4d617b79c1257b0800744575/$FILE/t%20copula%20demarta%20mcneil.pdf
+    # q_upp = 0.95
+    # q_low = 0.05
+    # upp_1 = v1 > quantile(v1, q_upp)
+    # upp_2 = v2 > quantile(v2, q_upp)
+    # low_1 = v1 <= quantile(v1, q_low)
+    # low_2 = v2 <= quantile(v2, q_low)
+    # lambda_t = mean(c(sum(upp_1 & upp_2) / sum(upp_1),   # lambda_upp
+    #                   sum(low_1 & low_2) / sum(low_1)))  # lambda_low
+    # 
+    # # Grid search to find nu
+    # nus = 1:20
+    # lambdas = 2 * pt(-((nus+1)*(1-ro)/(1+ro))^0.5, nus+1)
+    # nu = nus[which.min(abs(lambdas - lambda_t))]
+    # 
+    # bpmf = .tC_pmf(F1, F2, ro, nu)
     
     # TO FIX!
     
