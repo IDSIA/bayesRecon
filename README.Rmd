@@ -24,7 +24,7 @@ knitr::opts_chunk$set(
 [![](http://cranlogs.r-pkg.org/badges/grand-total/bayesRecon)](https://cran.r-project.org/package=bayesRecon)
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![License: LGPL (>= 3)](https://img.shields.io/badge/license-LGPL (>= 3)-yellow.svg)](https://www.gnu.org/licences/lgpl-3.0)
-[![coverage](https://coveralls.io/repos/github/IDSIA/bayesRecon/badge.svg)](https://coveralls.io/r/IDSIA/bayesRecon?branch=main)
+[![coverage](https://coveralls.io/repos/github/IDSIA/bayesRecon/badge.svg)](https://coveralls.io/github/IDSIA/bayesRecon)
 <!-- badges: end -->
 
 The package `bayesRecon` implements several methods for probabilistic reconciliation of hierarchical time series forecasts.
@@ -260,12 +260,13 @@ Statistics and Computing 34 (1), 21.
 
 Zambon, L., Agosto, A., Giudici, P., Corani, G. (2024). 
 *Properties of the reconciled distributions for Gaussian and count forecasts*.
-International Journal of Forecasting (in press).
+International Journal of Forecasting 40 (4), 1438-1448.
 [DOI](https://doi.org/10.1016/j.ijforecast.2023.12.004)
 
-Zambon, L., Azzimonti, D., Rubattu, N., Corani, G. (2024). 
-*Probabilistic reconciliation of mixed-type hierarchical time series*. 
-The 40th Conference on Uncertainty in Artificial Intelligence, accepted.
+Zambon, L., Azzimonti, D., Rubattu, N., Corani, G. (2024).
+*Probabilistic reconciliation of mixed-type hierarchical time series*.
+Proceedings of the Fortieth Conference on Uncertainty in Artificial Intelligence,
+in Proceedings of Machine Learning Research 244:4078-4095. [Available here](https://proceedings.mlr.press/v244/zambon24a.html).
 
 ## Contributors
 

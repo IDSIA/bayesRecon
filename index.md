@@ -1,6 +1,3 @@
-
-<!-- README.md is generated from README.Rmd. Please edit that file -->
-
 # bayesRecon: BAyesian reCONciliation of hierarchical forecasts
 
 <!-- 
@@ -11,7 +8,7 @@
 [![R-CMD-check](https://github.com/IDSIA/bayesRecon/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/IDSIA/bayesRecon/actions/workflows/R-CMD-check.yaml)
 [![CRAN
 status](https://www.r-pkg.org/badges/version/bayesRecon)](https://CRAN.R-project.org/package=bayesRecon)
-[![](http://cranlogs.r-pkg.org/badges/grand-total/bayesRecon)](https://cran.r-project.org/package=bayesRecon)
+[![Downloads](http://cranlogs.r-pkg.org/badges/grand-total/bayesRecon)](https://cran.r-project.org/package=bayesRecon)
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![License: LGPL (\>=
@@ -38,20 +35,13 @@ The main functions are:
   hierarchies, where the upper forecasts are multivariate Gaussian and
   the bottom forecasts are discrete distributions.
 
-## News
+## Getting started 
 
-:boom: \[2024-05-29\] Added `reconc_MixCond` and `reconc_TDcond` and the
-vignette “Reconciliation of M5 hierarchy with mixed-type forecasts”.
-
-:boom: \[2023-12-19\] Added the vignette “Properties of the reconciled
-distribution via conditioning”.
-
-:boom: \[2023-08-23\] Added the vignette “Probabilistic Reconciliation
-via Conditioning with bayesRecon”. Added the `schaferStrimmer_cov`
-function.
-
-:boom: \[2023-05-26\] bayesRecon v0.1.0 is released!
-
+The starting point for `bayesRecon` functions is the vignette ["Get Started"](https://idsia.github.io/bayesRecon/articles/bayesRecon.html). 
+You can all find documentation in [Reference section](https://idsia.github.io/bayesRecon/reference/index.html) and additional vignettes in the Articles section. 
+Finally a short example with code is provided below. 
+  
+  
 ## Installation
 
 You can install the **stable** version on [R
@@ -69,14 +59,20 @@ You can also install the **development** version from
 devtools::install_github("IDSIA/bayesRecon", build_vignettes = TRUE, dependencies = TRUE)
 ```
 
-## Usage
+## Getting help
+
+If you encounter a clear bug, please file a minimal reproducible example
+on [GitHub](https://github.com/IDSIA/bayesRecon/issues).
+
+
+## Examples
 
 Let us consider the minimal temporal hierarchy in the figure, where the
 bottom variables are the two 6-monthly forecasts and the upper variable
 is the yearly forecast. We denote the variables for the two semesters
 and the year by $S_1, S_2, Y$ respectively.
 
-<img src="./man/figures/minimal_hierarchy.png" width="50%" style="display: block; margin: auto;" />
+<img src="./man/figures/minimal_hierarchy.png" alt="Graph of a minimal hierarchy with two bottom and one upper variable." width="50%" style="display: block; margin: auto;" />
 
 The hierarchy is described by the *aggregation matrix* A, which can be
 obtained using the function `get_reconc_matrices`.
@@ -151,7 +147,7 @@ points(
 )
 ```
 
-<img src="man/figures/README-unnamed-chunk-6-1.png" width="80%" style="display: block; margin: auto;" />
+<img src="man/figures/README-unnamed-chunk-6-1.png" alt="PMF of base versus reconciled forecasts." width="80%" style="display: block; margin: auto;" />
 
 The blue circles represent the probability mass function of a Poisson
 with parameter $\lambda_{S_1}$ plotted on top of the histogram of the
@@ -181,7 +177,7 @@ plot(
 )
 ```
 
-<img src="man/figures/README-unnamed-chunk-7-1.png" width="80%" style="display: block; margin: auto;" />
+<img src="man/figures/README-unnamed-chunk-7-1.png" alt="Bubble plot of correlations between S1 and S2." width="80%" style="display: block; margin: auto;" />
 
 We also provide a function for sampling using Markov Chain Monte Carlo
 (Corani et al., 2023).
@@ -280,49 +276,5 @@ International Journal of Forecasting 40 (4), 1438-1448.
 
 Zambon, L., Azzimonti, D., Rubattu, N., Corani, G. (2024).
 *Probabilistic reconciliation of mixed-type hierarchical time series*.
-Proceedings of the Fortieth Conference on Uncertainty in Artificial
-Intelligence, in Proceedings of Machine Learning Research 244:4078-4095.
-[Available here](https://proceedings.mlr.press/v244/zambon24a.html).
-
-## Contributors
-
-<!-- prettier-ignore-start -->
-<!-- markdownlint-disable -->
-<table>
-<tbody>
-<tr>
-<td align="center" valign="top" width="14.28%">
-<a href="https://sites.google.com/view/darioazzimonti/home">
-<img src="https://github.com/dazzimonti.png" width="100px;" alt="Dario Azzimonti" style="border-radius:50%;border:1px solid #646464;"/><br />
-<sub><b>Dario Azzimonti</b></sub></a><br />
-<sub>(Maintainer)</sub><br />
-<a href="mailto:dario.azzimonti@gmail.com?subject=bayesRecon package!">dario.azzimonti@gmail.com</a>
-</td>
-<td align="center" valign="top" width="14.28%">
-<a href="#">
-<img src="https://github.com/nicorbtt.png" width="100px;" alt="Nicolò Rubattu" style="border-radius:50%;border:1px solid #646464;"/><br />
-<sub><b>Nicolò Rubattu</b></sub></a><br />
-<a href="mailto:nicolo.rubattu@idsia.ch?subject=bayesRecon package!">nicolo.rubattu@idsia.ch</a>
-</td>
-<td align="center" valign="top" width="14.28%">
-<a href="#">
-<img src="https://github.com/LorenzoZambon.png" width="100px;" alt="Lorenzo Zambon" style="border-radius:50%;border:1px solid #646464;"/><br />
-<sub><b>Lorenzo Zambon</b></sub></a><br />
-<a href="mailto:lorenzo.zambon@idsia.ch?subject=bayesRecon package!">lorenzo.zambon@idsia.ch</a>
-</td>
-<td align="center" valign="top" width="14.28%">
-<a href="https://sites.google.com/site/awerbhjkl678214/home">
-<img src="https://github.com/gcorani.png" width="100px;" alt="Giorgio Corani" style="border-radius:50%;border:1px solid #646464;"/><br />
-<sub><b>Giorgio Corani</b></sub></a><br />
-<a href="mailto:giorgio.corani@idsia.ch">giorgio.corani@idsia.ch</a>
-</td>
-</tr>
-</tbody>
-</table>
-<!-- markdownlint-restore -->
-<!-- prettier-ignore-end -->
-
-## Getting help
-
-If you encounter a clear bug, please file a minimal reproducible example
-on [GitHub](https://github.com/IDSIA/bayesRecon/issues).
+Proceedings of the Fortieth Conference on Uncertainty in Artificial Intelligence,
+in Proceedings of Machine Learning Research 244:4078-4095. [Available here](https://proceedings.mlr.press/v244/zambon24a.html). 

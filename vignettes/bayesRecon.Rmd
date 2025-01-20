@@ -200,7 +200,7 @@ crps.fc <- list()
 crps.reconc <- list()
 for (h in 1:length(test)) {
   y.hat_ <- median(fc.samples[[nrow(A) + h]])
-  y.reconc_ <- median(recon.res$bottom_reconciled_samples[, h])
+  y.reconc_ <- median(recon.res$bottom_reconciled_samples[h,])
   # Compute Absolute Errors
   ae.fc[[h]] <- abs(test[h] - y.hat_)
   ae.reconc[[h]] <- abs(test[h] - y.reconc_)
@@ -208,7 +208,7 @@ for (h in 1:length(test)) {
   crps.fc[[h]] <-
     scoringRules::crps_sample(y = test[h], dat = fc.samples[[nrow(A) + h]])
   crps.reconc[[h]] <-
-    scoringRules::crps_sample(y = test[h], dat = recon.res$bottom_reconciled_samples[, h])
+    scoringRules::crps_sample(y = test[h], dat = recon.res$bottom_reconciled_samples[h,])
 }
 
 mae.fc <- mean(unlist(ae.fc))
@@ -228,7 +228,7 @@ metrics
 # Temporal hierarchy over a smooth time series
 
 In this second example, we select a smooth monthly time series (N1485) from the M3 forecasting competition [@makridakis2000m3]. The data set is available in
-the Mcomp package [@mcomp_pkg] and we make available this time series as `bayesRecon::m3_example`.
+the Mcomp package [@mcomp_pkg] and we make available this time series as `bayesRecon::M3_example`.
 
 
 ```{r m3-plot, dpi=300, out.width = "100%", fig.align='center', fig.cap="**Figure 3**: M3 - N1485 time series.", fig.dim = c(6, 3)}

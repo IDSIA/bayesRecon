@@ -1,3 +1,11 @@
+# bayesRecon 0.3.2
+
+* Fixed issues in tests that would run into compatibility issues with the new version of waldo.
+
+* Added new tests for some limit usage of mixCond, TDcond and BUIS. 
+
+* Added GitHub URL and BugReports URL to DESCRIPTION. 
+
 # bayesRecon 0.3.1
 
 * IMPORTANT CHANGE IN THE API OF THE `reconc_*` functions: they now require the aggregation matrix A and not the summing matrix S.

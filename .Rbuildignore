@@ -4,6 +4,7 @@
 ^README\.Rmd$
 ^TODO\.Rmd$
 ^TODO\.md$
+^index\.md$
 ^examples$
 ^\.github$
 ^codecov\.yml$
@@ -12,3 +13,7 @@
 ^data-raw$
 ^\./tests/testthat/dataForTests/generate_weeklyTestData\.R$
 ^bayesRecon\.Rproj$
+^tests/testthat/dataForTests/generate_monthlyCountData\.R$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$

@@ -1,8 +1,8 @@
 Package: bayesRecon
 Type: Package
-Date: 2024-08-28
+Date: 2024-11-04
 Title: Probabilistic Reconciliation via Conditioning
-Version: 0.3.1
+Version: 0.3.2
 Authors@R: c(person(given = "Dario",
              family = "Azzimonti",
              role = c("aut","cre"),
@@ -52,5 +52,5 @@ Suggests:
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 VignetteBuilder: knitr
-URL: https://github.com/IDSIA/bayesRecon
+URL: https://github.com/IDSIA/bayesRecon, https://idsia.github.io/bayesRecon/
 BugReports: https://github.com/IDSIA/bayesRecon/issues
