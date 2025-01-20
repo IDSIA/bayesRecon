@@ -449,6 +449,9 @@ hier_TD_e2e = function(A,
   
   if (!is.null(seed)) set.seed(seed)
   
+  tic.clear()
+  tic.clearlog()
+  
   ### Check input ###
   # TODO: check_input
   n_u = nrow(A)
@@ -457,26 +460,31 @@ hier_TD_e2e = function(A,
   ### Compute upper forecasts ###
   # First, compute aggregated series
   print("Computing aggregated series...")
+  tic()
   # find first time for which at least (1-max_frac_NA) of the bottom are not NA
   first_ind = min(which(colSums(is.na(bottom_train)) < max_frac_NA*n_b))
   # TODO: da sistemare? Se ci sono NA in mezzo non li vede...
   # impute bottom and compute upper series
   upper_train = A %*% t(apply(bottom_train[,first_ind:ncol(bottom_train)], 1,
                               .impute_ts))
+  toc(log = T, quiet = T)
   
   # Compute upper forecasts
   print("Computing upper forecasts...")
+  tic()
   fc_upper = .compute_upper_fc(upper_train, 
                                upper_fc_model,
                                upper_fc_args,
                                parallel_run = parallel_run, 
                                n_cpu = n_cpu,
                                H) 
+  toc(log = T, quiet = T)
   
   
   ### Pre-process aggregation matrix ###
   # Find the "lowest upper" 
   print("Preprocessing of the A matrix...")
+  tic()
   lowest_rows = .lowest_lev(A)
   n_u_low = length(lowest_rows)  # number of lowest upper
   n_u_upp = n_u - n_u_low        # number of "upper upper" 
@@ -484,20 +492,24 @@ hier_TD_e2e = function(A,
     # Get the aggregation matrix A_u for the upper sub-hierarchy
     A_u = .get_Au(A, lowest_rows)
   }
+  toc(log = T, quiet = T)
   
   
   ### Get upper samples ###
   print("Drawing reconciled upper samples...")
+  tic()
   U_low = matrix(nrow = n_u_low, ncol = num_samples*H) # matrix of samples from the lowest upper
   for (h in 1:H) {
     pos_h = (1+num_samples*(h-1)):(num_samples*h)
     U_low[,pos_h] = .get_upper_sample(fc_upper[[h]]$mu, as.matrix(fc_upper[[h]]$Sigma), 
                                       lowest_rows, A_u, n_u, n_u_low, num_samples)
   }
+  toc(log = T, quiet = T)
   
   ### Probabilistic top-down ###
   if (!parallel_run) {
     print("Top-down algorithm, sequentially")
+    tic()
     B = matrix(nrow = n_b, ncol = num_samples*H)
     for (j in 1:n_u_low) {
       # print(paste0("Lowest upper n.", j))
@@ -506,12 +518,14 @@ hier_TD_e2e = function(A,
                             copula_family = copula_family, L_max_copula = L_max_copula)
       # TODO: pass parameters to .TD_emp
     }
+    toc(log = T, quiet = T)
     
   } else {
     if (is.null(n_cpu)) {
       n_cpu = detectCores() - 2  
     }
     print(paste0("Top-down algorithm, in parallel, using ", n_cpu, " cores..."))
+    tic()
     
     plan(multisession, workers = n_cpu)
     
@@ -526,14 +540,23 @@ hier_TD_e2e = function(A,
     # Recover correct order of rows in B
     order_bottom = unlist(sapply(lowest_rows, function(lr) which(as.logical(A[lr,]))))
     B[order_bottom,] = B
+    # TODO: optimize reordering of the rows of B
+    # 2 possibilities (1 is probably more efficient but also more complicated):
+    # 1) in-place reordering of rows (see chatGPT)
+    # 2) modify foreach to return list of rows; then use a for loop to assign one
+    #    row at a time, canceling then from the list
+    toc(log = T, quiet = T)
   }
   print("Computing upper samples")
+  tic()
   U = rbind(A_u %*% U_low, 
             U_low)
+  toc(log = T, quiet = T)
   
   # Output: a list of length H, each entry is a list with the results
   # Include the marginal pmfs and/or the samples (depending on "return" inputs)
   print("Preparing output")
+  tic()
   out = rep(list(list(bottom_reconciled=list(), upper_reconciled=list())), H)
   for (h in 1:H) {
     pos_h = (1+num_samples*(h-1)):(num_samples*h)
@@ -548,6 +571,16 @@ hier_TD_e2e = function(A,
       out[[h]]$upper_reconciled$samples = U[,pos_h]
     }
   }
+  toc(log = T, quiet = T)
+  
+  times = sapply(tic.log(format=FALSE), function(x) x$toc - x$tic)
+  print(paste0("Time for computing aggregated series: ",      times[[1]]))
+  print(paste0("Time for computing upper forecasts: ",        times[[2]]))
+  print(paste0("Time for preprocessing the A matrix: ",       times[[3]]))
+  print(paste0("Time for drawing reconciled upper samples: ", times[[4]]))
+  print(paste0("Time for top-down algorithm: ",               times[[5]]))
+  print(paste0("Time for computing upper samples: ",          times[[6]]))
+  print(paste0("Time for preparing output: ",                 times[[7]]))
   
   return(out)
 }
