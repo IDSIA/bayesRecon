@@ -92,7 +92,40 @@ PMF.from_samples = function(v_,
 }
 
 
-# Compute the pmf from a parametric distribution
+#' @title Compute a PMF object from a parametric distribution
+#'
+#' @description
+#' 
+#' Create a PMF object starting from the parametric form of a probability distribution.
+#' 
+#' @param params a list of parameters:
+#'    * lambda for the Poisson base forecast if `distr`='poisson', see \link[stats]{Poisson};
+#'    * size and prob (or mu) for the negative binomial base forecast if `distr`='nbinom', 
+#'      see \link[stats]{NegBinomial}.
+#' @param distr a string that describes the distribution. Possible options "poisson" or "nbinom".
+#' @param Rtoll Numerical tolerance for computing quantiles. Default .RTOLL=1e-9 
+#' 
+#' @return Samples drawn from the distribution specified by `pmf`.  
+#' @seealso [PMF.get_mean()], [PMF.get_var()], [PMF.get_quantile()], [PMF.summary()]
+#' 
+#' @examples 
+#' library(bayesRecon)
+#' 
+#' # Let's build the pmf of a negative binomial distribution with parameters p and size
+#' prob <- 0.6
+#' size <- 10 
+#' pmf_nbinom <- PMF.from_params(params=list(prob=prob,size=size), distr="nbinom")
+#' 
+#' # Draw samples from the PMF object
+#' set.seed(1)
+#' samples <- PMF.sample(pmf=pmf_nbinom,N_samples = 1e4)
+#' 
+#' # Plot the histogram computed with the samples and the true value of the PMF
+#' hist(samples,breaks=seq(-1,max(samples)),freq=FALSE)
+#' points(seq(0,max(samples))-0.5,dnbinom(seq(0,max(samples)),size = size,prob = prob),pch=16)
+#' points(seq(0,max(samples))-0.5,pmf_nbinom[1:(max(samples)+1)],pch=17)
+#' 
+#' @export
 PMF.from_params = function(params, distr, Rtoll = .RTOLL) {
   # Check that the distribution is implemented, and that the params are ok
   if (!(distr %in% .DISCR_DISTR)) {
