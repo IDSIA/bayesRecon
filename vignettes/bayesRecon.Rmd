@@ -168,7 +168,7 @@ A <- recon.matrices$A
 
 To reconcile using Bottom-Up Important Sampling (BUIS) we
 we use the function `reconc_BUIS`, passing to it
-the $\mathbf{A}$ matrix, the *base forecasts*, the  type  of the base forecasts (`in_type`="samples") and whether the samples are discrete or integer (`distr` = "discrete").
+the $\mathbf{A}$ matrix, the *base forecasts*, the  type  of the base forecasts (`in_type`="samples") and whether the samples are continuous or discrete (`distr` = "discrete").
 
 
 ``` {r reconc}

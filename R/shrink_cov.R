@@ -49,6 +49,10 @@ schaferStrimmer_cov <- function(x){
   n <- nrow(x)
   p <- ncol(x)
   
+  if (p==1) {
+    return(list(shrink_cov=crossprod(x)/n, lambda_star=0))
+  }
+  
   # Compute the two estimators
   # Here we used the biased estimator
   sMat <- crossprod(x)/(n)

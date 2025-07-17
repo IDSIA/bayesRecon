@@ -1,3 +1,7 @@
+# bayesRecon 0.3.3
+
+* Minor bug fixes.
+
 # bayesRecon 0.3.2
 
 * Fixed issues in tests that would run into compatibility issues with the new version of waldo.
