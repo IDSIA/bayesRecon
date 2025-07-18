@@ -177,7 +177,7 @@ bottom time series.</p>
 <span></span>
 <span><span class="va">Gauss_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/double.html" class="external-link">as.double</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/difftime.html" class="external-link">difftime</a></span><span class="op">(</span><span class="va">stop</span>, <span class="va">start</span>, units <span class="op">=</span> <span class="st">"secs"</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Time taken by Gaussian reconciliation: "</span>, <span class="va">Gauss_time</span>, <span class="st">"s"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Time taken by Gaussian reconciliation:  0.32 s</span></span></code></pre></div>
+<span><span class="co">#&gt; Time taken by Gaussian reconciliation:  0.31 s</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="reconciliation-with-mixed-conditioning">Reconciliation with mixed-conditioning<a class="anchor" aria-label="anchor" href="#reconciliation-with-mixed-conditioning"></a>
@@ -263,13 +263,13 @@ that this warning does not impact the performances of TD-cond.</p>
 <span></span>
 <span><span class="va">TDCond_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/double.html" class="external-link">as.double</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/difftime.html" class="external-link">difftime</a></span><span class="op">(</span><span class="va">stop</span>, <span class="va">start</span>, units <span class="op">=</span> <span class="st">"secs"</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Computational time for TD-cond reconciliation: "</span>, <span class="va">TDCond_time</span>, <span class="st">"s"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Computational time for TD-cond reconciliation:  10.34 s</span></span></code></pre></div>
+<span><span class="co">#&gt; Computational time for TD-cond reconciliation:  10.27 s</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="comparison">Comparison<a class="anchor" aria-label="anchor" href="#comparison"></a>
 </h2>
 <p>The computational time required for the Gaussian reconciliation is
-0.32 seconds, Mix-cond requires 9.64 seconds and TD-cond requires 10.34
+0.31 seconds, Mix-cond requires 9.64 seconds and TD-cond requires 10.27
 seconds.</p>
 <p>For each time series in the hierarchy, we compute the following
 scores for each method:</p>
