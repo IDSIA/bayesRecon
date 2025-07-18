@@ -50,6 +50,7 @@ schaferStrimmer_cov <- function(x){
   p <- ncol(x)
   
   if (p==1) {
+    warning("you passed x with one column, returning E[x^2]")
     return(list(shrink_cov=crossprod(x)/n, lambda_star=0))
   }
   

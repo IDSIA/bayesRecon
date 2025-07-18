@@ -41,3 +41,16 @@ test_that("Test shrinkage estimator", {
   expect_gte(mean_lambdas, 0.004843328)
   
 })
+
+test_that("Test behavior for p=1", {
+  # Parameters
+  nSamples <- 500
+  pTrue <- 1
+  
+  samples <- matrix(stats::rnorm(n=nSamples,sd=2),ncol=pTrue)
+  
+  exp_sample_squared <- matrix(mean(samples^2),1,1)
+  
+  # The function should return E[x^2] and a warning
+  expect_warning(expect_equal(schaferStrimmer_cov(samples)$shrink_cov, exp_sample_squared))
+})

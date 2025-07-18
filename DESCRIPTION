@@ -1,6 +1,6 @@
 Package: bayesRecon
 Type: Package
-Date: 2025-07-17
+Date: 2025-07-18
 Title: Probabilistic Reconciliation via Conditioning
 Version: 0.3.3
 Authors@R: c(person(given = "Dario",
