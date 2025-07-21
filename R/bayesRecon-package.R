@@ -50,7 +50,8 @@
 #'
 #' Zambon, L., Azzimonti, D., Rubattu, N., Corani, G. (2024). 
 #' *Probabilistic reconciliation of mixed-type hierarchical time series*. 
-#' The 40th Conference on Uncertainty in Artificial Intelligence, accepted.
+#' Proceedings of the Fortieth Conference on Uncertainty in Artificial Intelligence,
+#' PMLR 244:4078-4095. <https://proceedings.mlr.press/v244/zambon24a.html>.
 #'
 #' @keywords internal
 "_PACKAGE"

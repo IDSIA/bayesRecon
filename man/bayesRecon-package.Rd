@@ -6,7 +6,7 @@
 \alias{bayesRecon-package}
 \title{bayesRecon: Probabilistic Reconciliation via Conditioning}
 \description{
-Provides methods for probabilistic reconciliation of hierarchical forecasts of time series. The available methods include analytical Gaussian reconciliation (Corani et al., 2021) \doi{10.1007/978-3-030-67664-3_13}, MCMC reconciliation of count time series (Corani et al., 2024) \doi{10.1016/j.ijforecast.2023.04.003}, Bottom-Up Importance Sampling (Zambon et al., 2024) \doi{10.1007/s11222-023-10343-y}, methods for the reconciliation of mixed hierarchies (Mix-Cond and TD-cond) (Zambon et al., 2024. The 40th Conference on Uncertainty in Artificial Intelligence, accepted).
+Provides methods for probabilistic reconciliation of hierarchical forecasts of time series. The available methods include analytical Gaussian reconciliation (Corani et al., 2021) \doi{10.1007/978-3-030-67664-3_13}, MCMC reconciliation of count time series (Corani et al., 2024) \doi{10.1016/j.ijforecast.2023.04.003}, Bottom-Up Importance Sampling (Zambon et al., 2024) \doi{10.1007/s11222-023-10343-y}, methods for the reconciliation of mixed hierarchies (Mix-Cond and TD-cond) (Zambon et al., 2024) \url{https://proceedings.mlr.press/v244/zambon24a.html}.
 }
 \section{Learn more}{
 
@@ -68,7 +68,8 @@ International Journal of Forecasting (in press).
 
 Zambon, L., Azzimonti, D., Rubattu, N., Corani, G. (2024).
 \emph{Probabilistic reconciliation of mixed-type hierarchical time series}.
-The 40th Conference on Uncertainty in Artificial Intelligence, accepted.
+Proceedings of the Fortieth Conference on Uncertainty in Artificial Intelligence,
+PMLR 244:4078-4095. \url{https://proceedings.mlr.press/v244/zambon24a.html}.
 }
 \seealso{
 Useful links:

@@ -1,6 +1,6 @@
 Package: bayesRecon
 Type: Package
-Date: 2025-07-18
+Date: 2025-07-21
 Title: Probabilistic Reconciliation via Conditioning
 Version: 0.3.3
 Authors@R: c(person(given = "Dario",
@@ -32,7 +32,7 @@ Description: Provides methods for probabilistic reconciliation of hierarchical f
              Bottom-Up Importance Sampling (Zambon et al., 2024) 
              <doi:10.1007/s11222-023-10343-y>,
              methods for the reconciliation of mixed hierarchies (Mix-Cond and TD-cond)
-             (Zambon et al., 2024. The 40th Conference on Uncertainty in Artificial Intelligence, accepted). 
+             (Zambon et al., 2024) <https://proceedings.mlr.press/v244/zambon24a.html>. 
 License: LGPL (>= 3)
 Depends: R (>= 4.1.0)
 Imports:
