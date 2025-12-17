@@ -168,3 +168,139 @@ multi_log_score_optimization <- function(res, prior_mean, trim = 0.1) {
 }
 
 
+# either provide Psi_post, nu_post 
+# OR provide residuals (in this case Psi_prior and nu_prio can be optionally provided)
+reconc_t = function(A,
+                    point_fc,
+                    y_train = NULL,
+                    posterior = NULL,
+                    residuals = NULL,
+                    prior = NULL,
+                    freq = 1) {
+  
+  .check_A(A)
+  k = nrow(A)
+  m = ncol(A)
+  
+  if (!is.vector(point_fc)) {
+    stop("Input error: point_fc must be a vector")
+  }
+  n = length(point_fc)
+  if (k + m != n) {
+    stop("Input error: the length of point_fc must be equal to nrow(A) + ncol(A)")
+  }
+  
+  ##############
+  ### CASE 1 ###
+  # If posterior is provided, check if is a list with entries nu and Psi and extract values
+  if (!is.null(posterior)) {
+    if (is.list(posterior)) {
+      nu_post = posterior$nu
+      Psi_post = posterior$Psi
+      if (is.null(nu_post) | is.null(Psi_post)) {
+        stop("Input error: posterior must be a list with entries nu and Psi")
+      }
+    } else {
+      stop("Input error: posterior must be a list with entries nu and Psi")
+    }
+  
+  ### CASE 2 ###
+  # If posterior not provided, first check that residuals are provided
+  } else {
+    if (is.null(residuals)) {
+      stop("Input error: either posterior or residuals must be provided")
+    }
+    if (!is.matrix(residuals)) {
+      stop("Input error: residuals must be a matrix")
+    }
+    if (ncol(residuals) != n) {
+      stop("Input error: number of columns of residuals must be equal to length of point_fc")
+    }
+    Samp_cov = crossprod(residuals)/nrow(residuals)  # sample covariance of the residuals
+    Samp_cov = (1 - l_shr)*Samp_cov + l_shr*diag(diag(Samp_cov))  # apply shrinkage to stabilize 
+    
+    L = nrow(residuals)  # number of residual samples (i.e., training length)
+    if (L < 10) {
+      warning("Warning: number of rows of residuals is less than 10, covariance estimation may be inaccurate")
+    }
+    # TODO: implement fallback
+    
+    ### CASE 2a ###
+    # If prior is provided, check if is a list with entries nu and Psi and extract values
+    if (!is.null(prior)) {
+      if (is.list(prior)) {
+        nu_prior = prior$nu
+        Psi_prior = prior$Psi
+        if (is.null(nu_prior) | is.null(Psi_prior)) {
+          stop("Input error: prior must be a list with entries nu and Psi")
+        }
+      } else {
+        stop("Input error: prior must be a list with entries nu and Psi")
+      }
+    }
+    
+    ### CASE 2b ###
+    # If prior not provided:
+    # - compute Psi using the (shrinked) covariance matrix of the residuals of the naive
+    #   or seasonal naive forecasts
+    # - set nu using LOOCV
+    else {
+      if (is.null(y_train)) {
+        stop("Input error: y_train must be provided when prior/posterior are not given")
+      }
+      if (!is.matrix(y_train)) {
+        stop("Input error: y_train must be a matrix")
+      }
+      # TODO: allow for other types, e.g. data.frame, ts, xts...
+      if (ncol(y_train) != n) {
+        stop("Input error: number of columns of y_train must be equal to length of point_fc")
+      }
+      if (nrow(y_train)!=L) {
+        warning("Numbers of rows of y_train and of residuals are different!")
+      }
+      
+      if (!is.numeric(freq) | length(freq)!=1 | freq<1 | (freq %% 1)!=0) {
+        stop("Input error: freq must be a positive integer")
+      }
+      
+      cov_naive = compute_naive_cov(y_train, freq)
+      
+      bayesian_LOO = multi_log_score_optimization(res, cov_naive)
+      
+      nu_prior = bayesian_LOO$optimal_nu
+      Psi_prior = (nu_prior - n - 1) * cov_naive
+    }
+    
+    # Compute posterior parameters
+    Psi_post = Psi_prior + nrow(residuals) * Samp_cov
+    nu_post = nu_prior + nrow(residuals)
+  }
+  
+  # Reconcile via conditioning the t-distribution in closed form
+  
+  # TODO
+  # Psi_u = posterior.psi[1:k, 1:k]
+  # Psi_b = posterior.psi[(k + 1):n, (k + 1):n]
+  # Psi_ub = posterior.psi[1:k, (k + 1):n, drop = FALSE]
+  # mu_u = base_forecasts.mu[1:k]
+  # mu_b = base_forecasts.mu[(k + 1):n]
+  # inco = ((A %*% mu_b) - mu_u)
+  # Q = Psi_u - (Psi_ub %*% t(A)) - (A %*% t(Psi_ub)) + (A %*% 
+  #                                                        Psi_b %*% t(A))
+  # .check_cov(Q, "Q", pd_check = TRUE, symm_check = FALSE)
+  # invQ = solve(Q)
+  # C = 1 + ((t(inco) %*% invQ %*% inco))
+  # nu_b_tilde = posterior.nu - m + 1
+  # mu_b_tilde = mu_b + (t(Psi_ub) - Psi_b %*% t(A)) %*% 
+  #   invQ %*% inco
+  # Sigma_b_tilde = as.numeric(C/nu_b_tilde) * (Psi_b - ((t(Psi_ub) - (Psi_b %*% t(A))) %*% 
+  #                                                        invQ %*% t(t(Psi_ub) - (Psi_b %*% t(A)))))
+  # out = list(bottom_reconciled_mean = mu_b_tilde, 
+  #            bottom_reconciled_scale_parameter = Sigma_b_tilde, 
+  #            bottom_reconciled_dof_parameter = nu_b_tilde,
+  #            posterior.psi = posterior.psi,
+  #            posterior.nu = posterior.nu,
+  #            const = C)
+  # return(out)
+  
+}
