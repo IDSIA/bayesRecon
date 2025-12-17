@@ -1,3 +1,55 @@
+# Function for estimating the covariance matrix of the residuals of the naive or seasonal naive forecasts
+# For each series, choose by using some criterion (RSS or test of seasonality)
+# TODO: implement statistical test; leave dependence as suggested; default: choose using RSS
+compute_naive_cov = function(y_train, freq = 1, criterion = "RSS") {
+  
+  n = ncol(y_train)
+  L = nrow(y_train)
+  
+  # Compute residuals of naive
+  res_n = y_train[2:L, ] - y_train[1:(L - 1), ]
+  
+  if (freq == 1) {
+    residuals = res_n
+    
+  } else {
+    # compute residuals of seasonal naive
+    res_seas = y_train[(freq + 1):L, ] - y_train[1:(L - freq), ]
+    
+    # Choose which residuals to use based on the criterion
+    if (criterion == "seas-test") {
+      stop("seas-test criterion not yet implemented")
+      
+    } else if (criterion == "RSS") {
+      # Compute RSS for both methods, for each series
+      RSS_n = colSums(res_n^2, na.rm = TRUE)
+      RSS_seas = colSums(res_seas^2, na.rm = TRUE)
+      is_seas = RSS_seas < RSS_n
+      
+    } else {
+      stop("Input error: criterion must be either 'RSS' or 'seas-test'")
+    }
+    
+    # No series is seasonal
+    if (sum(is_seas) == 0) {
+      residuals = res_n
+      
+    # All series are seasonal
+    } else if (sum(is_seas) == n) {
+      residuals = res_seas
+      
+    # Some series are seasonal, some are not (use criterion)
+    } else  {
+      residuals = matrix(NA, nrow = L - freq, ncol = n)
+      residuals[, is_seas] = res_seas[, is_seas]
+      residuals[, !is_seas] = res_n[freq:(L - 1), !is_seas]
+    }
+  }
+  
+  Sigma_naive = schaferStrimmer_cov(residuals)$shrink_cov
+  
+  return(Sigma_naive)
+}
 
 
 #' Optimize Degrees of Freedom (nu) via LOO Cross-Validation
