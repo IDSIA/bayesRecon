@@ -60,35 +60,34 @@ compute_naive_cov = function(y_train, freq = 1, criterion = "RSS") {
 #'
 #' @details
 #' TODO: check these details
-#' \strong{1. Model Parameterization:}
-#' The function uses the "Bayesian" parameterization of the Multivariate Student-t. 
-#' Instead of the standard scale matrix $\Sigma$, it operates on the posterior sum-of-squares 
-#' matrix $\Psi$.
-#' \itemize{
-#'   \item Standard t-density: $f(x) \propto |\Sigma|^{-1/2} (1 + \frac{1}{\nu} x^T \Sigma^{-1} x)^{-\frac{\nu+p}{2}}$
-#'   \item Implemented t-density: $f(x) \propto |\Psi|^{-1/2} (1 + x^T \Psi^{-1} x)^{-\frac{\nu+p}{2}}$
-#' }
-#' These are mathematically equivalent because the code sets $\Psi \approx \nu \Sigma$.
-#' This absorbs the terms $\nu^{-p/2}$ (into the determinant) and $1/\nu$ (into the inverse).
+#' 
+#' \strong{Leave-One-Out (LOO) Cross-Validation:}
+#' This function estimates the optimal degrees of freedom $\nu$ by maximizing the 
+#' out-of-sample predictive performance. This is achieved by computing the 
+#' log-density of each held-out observation $\mathbf{r}_i$ given the remaining 
+#' data $\mathbf{R}_{-i}$. The total objective function is the sum of these 
+#' predictive log-densities:
+#' \deqn{\mathcal{L}(\nu) = \sum_{i=1}^T \log f(\mathbf{r}_i | \mathbf{R}_{-i}, \nu)}
 #'
-#' \strong{2. Efficient LOO Computation:}
-#' Computing the LOO score normally requires inverting the matrix $\Psi_{-i}$ for every 
-#' observation $i=1 \dots T$. This function uses algebraic shortcuts to compute it 
-#' using only the full matrix $\Psi$:
+#' \strong{The Log-Density Function:}
+#' For each LOO step, the residuals are assumed to follow a Multivariate 
+#' Student-t distribution. The density is expressed directly as a function of the 
+#' posterior sum-of-squares matrix $\Psi$, where $\Psi$ scales implicitly with $\nu$:
+#' \deqn{f(\mathbf{r}_i | \Psi, \nu) = \frac{\Gamma(\frac{\nu + T}{2})}{\Gamma(\frac{\nu + T - p}{2}) \pi^{p/2}} |\Psi|^{-1/2} \left( 1 + \mathbf{r}_i^\top \Psi^{-1} \mathbf{r}_i \right)^{-\frac{\nu + T}{2}}}
+#' In the code, $\Psi$ is constructed as:
+#' \deqn{\Psi = (\nu - p - 1)\bar{\Sigma}_{prior} + \mathbf{R}^\top\mathbf{R}}
+#' By using this formulation, the standard scaling factors $1/\nu$ and $\nu^{-p/2}$ 
+#' are absorbed into the matrix inverse and determinant, respectively.
 #'
-#' \emph{Step A: Determinant Adjustment (Matrix Determinant Lemma)}
-#' \[ |\Psi_{-i}| = |\Psi| (1 - h_i) \]
-#'
-#' \emph{Step B: Quadratic Form Adjustment (Sherman-Morrison Formula)}
-#' The LOO quadratic form $Q_{-i} = r_i^T \Psi_{-i}^{-1} r_i$ simplifies analytically to:
-#' \[ 1 + Q_{-i} = \frac{1}{1 - h_i} \]
-#' where $h_i = r_i^T \Psi^{-1} r_i$ is the leverage of the $i$-th observation.
-#'
-#' \strong{3. Final Log-Likelihood:}
-#' Combining these, the LOO log-likelihood for observation $i$ becomes:
-#' \[ \text{LL}_i = \text{Const} + \frac{\nu + T - 1}{2} \log(1 - h_i) \]
-#' This formula (implemented in step 4 of the code) captures both the change in the 
-#' determinant volume and the change in the Mahalanobis distance simultaneously.
+#' \strong{Efficient Computation via Sherman-Morrison:}
+#' Rather than recomputing $\Psi_{-i}$ and its inverse $T$ times, the function uses 
+#' the full-sample matrix $\Psi$ and adjusts it using the leverage 
+#' $h_i = \mathbf{r}_i^\top \Psi^{-1} \mathbf{r}_i$. 
+#' 
+#' Through the Matrix Determinant Lemma and the Sherman-Morrison formula, the 
+#' internal term $(1 + \mathbf{r}_i^\top \Psi_{-i}^{-1} \mathbf{r}_i)$ simplifies to $(1 - h_i)^{-1}$. 
+#' The final log-density contribution used in the code is:
+#' \deqn{\log f_i \propto \text{const} - \frac{1}{2}\log|\Psi| + \frac{\nu + T - 1}{2} \log(1 - h_i)}
 #'
 #' @return A list containing the optimization results:
 #' * `optimal_nu`: The optimal degrees of freedom found.
@@ -168,15 +167,82 @@ multi_log_score_optimization <- function(res, prior_mean, trim = 0.1) {
 }
 
 
-# either provide Psi_post, nu_post 
-# OR provide residuals (in this case Psi_prior and nu_prio can be optionally provided)
+#' t-Rec: Reconciliation via Conditioning with uncertain covariance via Multivariate Student-t
+#'
+#' Reconciles base forecasts in a hierarchy by conditioning on the hierarchical 
+#' constraints, specified by the aggregation matrix A.
+#' The base forecasts are assumed to be jointly Gaussian, conditionally on the 
+#  covariance matrix of the forecast errors. To account for uncertainty in the
+#' covariance matrix, a Bayesian approach is adopted using an Inverse-Wishart prior,
+#' leading to a Multivariate Student-t distribution for the base forecasts.
+#' The reconciliation is in closed-form, yielding a multivariate Student-t reconciled distribution.
+#'
+#' @param A Matrix (n_upp x n_bott) defining the hierarchy (u = Ab).
+#' @param point_fc Vector of base forecasts (length n = n_upp + n_bott).
+#' @param y_train Matrix of historical training data (T x n) used for setting prior parameters.
+#' @param residuals Optional matrix (T x n) of base forecast residuals.
+#' @param freq Seasonal frequency for naive covariance estimation (default is 1).
+#' @param prior Optional list containing 'nu' and 'Psi' (prior parameters).
+#' @param posterior Optional list containing 'nu' and 'Psi' (posterior parameters).
+#' @param l_shr Shrinkage intensity (0 to 1) for stabilizing the sample covariance matrix (default 1e-4).
+#' @param return_parameters Logical; if TRUE, returns internal parameters like C and posterior nu.
+#'
+#' @details 
+#' \strong{Standard Usage and Parameter Estimation:}
+#' The standard workflow for this function is to provide the in-sample \code{residuals} 
+#' and the historical training data \code{y_train}.
+#' \itemize{
+#'   \item \strong{Prior Scale (\eqn{\Psi_0}):} Set as the covariance of the residuals of naive (or seasonal naive, 
+#'         a criterion is used to choose between the 2) forecasts computed on \code{y_train}.
+#'   \item \strong{Prior Degrees of Freedom (\eqn{\nu_0}):} Estimated via Bayesian Leave-One-Out 
+#'         Cross-Validation (LOOCV) to maximize out-of-sample performance.
+#' }
+#' 
+#' \strong{Advanced Options:}
+#' Users can bypass the automated estimation by:
+#' \enumerate{
+#'   \item Directly passing the \code{prior} parameters (requires \code{residuals} to compute the posterior).
+#'   \item Directly passing the \code{posterior} parameters, which skips all internal estimation and updating logic.
+#' }
+#' 
+#' \strong{The Reconciled Bottom Distribution:}
+#' The reconciliation yields a distribution:
+#' \deqn{\tilde{\mathbf{b}} \sim t(\hat{\mathbf{b}}_{tilde}, \tilde{\Sigma}_B, \tilde{\nu})}
+#' where the reconciled mean is:
+#' \deqn{\hat{\mathbf{b}}_{tilde} = \hat{\mathbf{b}} + (\Psi'_{UB}^\top - \Psi'_B A^\top) Q^{-1} (A\hat{\mathbf{b}} - \hat{\mathbf{u}})}
+#' and the scale matrix is:
+#' \deqn{\tilde{\Sigma}_B = C [\Psi'_B - (\Psi'_{UB}^\top - \Psi'_B A^\top) Q^{-1} (\Psi'_{UB}^\top - \Psi'_B A^\top)^\top]}
+#' with scalar \deqn{C = \frac{1 + (A\hat{\mathbf{b}} - \hat{\mathbf{u}})^\top Q^{-1} (A\hat{\mathbf{b}} - \hat{\mathbf{u}})}{\tilde{\nu}}.}
+#'
+#' @references 
+#' Carrara, C., Corani, G., Azzimonti, D., & Zambon, L. (2025). Modeling the uncertainty on the covariance 
+#' matrix for probabilistic forecast reconciliation. arXiv preprint arXiv:2506.19554.
+#' \url{https://arxiv.org/abs/2506.19554}
+#'
+#' @return A list containing:
+#' \itemize{
+#'   \item \code{bottom_mean}: Reconciled bottom-level mean forecasts.
+#'   \item \code{bottom_scale_matrix}: Reconciled bottom-level scale matrix.
+#'   \item \code{bottom_df}: Reconciled degrees of freedom.
+#' }
+#' If \code{return_parameters} is TRUE, also returns:
+#' \itemize{
+#'   \item \code{prior_nu}: Prior degrees of freedom.
+#'   \item \code{posterior_nu}: Posterior degrees of freedom.
+#'   \item \code{posterior_Psi}: Posterior scale matrix.
+#'   \item \code{C}: Scaling factor for the scale matrix.
+#' }
+#' 
+#' @export
 reconc_t = function(A,
                     point_fc,
                     y_train = NULL,
-                    posterior = NULL,
                     residuals = NULL,
+                    freq = 1,
                     prior = NULL,
-                    freq = 1) {
+                    posterior = NULL,
+                    l_shr = 1e-4,
+                    return_parameters = FALSE) {
   
   .check_A(A)
   k = nrow(A)
@@ -190,7 +256,9 @@ reconc_t = function(A,
     stop("Input error: the length of point_fc must be equal to nrow(A) + ncol(A)")
   }
   
-  ##############
+  nu_prior = NULL
+  
+  ##############################################################################
   ### CASE 1 ###
   # If posterior is provided, check if is a list with entries nu and Psi and extract values
   if (!is.null(posterior)) {
@@ -216,14 +284,15 @@ reconc_t = function(A,
     if (ncol(residuals) != n) {
       stop("Input error: number of columns of residuals must be equal to length of point_fc")
     }
-    Samp_cov = crossprod(residuals)/nrow(residuals)  # sample covariance of the residuals
-    Samp_cov = (1 - l_shr)*Samp_cov + l_shr*diag(diag(Samp_cov))  # apply shrinkage to stabilize 
     
     L = nrow(residuals)  # number of residual samples (i.e., training length)
     if (L < 10) {
       warning("Warning: number of rows of residuals is less than 10, covariance estimation may be inaccurate")
     }
     # TODO: implement fallback
+    
+    Samp_cov = crossprod(residuals) / nrow(residuals)  # sample covariance of the residuals
+    Samp_cov = (1 - l_shr)*Samp_cov + l_shr*diag(diag(Samp_cov))  # apply shrinkage to stabilize
     
     ### CASE 2a ###
     # If prior is provided, check if is a list with entries nu and Psi and extract values
@@ -265,42 +334,81 @@ reconc_t = function(A,
       
       cov_naive = compute_naive_cov(y_train, freq)
       
-      bayesian_LOO = multi_log_score_optimization(res, cov_naive)
+      bayesian_LOO = multi_log_score_optimization(residuals, cov_naive)
       
       nu_prior = bayesian_LOO$optimal_nu
       Psi_prior = (nu_prior - n - 1) * cov_naive
     }
     
     # Compute posterior parameters
-    Psi_post = Psi_prior + nrow(residuals) * Samp_cov
+    Psi_post = Psi_prior + L * Samp_cov
     nu_post = nu_prior + nrow(residuals)
   }
   
+  ##############################################################################
   # Reconcile via conditioning the t-distribution in closed form
   
-  # TODO
-  # Psi_u = posterior.psi[1:k, 1:k]
-  # Psi_b = posterior.psi[(k + 1):n, (k + 1):n]
-  # Psi_ub = posterior.psi[1:k, (k + 1):n, drop = FALSE]
-  # mu_u = base_forecasts.mu[1:k]
-  # mu_b = base_forecasts.mu[(k + 1):n]
-  # inco = ((A %*% mu_b) - mu_u)
-  # Q = Psi_u - (Psi_ub %*% t(A)) - (A %*% t(Psi_ub)) + (A %*% 
-  #                                                        Psi_b %*% t(A))
-  # .check_cov(Q, "Q", pd_check = TRUE, symm_check = FALSE)
-  # invQ = solve(Q)
-  # C = 1 + ((t(inco) %*% invQ %*% inco))
-  # nu_b_tilde = posterior.nu - m + 1
-  # mu_b_tilde = mu_b + (t(Psi_ub) - Psi_b %*% t(A)) %*% 
-  #   invQ %*% inco
-  # Sigma_b_tilde = as.numeric(C/nu_b_tilde) * (Psi_b - ((t(Psi_ub) - (Psi_b %*% t(A))) %*% 
-  #                                                        invQ %*% t(t(Psi_ub) - (Psi_b %*% t(A)))))
-  # out = list(bottom_reconciled_mean = mu_b_tilde, 
-  #            bottom_reconciled_scale_parameter = Sigma_b_tilde, 
-  #            bottom_reconciled_dof_parameter = nu_b_tilde,
-  #            posterior.psi = posterior.psi,
-  #            posterior.nu = posterior.nu,
-  #            const = C)
-  # return(out)
+  # Indices for Upper and Bottom
+  idx_u <- 1:k
+  idx_b <- (k + 1):n
+  
+  # Extract Psi blocks
+  Psi_U  <- Psi_post[idx_u, idx_u, drop = FALSE]
+  Psi_B  <- Psi_post[idx_b, idx_b, drop = FALSE]
+  Psi_UB <- Psi_post[idx_u, idx_b, drop = FALSE] 
+  
+  # Extract means
+  u_hat <- point_fc[idx_u]
+  b_hat <- point_fc[idx_b]
+  
+  # Compute Q = Psi_U - (Psi_UB %*% t(A)) - (A %*% t(Psi_UB)) + (A %*% Psi_B %*% t(A))
+  Psi_UB_At <- tcrossprod(Psi_UB, A)      
+  A_Psi_B   <- A %*% Psi_B                
+  Q <- Psi_U - Psi_UB_At - t(Psi_UB_At) + tcrossprod(A_Psi_B, A)
+  
+  # Invert Q using Cholesky (should be p.d.)
+  Q_chol <- tryCatch(chol(Q), error = function(e) NULL)
+  if (is.null(Q_chol)) {
+    # Fallback to standard solve if Cholesky fails (numerical issues)
+    warning("Cholesky decomposition of Q failed; using standard inversion.")
+    inv_Q <- solve(Q)
+  } else {
+    inv_Q <- chol2inv(Q_chol)
+  }
+  
+  # Incoherence
+  delta <- (A %*% b_hat) - u_hat
+
+  # Lambda = Psi_UB^T - Psi_B A^T
+  Lambda <- t(Psi_UB) - tcrossprod(Psi_B, A) 
+  Lambda_invQ <- Lambda %*% inv_Q
+  
+  # Compute b_tilde = b_hat + Lambda * Q^{-1} * delta
+  b_tilde <- b_hat + (Lambda_invQ %*% delta)
+  
+  # Compute nu_tilde = nu' - n_b + 1
+  nu_tilde <- nu_post - m + 1
+  
+  # Compute C = (1 + delta^T Q^{-1} delta) / nu_tilde
+  mahalanobis_term <- sum(delta * (inv_Q %*% delta)) # efficient x^T A x
+  C <- (1 + mahalanobis_term) / nu_tilde
+  
+  # Compute Sigma_B_tilde = C * [ Psi_B - Lambda * Q^{-1} * Lambda^T ]
+  Sigma_tilde_B <- as.numeric(C) * (Psi_B - tcrossprod(Lambda_invQ, Lambda))
+  
+  # Prepare output
+  out = list(
+    bottom_mean = as.vector(b_tilde),
+    bottom_scale_matrix = Sigma_tilde_B,
+    bottom_df = nu_tilde
+  )
+  if (return_parameters) {
+    out$prior_nu = nu_prior
+    out$posterior_nu = nu_post
+    out$posterior_Psi = Psi_post
+    out$C = C
+  }
+  
+  return(out)
   
 }
