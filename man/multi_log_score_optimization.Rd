@@ -27,33 +27,32 @@ Optimize Degrees of Freedom (nu) via LOO Cross-Validation
 }
 \details{
 TODO: check these details
-\strong{1. Model Parameterization:}
-The function uses the "Bayesian" parameterization of the Multivariate Student-t.
-Instead of the standard scale matrix $\Sigma$, it operates on the posterior sum-of-squares
-matrix $\Psi$.
-\itemize{
-\item Standard t-density: $f(x) \propto |\Sigma|^{-1/2} (1 + \frac{1}{\nu} x^T \Sigma^{-1} x)^{-\frac{\nu+p}{2}}$
-\item Implemented t-density: $f(x) \propto |\Psi|^{-1/2} (1 + x^T \Psi^{-1} x)^{-\frac{\nu+p}{2}}$
-}
-These are mathematically equivalent because the code sets $\Psi \approx \nu \Sigma$.
-This absorbs the terms $\nu^{-p/2}$ (into the determinant) and $1/\nu$ (into the inverse).
 
-\strong{2. Efficient LOO Computation:}
-Computing the LOO score normally requires inverting the matrix $\Psi_{-i}$ for every
-observation $i=1 \dots T$. This function uses algebraic shortcuts to compute it
-using only the full matrix $\Psi$:
+\strong{Leave-One-Out (LOO) Cross-Validation:}
+This function estimates the optimal degrees of freedom $\nu$ by maximizing the
+out-of-sample predictive performance. This is achieved by computing the
+log-density of each held-out observation $\mathbf{r}\emph{i$ given the remaining
+data $\mathbf{R}}{-i}$. The total objective function is the sum of these
+predictive log-densities:
+\deqn{\mathcal{L}(\nu) = \sum_{i=1}^T \log f(\mathbf{r}_i | \mathbf{R}_{-i}, \nu)}
 
-\emph{Step A: Determinant Adjustment (Matrix Determinant Lemma)}
-[ |\Psi_{-i}| = |\Psi| (1 - h_i) ]
+\strong{The Log-Density Function:}
+For each LOO step, the residuals are assumed to follow a Multivariate
+Student-t distribution. The density is expressed directly as a function of the
+posterior sum-of-squares matrix $\Psi$, where $\Psi$ scales implicitly with $\nu$:
+\deqn{f(\mathbf{r}_i | \Psi, \nu) = \frac{\Gamma(\frac{\nu + T}{2})}{\Gamma(\frac{\nu + T - p}{2}) \pi^{p/2}} |\Psi|^{-1/2} \left( 1 + \mathbf{r}_i^\top \Psi^{-1} \mathbf{r}_i \right)^{-\frac{\nu + T}{2}}}
+In the code, $\Psi$ is constructed as:
+\deqn{\Psi = (\nu - p - 1)\bar{\Sigma}_{prior} + \mathbf{R}^\top\mathbf{R}}
+By using this formulation, the standard scaling factors $1/\nu$ and $\nu^{-p/2}$
+are absorbed into the matrix inverse and determinant, respectively.
 
-\emph{Step B: Quadratic Form Adjustment (Sherman-Morrison Formula)}
-The LOO quadratic form $Q_{-i} = r_i^T \Psi_{-i}^{-1} r_i$ simplifies analytically to:
-[ 1 + Q_{-i} = \frac{1}{1 - h_i} ]
-where $h_i = r_i^T \Psi^{-1} r_i$ is the leverage of the $i$-th observation.
+\strong{Efficient Computation via Sherman-Morrison:}
+Rather than recomputing $\Psi_{-i}$ and its inverse $T$ times, the function uses
+the full-sample matrix $\Psi$ and adjusts it using the leverage
+$h_i = \mathbf{r}_i^\top \Psi^{-1} \mathbf{r}_i$.
 
-\strong{3. Final Log-Likelihood:}
-Combining these, the LOO log-likelihood for observation $i$ becomes:
-[ \text{LL}_i = \text{Const} + \frac{\nu + T - 1}{2} \log(1 - h_i) ]
-This formula (implemented in step 4 of the code) captures both the change in the
-determinant volume and the change in the Mahalanobis distance simultaneously.
+Through the Matrix Determinant Lemma and the Sherman-Morrison formula, the
+internal term $(1 + \mathbf{r}\emph{i^\top \Psi}{-i}^{-1} \mathbf{r}_i)$ simplifies to $(1 - h_i)^{-1}$.
+The final log-density contribution used in the code is:
+\deqn{\log f_i \propto \text{const} - \frac{1}{2}\log|\Psi| + \frac{\nu + T - 1}{2} \log(1 - h_i)}
 }
