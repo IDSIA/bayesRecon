@@ -205,7 +205,6 @@ reconc_BUIS <- function(A,
                    seed = NULL) {
   
   if (!is.null(seed)) set.seed(seed)
-  
   n_upper = nrow(A)
   n_bottom = ncol(A)
   n_tot <- length(base_forecasts)
@@ -278,11 +277,104 @@ reconc_BUIS <- function(A,
   }
   B = do.call("cbind", B) # B is a matrix (num_samples x n_bottom)
 
-  # Bottom-Up IS on the hierarchical part
+  B = .core_reconc_BUIS(A=A,H=H,G=G,B=B,
+                     upper_base_forecasts_H = upper_base_forecasts_H,
+                    in_typeH = in_typeH, distr_H = distr_H,
+                    upper_base_forecasts_G = upper_base_forecasts_G,
+                    in_typeG = in_typeG, distr_G = distr_G,
+                    .comp_w = .compute_weights, 
+                    suppress_warnings = suppress_warnings)
+
+  # # Bottom-Up IS on the hierarchical part
+  # for (hi in 1:nrow(H)) {
+  #   c = H[hi, ]
+  #   b_mask = (c != 0)
+  #   weights = .compute_weights(
+  #     b = (B %*% c),
+  #     # (num_samples x 1)
+  #     u = upper_base_forecasts_H[[hi]],
+  #     in_type_ = in_typeH[[hi]],
+  #     distr_ = distr_H[[hi]]
+  #   )
+  #   check_weights.res = .check_weights(weights)
+  #   if (check_weights.res$warning & !suppress_warnings) {
+  #     warning_msg = check_weights.res$warning_msg
+  #     # add information to the warning message
+  #     upper_fromA_i = which(lapply(seq_len(nrow(A)), function(i) sum(abs(A[i,] - c))) == 0)
+  #     for (wmsg in warning_msg) {
+  #       wmsg = paste(wmsg, paste0("Check the upper forecast at index: ", upper_fromA_i,"."))
+  #       warning(wmsg)
+  #     }
+  #   }
+  #   if(check_weights.res$warning & (1 %in% check_weights.res$warning_code)){
+  #     next
+  #   }
+  #   B[, b_mask] = .resample(B[, b_mask], weights)
+  # }
+
+  # if (!is.null(G)) {
+  #   # Plain IS on the additional constraints
+  #   weights = matrix(1, nrow = nrow(B))
+  #   for (gi in 1:nrow(G)) {
+  #     c = G[gi, ]
+  #     weights = weights * .compute_weights(
+  #       b = (B %*% c),
+  #       u = upper_base_forecasts_G[[gi]],
+  #       in_type_ = in_typeG[[gi]],
+  #       distr_ = distr_G[[gi]]
+  #     )
+  #   }
+  #   check_weights.res = .check_weights(weights)
+  #   if (check_weights.res$warning & !suppress_warnings) {
+  #     warning_msg = check_weights.res$warning_msg
+  #     # add information to the warning message
+  #     upper_fromA_i = c()
+  #     for (gi in 1:nrow(G)) {
+  #       c = G[gi, ]
+  #       upper_fromA_i = c(upper_fromA_i,
+  #                         which(lapply(seq_len(nrow(A)), function(i) sum(abs(A[i,] - c))) == 0))
+  #     }
+  #     for (wmsg in warning_msg) {
+  #       wmsg = paste(wmsg, paste0("Check the upper forecasts at index: ", paste0("{",paste(upper_fromA_i, collapse = ","), "}.")))
+  #       warning(wmsg)
+  #     }
+  #   }
+  #   if(!(check_weights.res$warning & (1 %in% check_weights.res$warning_code))){
+  #     B = .resample(B, weights)
+  #   }
+    
+  # }
+
+  B = t(B)
+  U = A %*% B
+  Y_reconc = rbind(U, B)
+
+  out = list(
+    bottom_reconciled_samples = B,
+    upper_reconciled_samples = U,
+    reconciled_samples = Y_reconc
+  )
+  return(out)
+}
+
+
+.core_reconc_BUIS <- function(A, 
+                   H, G, 
+                   B,
+                   upper_base_forecasts_H,
+                   in_typeH,
+                   distr_H,
+                   upper_base_forecasts_G,
+                   in_typeG,
+                   distr_G,
+                   .comp_w = .compute_weights,
+                   suppress_warnings = FALSE){
+  
+  # Hierarchical part
   for (hi in 1:nrow(H)) {
     c = H[hi, ]
     b_mask = (c != 0)
-    weights = .compute_weights(
+    weights = .comp_w(
       b = (B %*% c),
       # (num_samples x 1)
       u = upper_base_forecasts_H[[hi]],
@@ -305,12 +397,13 @@ reconc_BUIS <- function(A,
     B[, b_mask] = .resample(B[, b_mask], weights)
   }
 
+  # Non-hierarchical part
   if (!is.null(G)) {
     # Plain IS on the additional constraints
     weights = matrix(1, nrow = nrow(B))
     for (gi in 1:nrow(G)) {
       c = G[gi, ]
-      weights = weights * .compute_weights(
+      weights = weights * .comp_w(
         b = (B %*% c),
         u = upper_base_forecasts_G[[gi]],
         in_type_ = in_typeG[[gi]],
@@ -338,15 +431,6 @@ reconc_BUIS <- function(A,
     
   }
 
-  B = t(B)
-  U = A %*% B
-  Y_reconc = rbind(U, B)
-
-  out = list(
-    bottom_reconciled_samples = B,
-    upper_reconciled_samples = U,
-    reconciled_samples = Y_reconc
-  )
-  return(out)
+  return(B)
+  
 }
-
