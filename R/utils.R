@@ -265,6 +265,110 @@
   }
 }
 
+.check_input_t <- function(A, point_fc, y_train, residuals, freq, prior, posterior, l_shr){
+
+  .check_A(A)
+  
+  n_b = ncol(A)        # number of bottom TS
+  n_u = nrow(A)        # number of upper TS
+
+  if (!is.vector(point_fc)) {
+    stop("Input error: point_fc must be a vector")
+  }
+  n = length(point_fc)
+  if (n_u + n_b != n) {
+    stop("Input error: the length of point_fc must be equal to nrow(A) + ncol(A)")
+  }
+  
+  ##############################################################################
+  ### CASE 1 ###
+  # If posterior is provided, check if is a list with entries nu and Psi and extract values
+  if (!is.null(posterior)) {
+    if (is.list(posterior)) {
+      nu_post = posterior$nu
+      Psi_post = posterior$Psi
+      if (is.null(nu_post) | is.null(Psi_post)) {
+        stop("Input error: posterior must be a list with entries nu and Psi")
+      }
+    } else {
+      stop("Input error: posterior must be a list with entries nu and Psi")
+    }
+  
+  ### CASE 2 ###
+  # If posterior not provided, first check that residuals are provided
+  } else {
+    if (is.null(residuals)) {
+      stop("Input error: either posterior or residuals must be provided")
+    }
+    if (!is.matrix(residuals)) {
+      stop("Input error: residuals must be a matrix")
+    }
+    if (ncol(residuals) != n) {
+      stop("Input error: number of columns of residuals must be equal to length of point_fc")
+    }
+    
+    L = nrow(residuals)  # number of residual samples (i.e., training length)
+    if (L < 10) {
+      warning("Warning: number of rows of residuals is less than 10, covariance estimation may be inaccurate")
+    }
+    # TODO: implement fallback
+    
+    ### CASE 2a ###
+    # If prior is provided, check if is a list with entries nu and Psi and extract values
+    if (!is.null(prior)) {
+      if (is.list(prior)) {
+        nu_prior = prior$nu
+        Psi_prior = prior$Psi
+        if (is.null(nu_prior) | is.null(Psi_prior)) {
+          stop("Input error: prior must be a list with entries nu and Psi")
+        }
+      } else {
+        stop("Input error: prior must be a list with entries nu and Psi")
+      }
+    }
+    
+    ### CASE 2b ###
+    # If prior not provided:
+    # - compute Psi using the (shrinked) covariance matrix of the residuals of the naive
+    #   or seasonal naive forecasts
+    # - set nu using LOOCV
+    else {
+      if (is.null(y_train)) {
+        stop("Input error: y_train must be provided when prior/posterior are not given")
+      }
+      if (!is.matrix(y_train)) {
+        stop("Input error: y_train must be a matrix")
+      }
+      # TODO: allow for other types, e.g. data.frame, ts, xts...
+      if (ncol(y_train) != n) {
+        stop("Input error: number of columns of y_train must be equal to length of point_fc")
+      }
+      if (nrow(y_train)!=L) {
+        warning("Numbers of rows of y_train and of residuals are different!")
+      }
+      
+      if (!is.numeric(freq) | length(freq)!=1 | freq<1 | (freq %% 1)!=0) {
+        stop("Input error: freq must be a positive integer")
+      }
+      
+      cov_naive = compute_naive_cov(y_train, freq)
+      
+      bayesian_LOO = multi_log_score_optimization(residuals, cov_naive)
+      
+      nu_prior = bayesian_LOO$optimal_nu
+      Psi_prior = (nu_prior - n - 1) * cov_naive
+    }
+    
+    # Compute posterior parameters
+    Psi_post = Psi_prior + L * Samp_cov
+    nu_post = nu_prior + nrow(residuals)
+  }
+
+  if (!.check_positive_number(l_shr) | l_shr > 1) {
+    stop("Input error: l_shr must be a number between 0 and 1")
+  }
+}
+
 # Check importance sampling weights
 .check_weights <- function(w, n_eff_min=200, p_n_eff=0.01) {
   warning = FALSE
