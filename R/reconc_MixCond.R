@@ -142,12 +142,24 @@ reconc_MixCond = function(A, fc_bottom, fc_upper,
     L_pmf = lapply(fc_bottom, PMF.from_params, distr = distr)
     B = lapply(L_pmf, PMF.sample, N_samples=num_samples)
     B = do.call("cbind", B)    # matrix of bottom samples (N_samples x n_bottom)
-  } 
-  
+  }
+
   # Get mean and covariance matrix of the MVN upper base forecasts
   mu_u    = fc_upper$mu
   Sigma_u = as.matrix(fc_upper$Sigma)
+
+  out = .core_reconc_MixCond(A , B, fc_upper, mu_u, Sigma_u, num_samples, n_u, n_b, 
+                              return_type, suppress_warnings)
   
+  return(out)
+}
+
+
+# Core function for MixCond reconciliation
+.core_reconc_MixCond = function(A, B, fc_upper, mu_u, Sigma_u, num_samples, n_u, n_b,
+                                 return_type, suppress_warnings) {
+  
+
   # IS using MVN
   U = B %*% t(A)
   weights = .MVN_density(x=U, mu = mu_u, Sigma = Sigma_u)
@@ -166,7 +178,6 @@ reconc_MixCond = function(A, fc_bottom, fc_upper,
   
   B = t(B)
   U = A %*% B
-  
 
   # Prepare output: include the marginal pmfs and/or the samples (depending on "return" inputs)
   out = list(bottom_reconciled=list(), upper_reconciled=list(), ESS = ESS)
