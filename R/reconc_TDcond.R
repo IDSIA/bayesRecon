@@ -254,6 +254,30 @@ reconc_TDcond = function(A, fc_bottom, fc_upper,
                   bottom_in_type, distr,
                   return_type)
   
+  # Get mean and covariance matrix of the MVN upper base forecasts
+  mu_u    = fc_upper$mu
+  Sigma_u = as.matrix(fc_upper$Sigma)
+
+  # Prepare list of bottom pmf
+  if (bottom_in_type == "pmf") {
+    L_pmf = fc_bottom
+  } else if (bottom_in_type == "samples") {
+    L_pmf = lapply(fc_bottom, PMF.from_samples)
+  } else if (bottom_in_type == "params") {
+    L_pmf = lapply(fc_bottom, PMF.from_params, distr = distr)
+  }
+
+  out = .core_reconc_TDcond(A, mu_u, Sigma_u, L_pmf, num_samples, 
+                             return_type, suppress_warnings)
+  
+  return(out)
+}
+
+
+# Core function for TDcond reconciliation
+.core_reconc_TDcond = function(A, mu_u, Sigma_u, L_pmf, num_samples,
+                                return_type, suppress_warnings) {
+  
   # Find the "lowest upper" 
   n_u = nrow(A)
   n_b = ncol(A)
@@ -261,15 +285,12 @@ reconc_TDcond = function(A, fc_bottom, fc_upper,
   n_u_low = length(lowest_rows)  # number of lowest upper
   n_u_upp = n_u - n_u_low        # number of "upper upper" 
   
-  # Get mean and covariance matrix of the MVN upper base forecasts
-  mu_u    = fc_upper$mu
-  Sigma_u = as.matrix(fc_upper$Sigma)
-  
   ### Get upper samples
   if (n_u == n_u_low) {     
     # If all the upper are lowest-upper, just sample from the base distribution
     U = .MVN_sample(num_samples, mu_u, Sigma_u)   # (dim: num_samples x n_u_low)
     U = round(U)                 # round to integer
+    mode(U) <- "integer"         # convert to integer
     U_js = asplit(U, MARGIN = 2) # split into list of column vectors
     
   } else {
@@ -296,15 +317,6 @@ reconc_TDcond = function(A, fc_bottom, fc_upper,
     U = round(U)                # round
     mode(U) <- "integer"        # convert to integer
     U_js = asplit(U, MARGIN = 2) # split into list of column vectors
-  }
-
-  # Prepare list of bottom pmf
-  if (bottom_in_type == "pmf") {
-    L_pmf = fc_bottom
-  } else if (bottom_in_type == "samples") {
-    L_pmf = lapply(fc_bottom, PMF.from_samples)
-  } else if (bottom_in_type == "params") {
-    L_pmf = lapply(fc_bottom, PMF.from_params, distr = distr)
   }
   
   # Prepare list of lists of bottom pmf relative to each lowest upper
@@ -334,6 +346,8 @@ reconc_TDcond = function(A, fc_bottom, fc_upper,
     B[mask_j, ] = .TD_sampling(U_js[[j]], L_pmf_js[[j]])
   }
   U = A %*% B              # dim: n_upper x num_samples
+
+  #undefined_variable_to_break_checks = some_nonexistent_variable + 42
   
   # Prepare output: include the marginal pmfs and/or the samples (depending on "return" inputs)
   out = list(bottom_reconciled=list(), upper_reconciled=list())
