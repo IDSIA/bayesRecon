@@ -95,6 +95,7 @@ compute_naive_cov = function(y_train, freq = 1, criterion = "RSS") {
 #' * `convergence`: The convergence status of the optimizer.
 #' * `time_elapsed`: The time taken for the optimization.
 #'
+#' @export
 multi_log_score_optimization <- function(res, prior_mean, trim = 0.1) {
   
   n_obs <- nrow(res)
@@ -287,15 +288,47 @@ reconc_t = function(A,
   # Reconcile via conditioning the t-distribution in closed form
 
   out = .core_reconc_t(A=A, point_fc = point_fc, Psi_post=Psi_post, nu_post=nu_post, 
-                       return_parameters = FALSE, suppress_warnings = FALSE)
+                      return_uppers= FALSE, return_parameters = FALSE, suppress_warnings = FALSE)
   
   return(out)  
 }
 
-# S: is it necessary to use also a check-arguments function?
+#' Core Reconciliation via Multivariate Student-t Distribution.
+#'
+#' Internal function that performs the core reconciliation logic for the t-distribution based 
+#' reconciliation method. This function assumes an uncertain covariance matrix with an Inverse-Wishart prior.
+#'
+#' @param A Matrix (n_upper x n_bottom) defining the hierarchy where upper = A %*% bottom.
+#' @param point_fc Vector of length (n_upper + n_bottom) containing the base forecast means 
+#'   for both upper and bottom levels (upper first, then bottom).
+#' @param Psi_post Scale matrix (n_upper + n_bottom x n_upper + n_bottom) of the posterior 
+#'   Student-t distribution.
+#' @param nu_post Degrees of freedom of the posterior Student-t distribution.
+#' @param return_uppers Logical. If TRUE, also returns parameters for the upper level reconciled 
+#'   distribution. Default is FALSE.
+#' @param return_parameters Logical. If TRUE, returns internal parameters (C matrix, posterior nu, etc.) 
+#'   for debugging or advanced use. Default is FALSE.
+#' @param suppress_warnings Logical. If TRUE, suppresses warnings about numerical issues. Default is FALSE.
+#'
+#' @return A list containing:
+#'   \itemize{
+#'     \item `bottom_mean`: Reconciled mean vector for bottom level.
+#'     \item `bottom_scale_matrix`: Reconciled scale matrix for bottom level.
+#'     \item `bottom_df`: Reconciled degrees of freedom for bottom level.
+#'     \item `upper_mean`: (optional) Reconciled mean vector for upper level.
+#'     \item `upper_scale_matrix`: (optional) Reconciled scale matrix for upper level.
+#'     \item `upper_df`: (optional) Reconciled degrees of freedom for upper level.
+#'     \item `posterior_nu`: (optional) Posterior degrees of freedom.
+#'     \item `posterior_Psi`: (optional) Posterior scale matrix.
+#'     \item `C`: (optional) Scaling factor used in reconciliation.
+#'   }
+#'
+#' @keywords internal
+#' @noRd
+#' @export
 # Core function for t-Rec reconciliation
 .core_reconc_t = function(A, point_fc, Psi_post, nu_post, return_uppers,
-                          return_parameters, suppress_warnings)
+                          return_parameters, suppress_warnings) {
 
   # Indices for Upper and Bottom
   k = nrow(A)
@@ -371,3 +404,4 @@ reconc_t = function(A,
   }
   
   return(out)
+}

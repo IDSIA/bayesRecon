@@ -357,7 +357,35 @@ reconc_BUIS <- function(A,
   return(out)
 }
 
-
+#' Core Reconciliation via Bayesian Universality Information Sharing
+#'
+#' Internal function that performs the core reconciliation logic for the BUIS method, which 
+#' reconciles forecasts using importance sampling based on both hierarchical and equality 
+#' constraints through a Bayesian framework.
+#'
+#' @param A Matrix defining the overall hierarchy.
+#' @param H Matrix defining hierarchical constraints.
+#' @param G Matrix defining general linear constraints.
+#' @param B Matrix of bottom level base forecast samples.
+#' @param upper_base_forecasts_H List of upper base forecasts for hierarchical constraints.
+#' @param in_typeH Character string specifying input type for H forecasts ('pmf', 'samples', or 'params').
+#' @param distr_H Character string specifying distribution type for H forecasts ('poisson' or 'nbinom').
+#' @param upper_base_forecasts_G List of upper base forecasts for general constraints.
+#' @param in_typeG Character string specifying input type for G forecasts ('pmf', 'samples', or 'params').
+#' @param distr_G Character string specifying distribution type for G forecasts ('poisson' or 'nbinom').
+#' @param .comp_w Function to compute weights for importance sampling. Default is `.compute_weights`.
+#' @param suppress_warnings Logical. If TRUE, suppresses warnings about sample quality. Default is FALSE.
+#'
+#' @return A list containing:
+#'   \itemize{
+#'     \item `bottom_reconciled`: List with reconciled bottom forecasts (pmf and/or samples).
+#'     \item `upper_reconciled_H`: List with reconciled upper forecasts for H constraints.
+#'     \item `upper_reconciled_G`: List with reconciled upper forecasts for G constraints.
+#'   }
+#'
+#' @keywords internal
+#' @noRd
+#' @export
 .core_reconc_BUIS <- function(A, 
                    H, G, 
                    B,
@@ -427,10 +455,8 @@ reconc_BUIS <- function(A,
     }
     if(!(check_weights.res$warning & (1 %in% check_weights.res$warning_code))){
       B = .resample(B, weights)
-    }
-    
+    }    
   }
-
   return(B)
   
 }

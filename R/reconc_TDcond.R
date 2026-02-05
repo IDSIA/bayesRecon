@@ -273,7 +273,41 @@ reconc_TDcond = function(A, fc_bottom, fc_upper,
   return(out)
 }
 
-
+#' Core Reconciliation via Top-Down Conditioning for Mixed Hierarchies
+#'
+#' Internal function that performs the core reconciliation logic using top-down conditioning 
+#' (TD) for mixed hierarchies. First, upper forecasts are reconciled analytically via conditioning 
+#' (if necessary), then bottom distributions are updated through probabilistic top-down procedure 
+#' by conditioning on the reconciled upper values.
+#'
+#' @param A Matrix (n_upper x n_bottom) defining the hierarchy where upper = A %*% bottom.
+#' @param mu_u Vector of mean forecasts for upper level.
+#' @param Sigma_u Covariance matrix of upper level forecasts.
+#' @param L_pmf List of PMF objects representing the bottom level base forecasts.
+#' @param num_samples Number of samples to draw from the reconciled distribution.
+#' @param return_type Character string specifying return format: 'pmf', 'samples', or 'all'.
+#' @param suppress_warnings Logical. If TRUE, suppresses warnings about samples outside support. Default is FALSE.
+#'
+#' @return A list containing:
+#'   \itemize{
+#'     \item `bottom_reconciled`: List with reconciled bottom forecasts (pmf and/or samples).
+#'     \item `upper_reconciled`: List with reconciled upper forecasts (pmf and/or samples).
+#'   }
+#'
+#' @details
+#' The function internally:
+#' \enumerate{
+#'   \item Identifies the "lowest upper" nodes in the hierarchy.
+#'   \item If all uppers are lowest-uppers, samples directly from the upper MVN. Otherwise, 
+#'         analytically reconciles the upper hierarchy and samples from the lowest level.
+#'   \item Reconciles bottom distributions by conditioning on the sampled/reconciled upper values 
+#'         using the probabilistic top-down algorithm.
+#'   \item Discards samples that fall outside the support of the bottom-up distribution.
+#' }
+#'
+#' @keywords internal
+#' @noRd
+#' @export
 # Core function for TDcond reconciliation
 .core_reconc_TDcond = function(A, mu_u, Sigma_u, L_pmf, num_samples,
                                 return_type, suppress_warnings) {
@@ -347,8 +381,6 @@ reconc_TDcond = function(A, fc_bottom, fc_upper,
   }
   U = A %*% B              # dim: n_upper x num_samples
 
-  #undefined_variable_to_break_checks = some_nonexistent_variable + 42
-  
   # Prepare output: include the marginal pmfs and/or the samples (depending on "return" inputs)
   out = list(bottom_reconciled=list(), upper_reconciled=list())
   if (return_type %in% c('pmf', 'all')) {
@@ -361,28 +393,6 @@ reconc_TDcond = function(A, fc_bottom, fc_upper,
     out$bottom_reconciled$samples = B
     out$upper_reconciled$samples = U
   } 
-
   return(out)
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

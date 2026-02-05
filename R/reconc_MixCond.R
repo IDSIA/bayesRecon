@@ -128,9 +128,6 @@ reconc_MixCond = function(A, fc_bottom, fc_upper,
                   bottom_in_type, distr,
                   return_type)
   
-  n_u = nrow(A)
-  n_b = ncol(A)
-  
   # Prepare samples from the base bottom distribution
   if (bottom_in_type == "pmf") {
     B = lapply(fc_bottom, PMF.sample, N_samples=num_samples)
@@ -148,18 +145,44 @@ reconc_MixCond = function(A, fc_bottom, fc_upper,
   mu_u    = fc_upper$mu
   Sigma_u = as.matrix(fc_upper$Sigma)
 
-  out = .core_reconc_MixCond(A , B, fc_upper, mu_u, Sigma_u, num_samples, n_u, n_b, 
+  out = .core_reconc_MixCond(A , B, mu_u, Sigma_u, num_samples,
                               return_type, suppress_warnings)
   
   return(out)
 }
 
 
-# Core function for MixCond reconciliation
-.core_reconc_MixCond = function(A, B, fc_upper, mu_u, Sigma_u, num_samples, n_u, n_b,
-                                 return_type, suppress_warnings) {
-  
+#' Core Reconciliation via Importance Sampling for Mixed Hierarchies
+#'
+#' Internal function that performs the core reconciliation logic using importance sampling 
+#' (IS) to reconcile mixed-type hierarchies. The base bottom forecasts (provided as samples) 
+#' are reweighted according to their fit to the upper multivariate Gaussian forecasts.
+#'
+#' @param A Matrix (n_upper x n_bottom) defining the hierarchy where upper = A %*% bottom.
+#' @param B Matrix (n_samples x n_bottom) of bottom base forecast samples to be reconciled.
+#' @param mu_u Vector of upper level means.
+#' @param Sigma_u Covariance matrix of upper level.
+#' @param num_samples Number of samples to draw/resample from.
+#' @param return_type Character string specifying return format: 'pmf', 'samples', or 'all'.
+#' @param suppress_warnings Logical. If TRUE, suppresses warnings about sample quality. Default is FALSE.
 
+#' @return A list containing:
+#'   \itemize{
+#'     \item `bottom_reconciled`: List with reconciled bottom forecasts (pmf and/or samples).
+#'     \item `upper_reconciled`: List with reconciled upper forecasts (pmf and/or samples).
+#'     \item `ESS`: Effective Sample Size resulting from importance sampling reweighting.
+#'   }
+#'
+#' @keywords internal
+#' @noRd
+#' @export
+# Core function for MixCond reconciliation
+.core_reconc_MixCond = function(A, B, mu_u, Sigma_u, num_samples, return_type, suppress_warnings) {
+
+  # Get dimensions
+  n_u = nrow(A)
+  n_b = ncol(A)
+  
   # IS using MVN
   U = B %*% t(A)
   weights = .MVN_density(x=U, mu = mu_u, Sigma = Sigma_u)
