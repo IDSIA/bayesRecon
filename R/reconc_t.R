@@ -95,6 +95,8 @@ compute_naive_cov = function(y_train, freq = 1, criterion = "RSS") {
 #' * `convergence`: The convergence status of the optimizer.
 #' * `time_elapsed`: The time taken for the optimization.
 #'
+#' @import nloptr
+#'
 #' @export
 multi_log_score_optimization <- function(res, prior_mean, trim = 0.1) {
   
@@ -257,6 +259,7 @@ reconc_t = function(A,
   # If posterior not provided, first check that residuals are provided
   } else {
     L = nrow(residuals)  # number of residual samples (i.e., training length)
+    n = length(point_fc)  # number of series
     # TODO: implement fallback
     Samp_cov = crossprod(residuals) / nrow(residuals)  # sample covariance of the residuals
     Samp_cov = (1 - l_shr)*Samp_cov + l_shr*diag(diag(Samp_cov))  # apply shrinkage to stabilize
@@ -397,7 +400,6 @@ reconc_t = function(A,
     out$upper_df = nu_tilde
   }
   if (return_parameters) {
-    out$prior_nu = nu_prior
     out$posterior_nu = nu_post
     out$posterior_Psi = Psi_post
     out$C = C

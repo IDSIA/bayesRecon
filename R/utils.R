@@ -350,18 +350,7 @@
       if (!is.numeric(freq) | length(freq)!=1 | freq<1 | (freq %% 1)!=0) {
         stop("Input error: freq must be a positive integer")
       }
-      
-      cov_naive = compute_naive_cov(y_train, freq)
-      
-      bayesian_LOO = multi_log_score_optimization(residuals, cov_naive)
-      
-      nu_prior = bayesian_LOO$optimal_nu
-      Psi_prior = (nu_prior - n - 1) * cov_naive
     }
-    
-    # Compute posterior parameters
-    Psi_post = Psi_prior + L * Samp_cov
-    nu_post = nu_prior + nrow(residuals)
   }
 
   if (!.check_positive_number(l_shr) | l_shr > 1) {

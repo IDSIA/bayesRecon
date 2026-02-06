@@ -38,7 +38,8 @@ Depends: R (>= 4.1.0)
 Imports:
     stats,
     utils,
-    lpSolve (>= 5.6.18)
+       lpSolve (>= 5.6.18),
+       nloptr
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown=TRUE)
