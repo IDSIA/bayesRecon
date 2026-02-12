@@ -40,8 +40,7 @@ the upper forecasts are multivariate Gaussian and the bottom forecasts are discr
 \item \code{\link[=get_reconc_matrices]{get_reconc_matrices()}}: aggregation and summing matrices for a temporal hierarchy
 of time series from user-selected list of aggregation levels;
 \item \code{\link[=schaferStrimmer_cov]{schaferStrimmer_cov()}}: computes the Schäfer-Strimmer shrinkage estimator for the covariance matrix;
-\item \code{\link[=PMF.get_mean]{PMF.get_mean()}}, \code{\link[=PMF.get_var]{PMF.get_var()}}, \code{\link[=PMF.get_quantile]{PMF.get_quantile()}}, \code{\link[=PMF.summary]{PMF.summary()}}, \code{\link[=PMF.sample]{PMF.sample()}}:
-functions for handling PMF objects.
+\item \link{PMF}: functions for handling PMF objects (sampling, computing statistics like mean, variance, quantiles, and summaries).
 }
 }
 

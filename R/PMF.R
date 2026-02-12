@@ -124,19 +124,33 @@ PMF.from_params = function(params, distr, Rtoll = .RTOLL) {
   return(pmf)
 }
 
-#' @title Sample from the distribution given as a PMF object
+#' @title PMF operations and utilities
 #'
 #' @description
 #' 
-#' Samples (with replacement) from the probability distribution specified by `pmf`.
+#' A set of functions for working with Probability Mass Functions (PMFs) in bayesRecon.
+#' A PMF is represented as a normalized numeric vector where element `v[j+1]` represents
+#' the probability of value `j` (support starts from 0).
 #' 
-#' @param pmf the PMF object.
-#' @param N_samples number of samples. 
+#' These functions provide utilities for:
+#' * Drawing samples from PMFs
+#' * Computing summary statistics (mean, variance, quantiles)
+#' * Summarizing PMF distributions
 #' 
-#' @return Samples drawn from the distribution specified by `pmf`.  
-#' @seealso [PMF.get_mean()], [PMF.get_var()], [PMF.get_quantile()], [PMF.summary()]
+#' @usage
+#' PMF.sample(pmf, N_samples)
+#' PMF.get_mean(pmf)
+#' PMF.get_var(pmf)
+#' PMF.get_quantile(pmf, p)
+#' PMF.summary(pmf, Ltoll = .TOLL, Rtoll = .RTOLL)
 #' 
-#' @examples 
+#' @param pmf A PMF object (numeric vector where element j+1 is the probability of value j).
+#' @param N_samples Number of samples to draw from the PMF.
+#' @param p Probability level for quantile computation (between 0 and 1).
+#' @param Ltoll Lower tolerance for computing the minimum of the PMF (default: 1e-15).
+#' @param Rtoll Upper tolerance for computing the maximum of the PMF (default: 1e-9).
+#'
+#' @examples
 #' library(bayesRecon)
 #' 
 #' # Let's build the pmf of a Binomial distribution with parameters n and p
@@ -148,40 +162,55 @@ PMF.from_params = function(params, distr, Rtoll = .RTOLL) {
 #' set.seed(1)
 #' samples <- PMF.sample(pmf=pmf_binomial,N_samples = 1e4)
 #' 
-#' # Plot the histogram computed with the samples and the true value of the PMF
-#' hist(samples,breaks=seq(0,n),freq=FALSE)
-#' points(seq(0,n)-0.5,pmf_binomial,pch=16)
+#' # Compute statistics
+#' PMF.get_mean(pmf_binomial)      # Mean: should be close to n*p = 6
+#' PMF.get_var(pmf_binomial)       # Variance: should be close to n*p*(1-p) = 2.4
+#' PMF.get_quantile(pmf_binomial, 0.5)  # Median
+#' PMF.summary(pmf_binomial)       # Full summary
 #' 
+#' @section Functions:
+#' 
+#' \describe{
+#'   \item{\code{PMF.sample(pmf, N_samples)}}{
+#'     Draws random samples from the probability distribution specified by the PMF.
+#'     Uses sampling with replacement from the discrete support values, weighted by 
+#'     their probabilities. This is useful for generating synthetic data or for 
+#'     Monte Carlo simulations.
+#'   }
+#'   
+#'   \item{\code{PMF.get_mean(pmf)}}{
+#'     Computes the expected value (mean) of the distribution represented by the PMF.
+#'     The mean is calculated as the sum of each value in the support weighted by 
+#'     its probability: \eqn{\sum_{x} x \cdot P(X=x)}.
+#'   }
+#'   
+#'   \item{\code{PMF.get_var(pmf)}}{
+#'     Computes the variance of the distribution represented by the PMF.
+#'     The variance measures the spread of the distribution and is calculated as
+#'     \eqn{E[X^2] - (E[X])^2}, where \eqn{E[X]} is the mean.
+#'   }
+#'   
+#'   \item{\code{PMF.get_quantile(pmf, p)}}{
+#'     Computes the quantile of the distribution at probability level \code{p}.
+#'     Returns the smallest value \code{x} such that the cumulative probability up to \code{x}
+#'     is greater than or equal to \code{p}. For example, \code{p=0.5} gives the median.
+#'   }
+#'   
+#'   \item{\code{PMF.summary(pmf, Ltoll, Rtoll)}}{
+#'     Provides a comprehensive summary of the distribution including minimum, maximum,
+#'     quartiles, median, and mean. The minimum and maximum are determined based on
+#'     probability thresholds to handle the potentially infinite tails of discrete distributions.
+#'   }
+#' }
+#' 
+#' @name PMF
 #' @export
 PMF.sample = function(pmf, N_samples) {
   s = sample(0:(length(pmf)-1), prob = pmf, replace = TRUE, size = N_samples)
   return(s)
 }
 
-#' @title Get the mean of the distribution from a PMF object
-#'
-#' @description
-#' 
-#' Returns the mean from the PMF specified by `pmf`.
-#' 
-#' @param pmf the PMF object.
-#' 
-#' @examples
-#' library(bayesRecon)
-#' 
-#' # Let's build the pmf of a Binomial distribution with parameters n and p
-#' n <- 10
-#' p <- 0.6 
-#' pmf_binomial <- apply(matrix(seq(0,10)),MARGIN=1,FUN=function(x) dbinom(x,size=n,prob=p))
-#' 
-#' 
-#' # The true mean corresponds to n*p
-#' true_mean <- n*p
-#' mean_from_PMF <- PMF.get_mean(pmf=pmf_binomial)
-#' cat("True mean:", true_mean, "\nMean from PMF:", mean_from_PMF)
-#' 
-#' @return A numerical value for mean of the distribution.  
-#' @seealso [PMF.get_var()], [PMF.get_quantile()], [PMF.sample()], [PMF.summary()]
+#' @rdname PMF
 #' @export
 PMF.get_mean = function(pmf) {
   supp = 0:(length(pmf)-1)
@@ -189,29 +218,7 @@ PMF.get_mean = function(pmf) {
   return(m)
 }
 
-#' @title Get the variance of the distribution from a PMF object
-#'
-#' @description
-#' 
-#' Returns the variance from the PMF specified by `pmf`.
-#' 
-#' @param pmf the PMF object.
-#' 
-#' @examples 
-#' library(bayesRecon)
-#' 
-#' # Let's build the pmf of a Binomial distribution with parameters n and p
-#' n <- 10
-#' p <- 0.6 
-#' pmf_binomial <- apply(matrix(seq(0,10)),MARGIN=1,FUN=function(x) dbinom(x,size=n,prob=p))
-#' 
-#' # The true variance corresponds to n*p*(1-p)
-#' true_var <- n*p*(1-p)
-#' var_from_PMF <- PMF.get_var(pmf=pmf_binomial)
-#' cat("True variance:", true_var, "\nVariance from PMF:", var_from_PMF)
-#' 
-#' @return A numerical value for variance.  
-#' @seealso [PMF.get_mean()], [PMF.get_quantile()], [PMF.sample()], [PMF.summary()]
+#' @rdname PMF
 #' @export
 PMF.get_var = function(pmf) {
   supp = 0:(length(pmf)-1)
@@ -220,30 +227,7 @@ PMF.get_var = function(pmf) {
 }
 
 
-#' @title Get quantile from a PMF object
-#'
-#' @description
-#' 
-#' Returns the `p` quantile from the PMF specified by `pmf`.
-#' 
-#' @param pmf the PMF object.
-#' @param p the probability of the required quantile.
-#' 
-#' @examples 
-#' library(bayesRecon)
-#' 
-#' # Let's build the pmf of a Binomial distribution with parameters n and p
-#' n <- 10
-#' p <- 0.6 
-#' pmf_binomial <- apply(matrix(seq(0,10)),MARGIN=1,FUN=function(x) dbinom(x,size=n,prob=p))
-#' 
-#' # The true median is ceiling(n*p)
-#' quant_50 <- PMF.get_quantile(pmf=pmf_binomial,p=0.5)
-#' cat("True median:", ceiling(n*p), "\nMedian from PMF:", quant_50)
-#'
-#' 
-#' @return A numeric value for the quantile.  
-#' @seealso [PMF.get_mean()], [PMF.get_var()], [PMF.sample()], [PMF.summary()]
+#' @rdname PMF
 #' @export
 PMF.get_quantile = function(pmf, p) {
   if (p <= 0 | p >= 1) {
@@ -255,32 +239,7 @@ PMF.get_quantile = function(pmf, p) {
 }
 
 
-#' @title Returns summary of a PMF object
-#'
-#' @description
-#' 
-#' Returns the summary (min, max, IQR, median, mean) of the PMF specified by `pmf`.
-#' 
-#' @param pmf the PMF object.
-#' @param Ltoll used for computing the min of the PMF: the min is the smallest value
-#'        with probability greater than Ltoll (default: 1e-15) 
-#' @param Rtoll used for computing the max of the PMF: the max is the largest value
-#'        with probability greater than Rtoll (default: 1e-9)
-#' 
-#' @examples 
-#' library(bayesRecon)
-#' 
-#' # Let's build the pmf of a Binomial distribution with parameters n and p
-#' n <- 10
-#' p <- 0.6 
-#' pmf_binomial <- apply(matrix(seq(0,10)),MARGIN=1,FUN=function(x) dbinom(x,size=n,prob=p))
-#' 
-#' # Print the summary of this distribution
-#' PMF.summary(pmf=pmf_binomial)
-#'
-#' 
-#' @return A summary data.frame
-#' @seealso [PMF.get_mean()], [PMF.get_var()], [PMF.get_quantile()], [PMF.sample()]
+#' @rdname PMF
 #' @export
 PMF.summary = function(pmf, Ltoll=.TOLL, Rtoll=.RTOLL) {
   min_pmf = min(which(pmf > Ltoll)) - 1
@@ -412,5 +371,3 @@ PMF.tempering = function(pmf, temp) {
   temp_pmf = pmf**(1/temp)
   return(temp_pmf / sum(temp_pmf))
 }
-
-
