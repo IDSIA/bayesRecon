@@ -87,9 +87,21 @@
   return(indices_sol)
 }
 
-# Function that extract the "best hierarchy rows" from A (see .get_hier_rows), 
-# and sorts them in the correct order (i.e. bottom-up)
-# Also sorts accordingly the vectors v, d, it (e.g. of parameters)
+#' Extract and sort hierarchy rows
+#'
+#' Function that extracts the "best hierarchy rows" from A (see .get_hier_rows),
+#' and sorts them in the correct order (i.e. bottom-up).
+#' Also sorts accordingly the vectors v, d, it (e.g. of parameters).
+#'
+#' @param A Aggregation matrix
+#' @param v Vector of values
+#' @param d Distribution parameters
+#' @param it Input type parameters
+#'
+#' @return List containing sorted hierarchy rows and remaining rows
+#'
+#' @keywords internal
+#' @export
 .get_HG <- function(A, v, d, it) {
   #get the indices of the "hierarchy rows" of A
   indices_sol <- .get_hier_rows(A)
@@ -327,7 +339,16 @@ get_reconc_matrices <- function(agg_levels, h) {
   return(out)
 }
 
-# Returns TRUE if A is a hierarchy matrix 
+#' Check if matrix is hierarchical
+#'
+#' Returns TRUE if A is a hierarchy matrix.
+#'
+#' @param A Aggregation matrix
+#'
+#' @return Logical value indicating if matrix is hierarchical
+#'
+#' @keywords internal
+#' @export
 .check_hierarchical <- function(A) {
   
   k <- nrow(A)
@@ -372,7 +393,18 @@ get_reconc_matrices <- function(agg_levels, h) {
   return(TRUE)
 }
 
-# Find the rows of A corresponding to the lowest level
+#' Find rows corresponding to the lowest level
+#'
+#' Identifies the rows of aggregation matrix A that correspond to the lowest
+#' hierarchical level (i.e., the most disaggregated upper variables that
+#' collectively sum to all bottom variables).
+#'
+#' @param A Aggregation matrix (must be hierarchical)
+#'
+#' @return Integer vector of row indices corresponding to the lowest level
+#'
+#' @keywords internal
+#' @export
 .lowest_lev <- function(A) {
   
   if (!.check_hierarchical(A)) stop("Matrix A is not hierarchical")
@@ -413,8 +445,21 @@ get_reconc_matrices <- function(agg_levels, h) {
   return(low_rows_A)
 }
 
-
-# Get the aggregation matrix Au of the sub-hierarchy composed just by the uppers 
+#' Get aggregation matrix of upper sub-hierarchy
+#'
+#' Constructs the aggregation matrix Au for the sub-hierarchy composed only
+#' of the upper variables. This matrix relates the "upper uppers" to the 
+#' "lowest uppers" (the most disaggregated level of the upper hierarchy).
+#'
+#' @param A Aggregation matrix (must be hierarchical)
+#' @param lowest_rows Optional. Integer vector of row indices corresponding to
+#'   the lowest upper level. If NULL, computed using `.lowest_lev(A)`.
+#'
+#' @return Aggregation matrix for the upper sub-hierarchy, or NULL if all
+#'   uppers are at the lowest level.
+#'
+#' @keywords internal
+#' @export
 .get_Au <- function(A, lowest_rows=NULL) {
   
   if (is.null(lowest_rows)) lowest_rows = .lowest_lev(A)
