@@ -24,8 +24,7 @@
 #' * [get_reconc_matrices()]: aggregation and summing matrices for a temporal hierarchy 
 #'    of time series from user-selected list of aggregation levels;
 #' * [schaferStrimmer_cov()]: computes the Schäfer-Strimmer shrinkage estimator for the covariance matrix;
-#' * [PMF.get_mean()], [PMF.get_var()], [PMF.get_quantile()], [PMF.summary()], [PMF.sample()]: 
-#'    functions for handling PMF objects.
+#' * [PMF]: functions for handling PMF objects (sampling, computing statistics like mean, variance, quantiles, and summaries).
 #'
 #' @references
 #' Corani, G., Azzimonti, D., Augusto, J.P.S.C., Zaffalon, M. (2021). 
