@@ -349,44 +349,51 @@ get_reconc_matrices <- function(agg_levels, h) {
 #' @keywords internal
 #' @export
 .check_hierarchical <- function(A) {
-  k <- nrow(A)
-  m <- ncol(A)
-
-  for (i in 1:k) {
-    for (j in 1:k) {
-      if (i < j) {
-        if (sum(A[i, ] * A[j, ]) != 0) { # Upper i and j have some common descendants
-          if (any(A[j, ] > A[i, ])) { # Upper j is not a descendant of upper i
-            if (any(A[i, ] > A[j, ])) { # Upper i is not a descendant of upper j
-              return(FALSE)
-            }
-          }
-        }
-      }
-    }
-  }
-
-  return(TRUE)
+  
+  # Number of bottom series shared by upper i and upper j:
+  overlaps <- tcrossprod(A)
+  # Number of bottom series for each upper:
+  node_sizes <- diag(overlaps)
+  
+  # Find indices that are non-zero and in the upper triangle (i < j)
+  nz_idx <- which(overlaps != 0 & upper.tri(overlaps, diag = FALSE), arr.ind = TRUE)
+  # If no off-diagonal overlaps exist, it's a hierarchy
+  if (nrow(nz_idx) == 0) return(TRUE)
+  
+  # Extract intersection values and sizes of the two nodes for overlapping pairs
+  intersections <- overlaps[nz_idx]
+  size_i <- node_sizes[nz_idx[, 1]]
+  size_j <- node_sizes[nz_idx[, 2]]
+  
+  # Hierarchy Condition: if two nodes overlap, one must be a subset of the other
+  # If smaller than both sizes, then neither is a subset of the other, which violates hierarchy
+  violations <- (intersections < size_i) & (intersections < size_j)
+  
+  return(!any(violations))
 }
 
-# Check if A is a hierarchical matrix and if the rows are in bottom-up order
+# Check if A is a hierarchical matrix and if the rows are in bottom-up order,
+# i.e., parents appear after children
 .check_BU_matr <- function(A) {
-  k <- nrow(A)
-  m <- ncol(A)
-
-  for (i in 1:k) {
-    for (j in 1:k) {
-      if (i < j) {
-        cond1 <- A[i, ] %*% A[j, ] != 0 # Upper i and j have some common descendants
-        cond2 <- any(A[i, ] > A[j, ]) # Upper i is not a descendant of upper j
-        if (cond1 & cond2) {
-          return(FALSE)
-        }
-      }
-    }
-  }
-
-  return(TRUE)
+  
+  # Number of bottom series shared by upper i and upper j:
+  overlaps <- tcrossprod(A)
+  # Number of bottom series for each upper:
+  node_sizes <- diag(overlaps)
+  
+  # Find indices that are non-zero and in the upper triangle (i < j)
+  nz_idx <- which(overlaps != 0 & upper.tri(overlaps, diag = FALSE), arr.ind = TRUE)
+  # If there are no overlaps in the upper triangle (disjoint series), order is fine.
+  if (nrow(nz_idx) == 0) return(TRUE)
+  
+  # Extract intersection values and size of the first node of each overlapping pair
+  intersections <- overlaps[nz_idx]
+  size_i <- node_sizes[nz_idx[, 1]]
+  
+  # i is not a subset of j IFF intersection(i, j) < size(i)
+  violations <- intersections < size_i
+  
+  return(!any(violations))
 }
 
 #' Find rows corresponding to the lowest level
@@ -402,32 +409,38 @@ get_reconc_matrices <- function(agg_levels, h) {
 #' @keywords internal
 #' @export
 .lowest_lev <- function(A) {
+  
+  if (nrow(A) == 1) return(1)
+  
   if (!.check_hierarchical(A)) stop("Matrix A is not hierarchical")
 
   # First, only keep unique rows of A
   A_uni <- unique(A)
-
+  
+  # Number of bottom series shared by upper i and upper j:
+  overlaps <- tcrossprod(A_uni)
+  # Number of bottom series for each upper:
+  sizes <- diag(overlaps)
+  
+  # Logic: row i is a parent if there exists another row j such that:
+  #   a) j is strictly smaller than i (sizes[j] < sizes[i])
+  #   b) j is fully contained in i (overlaps[i,j] == sizes[j])
+  
   k <- nrow(A_uni)
-  m <- ncol(A_uni)
-
-  low_rows_A_uni <- c()
+  is_parent <- logical(k)
+  
   for (i in 1:k) {
-    low_rows_A_uni <- c(low_rows_A_uni, i)
-    for (j in 1:k) {
-      if (i != j) {
-        # If upper j is a descendant of upper i, remove i and exit loop
-        if (all(A_uni[j, ] <= A_uni[i, ])) {
-          low_rows_A_uni <- low_rows_A_uni[-length(low_rows_A_uni)]
-          break
-        }
-      }
+    # Check against all other rows 'j'
+    # Condition: Intersection count equals size of j (j is subset) AND size j < size i
+    children_mask = (overlaps[i, ] == sizes) & (sizes < sizes[i])
+    if (any(children_mask)) {
+      is_parent[i] <- TRUE
     }
   }
-  # keep all rows except those that have no descendants among the uppers
 
-  # Now, change the indices of the lowest rows to match with A (instead of A_un)
+  # Now, change the indices of the lowest rows to match with A (instead of A_uni)
   # If there are duplicated rows for some lowest rows, only take one copy
-  low_rows_A <- (1:nrow(A))[!duplicated(A)][low_rows_A_uni]
+  low_rows_A <- (1:nrow(A))[!duplicated(A)][!is_parent]
 
   # The sum of the rows corresponding to the lowest level should be a vector of 1
   if (any(colSums(A[low_rows_A, , drop = FALSE]) != 1)) {
@@ -456,6 +469,7 @@ get_reconc_matrices <- function(agg_levels, h) {
 #' @keywords internal
 #' @export
 .get_Au <- function(A, lowest_rows = NULL) {
+  
   if (is.null(lowest_rows)) lowest_rows <- .lowest_lev(A)
 
   if (length(lowest_rows) == nrow(A)) {
