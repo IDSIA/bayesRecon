@@ -108,12 +108,16 @@ reconc_gaussian <- function(A, base_forecasts.mu,
   # Formulation from:
   # Zambon, L., et al. "Properties of the reconciled distributions for
   # Gaussian and count forecasts." (2023)
-  Q = Sigma_u - Sigma_ub %*% t(A) - A %*% t(Sigma_ub) + A %*% Sigma_b %*% t(A)
+  Sigma_ub_At = tcrossprod(Sigma_ub, A)
+  Sigma_b_At  = tcrossprod(Sigma_b, A)
+  Q = Sigma_u - Sigma_ub_At - t(Sigma_ub_At) + A %*% Sigma_b_At 
   # we only need to check if Q is p.d.
   .check_cov(Q, "Q", pd_check=TRUE, symm_check=FALSE)
-  invQ = solve(Q)
-  mu_b_tilde = mu_b + (t(Sigma_ub) - Sigma_b %*% t(A)) %*% invQ %*% (A %*% mu_b - mu_u)
-  Sigma_b_tilde = Sigma_b - (t(Sigma_ub) - Sigma_b %*% t(A)) %*% invQ %*% t(t(Sigma_ub) - Sigma_b %*% t(A))
+  temp_diff <- t(Sigma_ub) - Sigma_b_At
+  K <- t(solve(Q, t(temp_diff)))  # equal to temp_diff %*% Q^-1
+  
+  mu_b_tilde    <- mu_b + K %*% (A %*% mu_b - mu_u)
+  Sigma_b_tilde <- Sigma_b - K %*% t(temp_diff)
 
   out = list(
     bottom_reconciled_mean = mu_b_tilde,
