@@ -7,6 +7,9 @@
 #' @param A aggregation matrix (n_upper x n_bottom).
 #' @param base_forecasts.mu a vector containing the means of the base forecasts.
 #' @param base_forecasts.Sigma a matrix containing the covariance matrix of the base forecasts.
+#' @param residuals a matrix with the residuals of the base forecasts, with n_upper + n_bottom columns. 
+#' The covariance matrix of the base forecasts is computed from the residuals using the Schäfer Strimmer shrinkage estimator.
+#' If base_forecasts.Sigma is provided, residuals are ignored. 
 #'
 #' @details
 #' In the vector of the means of the base forecasts the order must be: first the upper, 
@@ -84,21 +87,39 @@
 #'
 #' @export
 reconc_gaussian <- function(A, base_forecasts.mu,
-                            base_forecasts.Sigma) {
+                            base_forecasts.Sigma = NULL,
+                            residuals = NULL) {
   # Check matrix A 
   .check_A(A)
-  k = nrow(A)    #number of upper TS
-  m = ncol(A)    #number of bottom TS
-  n = length(base_forecasts.mu) #total number of TS
-
-  # Ensure that data inputs are valid
-  if (!(nrow(base_forecasts.Sigma) == n)) {
-    stop("Input error: nrow(base_forecasts.Sigma) != length(base_forecasts.mu)")
-  }
+  k = nrow(A)    # number of upper TS
+  m = ncol(A)    # number of bottom TS
+  n = length(base_forecasts.mu) # total number of TS
   if (!(k + m == n)) {
     stop("Input error: the shape of A is not correct")
   }
-  .check_cov(base_forecasts.Sigma, "Sigma", pd_check=FALSE, symm_check=TRUE)
+  
+  # If residuals are not provided, base_forecasts.Sigma must be provided
+  if (is.null(residuals)) {
+    if (is.null(base_forecasts.Sigma)) {
+      stop("Input error: either residuals or base_forecasts.Sigma must be provided")
+    }
+    if (!(nrow(base_forecasts.Sigma) == n)) {
+      stop("Input error: nrow(base_forecasts.Sigma) != length(base_forecasts.mu)")
+    }
+    .check_cov(base_forecasts.Sigma, "Sigma", pd_check=FALSE, symm_check=TRUE)
+  
+    } else {
+      if (!is.null(base_forecasts.Sigma)) {
+        warning("Input warning: both residuals and base_forecasts.Sigma are provided, ignoring residuals")
+        .check_cov(base_forecasts.Sigma, "Sigma", pd_check=FALSE, symm_check=TRUE)
+      } else if (ncol(residuals) != n) {
+        stop("Input error: ncol(residuals) != length(base_forecasts.mu)")
+      } else {
+        # Compute the covariance matrix of the base forecasts from the residuals
+        base_forecasts.Sigma <- schaferStrimmer_cov(residuals)$shrink_cov
+      }
+    }
+  
   Sigma_u  = base_forecasts.Sigma[1:k, 1:k]
   Sigma_b  = base_forecasts.Sigma[(k+1):n, (k+1):n]
   Sigma_ub = base_forecasts.Sigma[1:k, (k+1):n, drop=FALSE]
