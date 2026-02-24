@@ -48,22 +48,24 @@ See the example section.
 library(bayesRecon)
 
 # Create a minimal hierarchy with 2 bottom and 1 upper variable
-A <- get_reconc_matrices(agg_levels=c(1,2), h=2)$A
+A <- get_reconc_matrices(agg_levels = c(1, 2), h = 2)$A
 
-#Set the parameters of the Gaussian base forecast distributions
+# Set the parameters of the Gaussian base forecast distributions
 mu1 <- 2
 mu2 <- 4
 muY <- 9
-mus <- c(muY,mu1,mu2)
+mus <- c(muY, mu1, mu2)
 
 sigma1 <- 2
 sigma2 <- 2
 sigmaY <- 3
-sigmas <- c(sigmaY,sigma1,sigma2)
+sigmas <- c(sigmaY, sigma1, sigma2)
 
-Sigma <- diag(sigmas^2)  # need to transform into covariance matrix
-analytic_rec <- reconc_gaussian(A, base_forecasts.mu = mus,
-                               base_forecasts.Sigma = Sigma)
+Sigma <- diag(sigmas^2) # need to transform into covariance matrix
+analytic_rec <- reconc_gaussian(A,
+  base_forecasts.mu = mus,
+  base_forecasts.Sigma = Sigma
+)
 
 bottom_mu_reconc <- analytic_rec$bottom_reconciled_mean
 bottom_Sigma_reconc <- analytic_rec$bottom_reconciled_covariance
@@ -73,18 +75,18 @@ upper_mu_reconc <- A \%*\% bottom_mu_reconc
 upper_Sigma_reconc <- A \%*\% bottom_Sigma_reconc \%*\% t(A)
 
 # Obtain reconciled mu and Sigma for the entire hierarchy
-S <- rbind(A, diag(2))  # first, get summing matrix S
+S <- rbind(A, diag(2)) # first, get summing matrix S
 Y_mu_reconc <- S \%*\% bottom_mu_reconc
-Y_Sigma_reconc <- S \%*\% bottom_Sigma_reconc \%*\% t(S)  # note that this is a singular matrix
+Y_Sigma_reconc <- S \%*\% bottom_Sigma_reconc \%*\% t(S) # note that this is a singular matrix
 
 # Obtain reconciled samples for the entire hierarchy:
 # i.e., sample from the reconciled bottoms and multiply by S
-chol_decomp = chol(bottom_Sigma_reconc) # Compute the Cholesky Decomposition
-Z = matrix(stats::rnorm(n = 2000), nrow = 2) # Sample from standard normal
-B = t(chol_decomp) \%*\% Z + matrix(rep(bottom_mu_reconc, 1000), nrow=2) # Apply the transformation
+chol_decomp <- chol(bottom_Sigma_reconc) # Compute the Cholesky Decomposition
+Z <- matrix(stats::rnorm(n = 2000), nrow = 2) # Sample from standard normal
+B <- t(chol_decomp) \%*\% Z + matrix(rep(bottom_mu_reconc, 1000), nrow = 2) # Apply the transformation
 
-U = S \%*\% B
-Y_reconc = rbind(U, B)
+U <- S \%*\% B
+Y_reconc <- rbind(U, B)
 
 }
 \references{

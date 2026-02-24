@@ -88,17 +88,17 @@ library(bayesRecon)
 
 # Let's build the pmf of a Binomial distribution with parameters n and p
 n <- 10
-p <- 0.6 
-pmf_binomial <- apply(matrix(seq(0,n)),MARGIN=1,FUN=function(x) dbinom(x,size=n,prob=p))
+p <- 0.6
+pmf_binomial <- apply(matrix(seq(0, n)), MARGIN = 1, FUN = function(x) dbinom(x, size = n, prob = p))
 
 # Draw samples from the PMF object
 set.seed(1)
-samples <- PMF.sample(pmf=pmf_binomial,N_samples = 1e4)
+samples <- PMF.sample(pmf = pmf_binomial, N_samples = 1e4)
 
 # Compute statistics
-PMF.get_mean(pmf_binomial)      # Mean: should be close to n*p = 6
-PMF.get_var(pmf_binomial)       # Variance: should be close to n*p*(1-p) = 2.4
-PMF.get_quantile(pmf_binomial, 0.5)  # Median
-PMF.summary(pmf_binomial)       # Full summary
+PMF.get_mean(pmf_binomial) # Mean: should be close to n*p = 6
+PMF.get_var(pmf_binomial) # Variance: should be close to n*p*(1-p) = 2.4
+PMF.get_quantile(pmf_binomial, 0.5) # Median
+PMF.summary(pmf_binomial) # Full summary
 
 }

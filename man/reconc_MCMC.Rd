@@ -67,28 +67,32 @@ The elements from n_upper+1 until the end of the list are the bottom base foreca
 library(bayesRecon)
 
 # Create a minimal hierarchy with 2 bottom and 1 upper variable
-rec_mat <- get_reconc_matrices(agg_levels=c(1,2), h=2)
+rec_mat <- get_reconc_matrices(agg_levels = c(1, 2), h = 2)
 A <- rec_mat$A
 
-#Set the parameters of the Poisson base forecast distributions
+# Set the parameters of the Poisson base forecast distributions
 lambda1 <- 2
 lambda2 <- 4
 lambdaY <- 9
-lambdas <- c(lambdaY,lambda1,lambda2)
+lambdas <- c(lambdaY, lambda1, lambda2)
 
-base_forecasts = list()
+base_forecasts <- list()
 for (i in 1:length(lambdas)) {
- base_forecasts[[i]] = list(lambda = lambdas[i])
+  base_forecasts[[i]] <- list(lambda = lambdas[i])
 }
 
-#Sample from the reconciled forecast distribution using MCMC
-mcmc = reconc_MCMC(A, base_forecasts, distr = "poisson",
-                  num_samples = 30000, seed = 42)
+# Sample from the reconciled forecast distribution using MCMC
+mcmc <- reconc_MCMC(A, base_forecasts,
+  distr = "poisson",
+  num_samples = 30000, seed = 42
+)
 samples_mcmc <- mcmc$reconciled_samples
 
-#Compare the reconciled means with those obtained via BUIS
-buis = reconc_BUIS(A, base_forecasts, in_type="params",
-                   distr="poisson", num_samples=100000, seed=42)
+# Compare the reconciled means with those obtained via BUIS
+buis <- reconc_BUIS(A, base_forecasts,
+  in_type = "params",
+  distr = "poisson", num_samples = 100000, seed = 42
+)
 samples_buis <- buis$reconciled_samples
 
 print(rowMeans(samples_mcmc))

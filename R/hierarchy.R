@@ -1,4 +1,4 @@
-# Function to find the best hierarchy contained in A; 
+# Function to find the best hierarchy contained in A;
 # "best" means that minimizes the number of IS steps required by BUIS.
 # It is not the maximal hierarchy contained in A!
 # Returns a vector with length equal to the number of rows of A
@@ -6,71 +6,73 @@
 .get_hier_rows <- function(A, scale = 196) {
   k <- nrow(A)
   m <- ncol(A)
-  
+
   # matrix C of the coefficients of the non-linear problem
   # (k variables, 1 constraint)
-  
+
   C <- A %*% t(A)
-  
+
   for (i in 1:k) {
     for (j in 1:k) {
       C[i, j] <- C[i, j] * sum((A[i, ] - A[j, ]) * (A[i, ] - A[j, ] - 1)) *
         sum((A[j, ] - A[i, ]) * (A[j, ] - A[i, ] - 1))
     }
   }
-  
+
   #-------------------
   # LINEARIZED PROBLEM
   # Number of variables: k + k^2 + 1
   # Number of constraints: 1 + k^2 + k^2 + k^2 + m
-  
+
   # Set coefficients of the objective function
-  f.obj <- c(rep(-1, k), rep(0, k ^ 2), 1 - 1 / (2 * k))
-  
+  f.obj <- c(rep(-1, k), rep(0, k^2), 1 - 1 / (2 * k))
+
   # Set matrix corresponding to coefficients of constraints by rows
-  
+
   coeff <-
-    c(rep(0, k), as.vector(C), 0) #first constraint
-  
-  M1 <- matrix(0, k ^ 2, k + k ^ 2 + 1)     #z_{ij} <= x_i
+    c(rep(0, k), as.vector(C), 0) # first constraint
+
+  M1 <- matrix(0, k^2, k + k^2 + 1) # z_{ij} <= x_i
   for (i in 1:k) {
     temp <- matrix(0, k, k)
     temp[i, ] <- rep(-1, k)
     M1[, i] <- as.vector(temp)
   }
-  M1[, (k + 1):(k + k ^ 2)] <- diag(1, k ^ 2)
-  
-  M2 <- matrix(0, k ^ 2, k + k ^ 2 + 1)     #z_{ij} <= x_j
+  M1[, (k + 1):(k + k^2)] <- diag(1, k^2)
+
+  M2 <- matrix(0, k^2, k + k^2 + 1) # z_{ij} <= x_j
   for (i in 1:k) {
     temp <- matrix(0, k, k)
     temp[, i] <- rep(-1, k)
     M2[, i] <- as.vector(temp)
   }
-  M2[, (k + 1):(k + k ^ 2)] <- diag(1, k ^ 2)
-  
-  M3 <- matrix(0, k ^ 2, k + k ^ 2 + 1)     #z_{ij} >= x_i + x_j - 1
+  M2[, (k + 1):(k + k^2)] <- diag(1, k^2)
+
+  M3 <- matrix(0, k^2, k + k^2 + 1) # z_{ij} >= x_i + x_j - 1
   M3[, 1:k] <- M1[, 1:k] + M2[, 1:k]
-  M3[, (k + 1):(k + k ^ 2)] <- diag(1, k ^ 2)
-  
-  M4 <- matrix(0, m, k + k ^ 2 + 1)         #\sum_i x_i A_{ij} <= y
+  M3[, (k + 1):(k + k^2)] <- diag(1, k^2)
+
+  M4 <- matrix(0, m, k + k^2 + 1) # \sum_i x_i A_{ij} <= y
   M4[, 1:k] <- t(A)
-  M4[, k + k ^ 2 + 1] <- rep(-1, m)
-  
+  M4[, k + k^2 + 1] <- rep(-1, m)
+
   f.con <- rbind(coeff, M1, M2, M3, M4)
-  
+
   # Set inequality/equality signs
-  f.dir <- c("=",
-             rep("<=", k ^ 2),
-             rep("<=", k ^ 2),
-             rep(">=", k ^ 2),
-             rep("<=", m))
-  
+  f.dir <- c(
+    "=",
+    rep("<=", k^2),
+    rep("<=", k^2),
+    rep(">=", k^2),
+    rep("<=", m)
+  )
+
   # Set right hand side coefficients
-  f.rhs <- c(0, rep(0, k ^ 2), rep(0, k ^ 2), rep(-1, k ^ 2), rep(0, m))
-  
+  f.rhs <- c(0, rep(0, k^2), rep(0, k^2), rep(-1, k^2), rep(0, m))
+
   #---------------------
   # Solve the LP problem
-  
+
   # Variables final values
   indices_sol <-
     lpSolve::lp(
@@ -80,10 +82,10 @@
       f.dir,
       f.rhs,
       all.int = TRUE,
-      binary.vec = 1:(k + k ^ 2),
+      binary.vec = 1:(k + k^2),
       scale = 196
     )$solution[1:k]
-  
+
   return(indices_sol)
 }
 
@@ -103,24 +105,24 @@
 #' @keywords internal
 #' @export
 .get_HG <- function(A, v, d, it) {
-  #get the indices of the "hierarchy rows" of A
+  # get the indices of the "hierarchy rows" of A
   indices_sol <- .get_hier_rows(A)
 
-  #extract rows from A
+  # extract rows from A
   ind_h <- as.logical(indices_sol)
-  H <- matrix(A[ind_h, ],ncol=ncol(A))
+  H <- matrix(A[ind_h, ], ncol = ncol(A))
   v_h <- v[ind_h]
   d_h <- d[ind_h]
   it_h <- it[ind_h]
 
-  #sort bottom-up
+  # sort bottom-up
   ord <- order(rowSums(H))
-  H <- matrix(H[ord, ],ncol=ncol(A))
+  H <- matrix(H[ord, ], ncol = ncol(A))
   v_h <- v_h[ord]
   d_h <- d_h[ord]
   it_h <- it_h[ord]
 
-  #collect remaining rows in matrix G
+  # collect remaining rows in matrix G
   ind_g <- as.logical(1 - indices_sol)
   if (sum(ind_g) == 0) {
     G <- NULL
@@ -128,13 +130,13 @@
     d_g <- NULL
     it_g <- NULL
   } else {
-    G <- matrix(A[ind_g, ],ncol=ncol(A))
+    G <- matrix(A[ind_g, ], ncol = ncol(A))
     v_g <- v[ind_g]
     d_g <- d[ind_g]
     it_g <- it[ind_g]
   }
 
-  out = list(
+  out <- list(
     H = H,
     G = G,
     Hv = v_h,
@@ -145,7 +147,6 @@
     Gin_type = it_g
   )
   return(out)
-
 }
 
 # Functions to generate the monthly and weekly A matrices
@@ -168,7 +169,6 @@
   }
 
   return(rbind(H, G))
-
 }
 .gen_weekly <- function() {
   H <- matrix(0, nrow = 40, ncol = 52)
@@ -189,7 +189,6 @@
   }
 
   return(rbind(H, G))
-
 }
 
 #' @title Temporal aggregation of a time series
@@ -210,45 +209,45 @@
 #' @examples
 #'
 #' # Create a monthly count time series with 100 observations
-#' y <- ts(data=stats::rpois(100,lambda = 2),frequency = 12)
+#' y <- ts(data = stats::rpois(100, lambda = 2), frequency = 12)
 #'
 #' # Create the aggregate time series according to agg_levels
-#' y_agg <- temporal_aggregation(y,agg_levels = c(2,3,4,6,12))
+#' y_agg <- temporal_aggregation(y, agg_levels = c(2, 3, 4, 6, 12))
 #'
 #' # Show annual aggregate time series
 #' print(y_agg$`f=1`)
 #'
 #' @export
-temporal_aggregation <- function(y, agg_levels=NULL) {
-  f = stats::frequency(y)
-  L = length(y)
-  s = stats::time(y)[1]
+temporal_aggregation <- function(y, agg_levels = NULL) {
+  f <- stats::frequency(y)
+  L <- length(y)
+  s <- stats::time(y)[1]
   if (is.null(agg_levels)) {
-    agg_levels = c()
+    agg_levels <- c()
     for (i in 1:f) {
       if (f %% i == 0 && L >= i) {
-        agg_levels = c(agg_levels, i)
+        agg_levels <- c(agg_levels, i)
       }
     }
   } else {
-    agg_levels = sort(agg_levels[agg_levels <= L])
+    agg_levels <- sort(agg_levels[agg_levels <= L])
     if (!(1 %in% agg_levels)) {
-      agg_levels = c(1, agg_levels)
+      agg_levels <- c(1, agg_levels)
     }
   }
-  out = list()
+  out <- list()
   for (i in 1:length(agg_levels)) {
-    k = agg_levels[i]
-    num_aggs = floor(L / k)
-    y_trunc = y[(L - num_aggs*k + 1):L]
-    y_matrix = matrix(y_trunc, nrow = k, ncol = num_aggs)
-    y_start = s + (L - num_aggs * k) / f
-    y_f = f / k
-    y_agg = stats::ts(data = apply(y_matrix, 2, sum), frequency = y_f, start = y_start)
-    out[[i]] = y_agg
+    k <- agg_levels[i]
+    num_aggs <- floor(L / k)
+    y_trunc <- y[(L - num_aggs * k + 1):L]
+    y_matrix <- matrix(y_trunc, nrow = k, ncol = num_aggs)
+    y_start <- s + (L - num_aggs * k) / f
+    y_f <- f / k
+    y_agg <- stats::ts(data = apply(y_matrix, 2, sum), frequency = y_f, start = y_start)
+    out[[i]] <- y_agg
   }
   names(out) <- paste0("f=", f / agg_levels)
-  out = rev(out)
+  out <- rev(out)
   return(out)
 }
 
@@ -266,40 +265,39 @@ temporal_aggregation <- function(y, agg_levels=NULL) {
 #' * `A` the aggregation matrix;
 #' * `S` the summing matrix.
 #'
-#'@examples
+#' @examples
 #'
-#'library(bayesRecon)
+#' library(bayesRecon)
 #'
-#'#Create monthly hierarchy
-#'agg_levels <- c(1,2,3,4,6,12)
-#'h <- 12
-#'rec_mat <- get_reconc_matrices(agg_levels, h)
-#'S <- rec_mat$S
-#'A <- rec_mat$A
+#' # Create monthly hierarchy
+#' agg_levels <- c(1, 2, 3, 4, 6, 12)
+#' h <- 12
+#' rec_mat <- get_reconc_matrices(agg_levels, h)
+#' S <- rec_mat$S
+#' A <- rec_mat$A
 #'
 #' @seealso [temporal_aggregation()]
 #'
 #' @export
 get_reconc_matrices <- function(agg_levels, h) {
-  A = list()
+  A <- list()
   for (i in 1:length(agg_levels)) {
-    k = agg_levels[i]
-    if (k==1) {
+    k <- agg_levels[i]
+    if (k == 1) {
       next
     }
-    k.r = h / k
-    k.A = matrix(data = 0, nrow = k.r, ncol = h)
-    coli = 1
+    k.r <- h / k
+    k.A <- matrix(data = 0, nrow = k.r, ncol = h)
+    coli <- 1
     for (r in 1:k.r) {
-      k.A[r,coli:(coli+k-1)] = 1
-      coli = coli + k
+      k.A[r, coli:(coli + k - 1)] <- 1
+      coli <- coli + k
     }
-    A[[i]] = k.A
-
+    A[[i]] <- k.A
   }
-  A = do.call(rbind, rev(A))
-  S = rbind(A, diag(h))
-  out = list(A=A, S=S)
+  A <- do.call(rbind, rev(A))
+  S <- rbind(A, diag(h))
+  out <- list(A = A, S = S)
   return(out)
 }
 
@@ -307,30 +305,31 @@ get_reconc_matrices <- function(agg_levels, h) {
 .get_A_from_S <- function(S) {
   # Bottom rows are those with a single 1; if there are replicated bottom rows,
   # only one is treated as bottom, the copies will be upper
-  bottom_idxs = which(rowSums(S) == 1 & !duplicated(S))
+  bottom_idxs <- which(rowSums(S) == 1 & !duplicated(S))
   if (length(bottom_idxs) < ncol(S)) {
     stop("Check S: some bottom rows are missing")
   }
-  upper_idxs = setdiff(1:nrow(S), bottom_idxs)
-  A = matrix(S[upper_idxs, ], ncol=ncol(S))
-  out = list(A = A,
-             upper_idxs = upper_idxs,
-             bottom_idxs = bottom_idxs)
+  upper_idxs <- setdiff(1:nrow(S), bottom_idxs)
+  A <- matrix(S[upper_idxs, ], ncol = ncol(S))
+  out <- list(
+    A = A,
+    upper_idxs = upper_idxs,
+    bottom_idxs = bottom_idxs
+  )
   return(out)
 }
 
 # Split bottoms, uppers
 .split_hierarchy <- function(S, Y) {
-
-  if(nrow(S)!=length(Y)){
-    stop(sprintf("Error: summing matrix rows (%d) != length base forecasts (%d)",nrow(S),length(Y)))
+  if (nrow(S) != length(Y)) {
+    stop(sprintf("Error: summing matrix rows (%d) != length base forecasts (%d)", nrow(S), length(Y)))
   }
 
-  getAfromS.res = .get_A_from_S(S)
-  upper = Y[getAfromS.res$upper_idxs]
-  bottom = Y[getAfromS.res$bottom_idxs]
-  out = list(
-    A = matrix(getAfromS.res$A,ncol=ncol(S)),
+  getAfromS.res <- .get_A_from_S(S)
+  upper <- Y[getAfromS.res$upper_idxs]
+  bottom <- Y[getAfromS.res$bottom_idxs]
+  out <- list(
+    A = matrix(getAfromS.res$A, ncol = ncol(S)),
     upper = upper,
     bottom = bottom,
     upper_idxs = getAfromS.res$upper_idxs,
@@ -350,16 +349,15 @@ get_reconc_matrices <- function(agg_levels, h) {
 #' @keywords internal
 #' @export
 .check_hierarchical <- function(A) {
-  
   k <- nrow(A)
   m <- ncol(A)
-  
+
   for (i in 1:k) {
     for (j in 1:k) {
       if (i < j) {
-        if (sum(A[i,] * A[j,]) != 0) {  # Upper i and j have some common descendants
-          if (any(A[j,] > A[i,])) {    # Upper j is not a descendant of upper i
-            if (any(A[i,] > A[j,])) {  # Upper i is not a descendant of upper j
+        if (sum(A[i, ] * A[j, ]) != 0) { # Upper i and j have some common descendants
+          if (any(A[j, ] > A[i, ])) { # Upper j is not a descendant of upper i
+            if (any(A[i, ] > A[j, ])) { # Upper i is not a descendant of upper j
               return(FALSE)
             }
           }
@@ -367,29 +365,27 @@ get_reconc_matrices <- function(agg_levels, h) {
       }
     }
   }
-  
+
   return(TRUE)
-  
 }
 
 # Check if A is a hierarchical matrix and if the rows are in bottom-up order
 .check_BU_matr <- function(A) {
-  
   k <- nrow(A)
   m <- ncol(A)
-  
+
   for (i in 1:k) {
     for (j in 1:k) {
       if (i < j) {
-        cond1 = A[i,] %*% A[j,] != 0  # Upper i and j have some common descendants
-        cond2 = any(A[i,] > A[j,])    # Upper i is not a descendant of upper j
+        cond1 <- A[i, ] %*% A[j, ] != 0 # Upper i and j have some common descendants
+        cond2 <- any(A[i, ] > A[j, ]) # Upper i is not a descendant of upper j
         if (cond1 & cond2) {
           return(FALSE)
         }
       }
     }
   }
-  
+
   return(TRUE)
 }
 
@@ -406,49 +402,48 @@ get_reconc_matrices <- function(agg_levels, h) {
 #' @keywords internal
 #' @export
 .lowest_lev <- function(A) {
-  
   if (!.check_hierarchical(A)) stop("Matrix A is not hierarchical")
-  
+
   # First, only keep unique rows of A
-  A_uni = unique(A)
-  
-  k = nrow(A_uni)
-  m = ncol(A_uni)
-  
-  low_rows_A_uni = c()
+  A_uni <- unique(A)
+
+  k <- nrow(A_uni)
+  m <- ncol(A_uni)
+
+  low_rows_A_uni <- c()
   for (i in 1:k) {
-    low_rows_A_uni = c(low_rows_A_uni, i)
+    low_rows_A_uni <- c(low_rows_A_uni, i)
     for (j in 1:k) {
       if (i != j) {
         # If upper j is a descendant of upper i, remove i and exit loop
-        if (all(A_uni[j,] <= A_uni[i,])) {
-          low_rows_A_uni = low_rows_A_uni[-length(low_rows_A_uni)] 
+        if (all(A_uni[j, ] <= A_uni[i, ])) {
+          low_rows_A_uni <- low_rows_A_uni[-length(low_rows_A_uni)]
           break
         }
       }
     }
   }
   # keep all rows except those that have no descendants among the uppers
-  
+
   # Now, change the indices of the lowest rows to match with A (instead of A_un)
   # If there are duplicated rows for some lowest rows, only take one copy
-  low_rows_A = (1:nrow(A))[!duplicated(A)][low_rows_A_uni]
-  
-  # The sum of the rows corresponding to the lowest level should be a vector of 1 
-  if (any(colSums(A[low_rows_A,,drop=FALSE])!=1)) {
-    unbal_bott = which(colSums(A[low_rows_A,,drop=FALSE])!=1) 
-    err_mess = "It is impossible to find the lowest upper level. Probably the hierarchy is unbalanced, the following bottom should be duplicated (see example): "
-    err_mess = paste0(c(err_mess, unbal_bott), collapse = " ")
+  low_rows_A <- (1:nrow(A))[!duplicated(A)][low_rows_A_uni]
+
+  # The sum of the rows corresponding to the lowest level should be a vector of 1
+  if (any(colSums(A[low_rows_A, , drop = FALSE]) != 1)) {
+    unbal_bott <- which(colSums(A[low_rows_A, , drop = FALSE]) != 1)
+    err_mess <- "It is impossible to find the lowest upper level. Probably the hierarchy is unbalanced, the following bottom should be duplicated (see example): "
+    err_mess <- paste0(c(err_mess, unbal_bott), collapse = " ")
     stop(err_mess)
   }
-  
+
   return(low_rows_A)
 }
 
 #' Get aggregation matrix of upper sub-hierarchy
 #'
 #' Constructs the aggregation matrix Au for the sub-hierarchy composed only
-#' of the upper variables. This matrix relates the "upper uppers" to the 
+#' of the upper variables. This matrix relates the "upper uppers" to the
 #' "lowest uppers" (the most disaggregated level of the upper hierarchy).
 #'
 #' @param A Aggregation matrix (must be hierarchical)
@@ -460,40 +455,35 @@ get_reconc_matrices <- function(agg_levels, h) {
 #'
 #' @keywords internal
 #' @export
-.get_Au <- function(A, lowest_rows=NULL) {
-  
-  if (is.null(lowest_rows)) lowest_rows = .lowest_lev(A)
-  
+.get_Au <- function(A, lowest_rows = NULL) {
+  if (is.null(lowest_rows)) lowest_rows <- .lowest_lev(A)
+
   if (length(lowest_rows) == nrow(A)) {
     warning("All the upper are lowest-upper. Return NULL")
     return(NULL)
   }
-  
-  A_ = A[-lowest_rows,,drop=FALSE]
-  n_upp_u = nrow(A_)
-  n_bott_u = length(lowest_rows)
-  A_u = matrix(nrow=n_upp_u, ncol=n_bott_u)
+
+  A_ <- A[-lowest_rows, , drop = FALSE]
+  n_upp_u <- nrow(A_)
+  n_bott_u <- length(lowest_rows)
+  A_u <- matrix(nrow = n_upp_u, ncol = n_bott_u)
   for (j in 1:n_bott_u) {
-    l = lowest_rows[[j]]
+    l <- lowest_rows[[j]]
     for (i in 1:n_upp_u) {
-      A_u[i,j] = all(A[l,] <= A_[i,])  # check that "lower upper" j is a descendant of "upper upper" i
+      A_u[i, j] <- all(A[l, ] <= A_[i, ]) # check that "lower upper" j is a descendant of "upper upper" i
     }
   }
-  
-  return(1*A_u)  # to get numerical values instead of TRUE / FALSE
+
+  return(1 * A_u) # to get numerical values instead of TRUE / FALSE
 }
 
 # Check if the rows of A are ordered
-.check_ordered_A <- function(A){
+.check_ordered_A <- function(A) {
   aggregates_sum <- rowSums(A)
-  ordered_aggreg <- order(aggregates_sum,decreasing = TRUE)
-  if(all(aggregates_sum == aggregates_sum[ordered_aggreg]) ){
-    return(list(value=TRUE))
-  }else{
-    return(list(value=FALSE, order=ordered_aggreg))
+  ordered_aggreg <- order(aggregates_sum, decreasing = TRUE)
+  if (all(aggregates_sum == aggregates_sum[ordered_aggreg])) {
+    return(list(value = TRUE))
+  } else {
+    return(list(value = FALSE, order = ordered_aggreg))
   }
-  
 }
-
-
-

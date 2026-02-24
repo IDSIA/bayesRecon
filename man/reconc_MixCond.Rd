@@ -103,16 +103,16 @@ Please check the base forecasts in case of warnings.
 library(bayesRecon)
 
 # Consider a simple hierarchy with two bottom and one upper
-A <- matrix(c(1,1),nrow=1)
+A <- matrix(c(1, 1), nrow = 1)
 # The bottom forecasts are Poisson with lambda=15
 lambda <- 15
 n_tot <- 60
 fc_bottom <- list()
-fc_bottom[[1]] <- apply(matrix(seq(0,n_tot)),MARGIN=1,FUN=function(x) dpois(x,lambda=lambda))
-fc_bottom[[2]] <- apply(matrix(seq(0,n_tot)),MARGIN=1,FUN=function(x) dpois(x,lambda=lambda))
+fc_bottom[[1]] <- apply(matrix(seq(0, n_tot)), MARGIN = 1, FUN = function(x) dpois(x, lambda = lambda))
+fc_bottom[[2]] <- apply(matrix(seq(0, n_tot)), MARGIN = 1, FUN = function(x) dpois(x, lambda = lambda))
 
 # The upper forecast is a Normal with mean 40 and std 5
-fc_upper<- list(mu=40, Sigma=matrix(5^2))
+fc_upper <- list(mu = 40, Sigma = matrix(5^2))
 
 # We can reconcile with reconc_MixCond
 res.mixCond <- reconc_MixCond(A, fc_bottom, fc_upper)
