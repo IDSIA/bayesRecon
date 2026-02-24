@@ -141,7 +141,7 @@ reconc_gaussian <- function(A, base_forecasts.mu,
   Sigma_b_tilde <- Sigma_b - K %*% t(temp_diff)
 
   out = list(
-    bottom_reconciled_mean = mu_b_tilde,
+    bottom_reconciled_mean = as.vector(mu_b_tilde),
     bottom_reconciled_covariance = Sigma_b_tilde
   )
   return(out)
