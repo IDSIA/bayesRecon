@@ -4,7 +4,12 @@
 \alias{reconc_gaussian}
 \title{Analytical reconciliation of Gaussian base forecasts}
 \usage{
-reconc_gaussian(A, base_forecasts.mu, base_forecasts.Sigma)
+reconc_gaussian(
+  A,
+  base_forecasts.mu,
+  base_forecasts.Sigma = NULL,
+  residuals = NULL
+)
 }
 \arguments{
 \item{A}{aggregation matrix (n_upper x n_bottom).}
@@ -12,6 +17,10 @@ reconc_gaussian(A, base_forecasts.mu, base_forecasts.Sigma)
 \item{base_forecasts.mu}{a vector containing the means of the base forecasts.}
 
 \item{base_forecasts.Sigma}{a matrix containing the covariance matrix of the base forecasts.}
+
+\item{residuals}{a matrix with the residuals of the base forecasts, with n_upper + n_bottom columns.
+The covariance matrix of the base forecasts is computed from the residuals using the Schäfer Strimmer shrinkage estimator.
+If base_forecasts.Sigma is provided, residuals are ignored.}
 }
 \value{
 A list containing the bottom reconciled forecasts. The list has the following named elements:
