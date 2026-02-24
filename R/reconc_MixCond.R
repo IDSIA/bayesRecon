@@ -30,8 +30,7 @@
 #'  
 #' A PMF object is a numerical vector containing the probability mass function of a discrete distribution.
 #' Each element corresponds to the probability of the integers from 0 to the last value of the support.
-#' See also \link{PMF.get_mean}, \link{PMF.get_var}, \link{PMF.sample}, \link{PMF.get_quantile}, 
-#' \link{PMF.summary} for functions that handle PMF objects. 
+#' See also [PMF] for functions that handle PMF objects. 
 #' 
 #' Warnings are triggered from the Importance Sampling step if:
 #' 
@@ -176,7 +175,6 @@ reconc_MixCond = function(A, fc_bottom, fc_upper,
 #' @keywords internal
 #' @noRd
 #' @export
-# Core function for MixCond reconciliation
 .core_reconc_MixCond = function(A, B, mu_u, Sigma_u, num_samples, return_type, suppress_warnings) {
 
   # Get dimensions

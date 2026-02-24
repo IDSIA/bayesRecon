@@ -329,7 +329,6 @@ reconc_t = function(A,
 #' @keywords internal
 #' @noRd
 #' @export
-# Core function for t-Rec reconciliation
 .core_reconc_t = function(A, point_fc, Psi_post, nu_post, return_uppers,
                           return_parameters, suppress_warnings) {
 

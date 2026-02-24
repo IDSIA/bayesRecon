@@ -89,8 +89,7 @@ The order of the upper and bottom base forecasts must match the order of (respec
 
 A PMF object is a numerical vector containing the probability mass function of a discrete distribution.
 Each element corresponds to the probability of the integers from 0 to the last value of the support.
-See also \link{PMF.get_mean}, \link{PMF.get_var}, \link{PMF.sample}, \link{PMF.get_quantile},
-\link{PMF.summary} for functions that handle PMF objects.
+See also \link{PMF} for functions that handle PMF objects.
 
 If some of the reconciled upper samples lie outside the support of the bottom-up distribution,
 those samples are discarded and a warning is triggered.
