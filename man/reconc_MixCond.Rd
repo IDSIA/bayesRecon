@@ -108,8 +108,8 @@ A <- matrix(c(1, 1), nrow = 1)
 lambda <- 15
 n_tot <- 60
 fc_bottom <- list()
-fc_bottom[[1]] <- apply(matrix(seq(0, n_tot)), MARGIN = 1, FUN = function(x) dpois(x, lambda = lambda))
-fc_bottom[[2]] <- apply(matrix(seq(0, n_tot)), MARGIN = 1, FUN = function(x) dpois(x, lambda = lambda))
+fc_bottom[[1]] <- apply(matrix(seq(0, n_tot)), MARGIN = 1, FUN = \(x) dpois(x, lambda = lambda))
+fc_bottom[[2]] <- apply(matrix(seq(0, n_tot)), MARGIN = 1, FUN = \(x) dpois(x, lambda = lambda))
 
 # The upper forecast is a Normal with mean 40 and std 5
 fc_upper <- list(mu = 40, Sigma = matrix(5^2))
