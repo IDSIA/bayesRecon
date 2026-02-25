@@ -71,13 +71,17 @@
 
 
 
-#' @title Probabilistic forecast reconciliation of mixed hierarchies via top-down conditioning
+#' @rdname reconc_MixCond
+#' @title Probabilistic forecast reconciliation of mixed hierarchies via conditioning
 #'
 #' @description
 #'
-#' Uses the top-down conditioning algorithm to draw samples from the reconciled
-#' forecast distribution. Reconciliation is performed in two steps: 
-#' first, the upper base forecasts are reconciled via conditioning, 
+#' `reconc_MixCond()` uses importance sampling to draw samples from the reconciled
+#' forecast distribution, obtained via conditioning, in the case of a mixed hierarchy.
+#'
+#' `reconc_TDcond()` uses the top-down conditioning algorithm to draw samples from the
+#' reconciled forecast distribution. Reconciliation is performed in two steps:
+#' first, the upper base forecasts are reconciled via conditioning,
 #' using only the hierarchical constraints between the upper variables; then,
 #' the bottom distributions are updated via a probabilistic top-down procedure.
 #'
