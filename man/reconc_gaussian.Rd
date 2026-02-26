@@ -49,6 +49,8 @@ Unless \code{return_uppers = TRUE}, the function returns only the reconciled par
 
 library(bayesRecon)
 
+#' # ---- Example 1: base forecasts are given ----
+
 # Create a minimal hierarchy with 2 bottom and 1 upper variable
 A <- get_reconc_matrices(agg_levels = c(1, 2), h = 2)$A
 
@@ -56,14 +58,14 @@ A <- get_reconc_matrices(agg_levels = c(1, 2), h = 2)$A
 mu1 <- 2
 mu2 <- 4
 muY <- 9
-mus <- c(muY, mu1, mu2)
+mus <- c(muY, mu1, mu2)  # vector of means
 
 sigma1 <- 2
 sigma2 <- 2
 sigmaY <- 3
 sigmas <- c(sigmaY, sigma1, sigma2)
+Sigma <- diag(sigmas^2)  # covariance matrix
 
-Sigma <- diag(sigmas^2) # need to transform into covariance matrix
 analytic_rec <- reconc_gaussian(A,
   base_forecasts.mu = mus,
   base_forecasts.Sigma = Sigma
@@ -72,23 +74,81 @@ analytic_rec <- reconc_gaussian(A,
 bottom_mu_reconc <- analytic_rec$bottom_reconciled_mean
 bottom_Sigma_reconc <- analytic_rec$bottom_reconciled_covariance
 
-# Obtain reconciled mu and Sigma for the upper variable
-upper_mu_reconc <- A \%*\% bottom_mu_reconc
-upper_Sigma_reconc <- A \%*\% bottom_Sigma_reconc \%*\% t(A)
+# To obtain reconciled samples for the entire hierarchy, sample from the reconciled bottom distribution 
+# and then aggregate using A. 
 
-# Obtain reconciled mu and Sigma for the entire hierarchy
-S <- rbind(A, diag(2)) # first, get summing matrix S
-Y_mu_reconc <- S \%*\% bottom_mu_reconc
-Y_Sigma_reconc <- S \%*\% bottom_Sigma_reconc \%*\% t(S) # note that this is a singular matrix
+# Sample from the reconciled bottom-level Gaussian distribution
+# First, compute the Cholesky decomposition of the reconciled covariance matrix:
+chol_decomp <- chol(bottom_Sigma_reconc)
+# Then, sample from the standard normal distribution and apply the transformation:
+Z <- matrix(stats::rnorm(n = 2000), nrow = 2) 
+B <- t(chol_decomp) \%*\% Z + matrix(rep(bottom_mu_reconc, 1000), nrow = 2) 
 
-# Obtain reconciled samples for the entire hierarchy:
-# i.e., sample from the reconciled bottoms and multiply by S
-chol_decomp <- chol(bottom_Sigma_reconc) # Compute the Cholesky Decomposition
-Z <- matrix(stats::rnorm(n = 2000), nrow = 2) # Sample from standard normal
-B <- t(chol_decomp) \%*\% Z + matrix(rep(bottom_mu_reconc, 1000), nrow = 2) # Apply the transformation
-
+# Aggregate bottom samples to get upper samples, then stack
 U <- S \%*\% B
 Y_reconc <- rbind(U, B)
+
+cat("Dimensions of reconciled samples (upper + bottom):", dim(Y_reconc), "\n")
+
+
+# ---- Example 2: using residuals from fitted ETS models ----
+\donttest{
+if (requireNamespace("forecast", quietly = TRUE)) {
+
+  # Simulate 2 bottom series from AR(1) processes
+  set.seed(1234)
+  n_obs <- 200
+  y1 <- arima.sim(model = list(ar = 0.8), n = n_obs)
+  y2 <- arima.sim(model = list(ar = 0.5), n = n_obs)
+
+  # Upper series is the sum of the two bottom series
+  y_upper <- y1 + y2
+
+  # Aggregation matrix A:
+  A <- matrix(c(1, 1), nrow = 1)
+
+  # Fit additive ETS models
+  fit1 <- forecast::ets(y1, additive.only = TRUE)
+  fit2 <- forecast::ets(y2, additive.only = TRUE)
+  fit_upper <- forecast::ets(y_upper, additive.only = TRUE)
+
+  # Point forecasts (h = 1):
+  fc1 <- forecast::forecast(fit1, h = 1)$mean
+  fc2 <- forecast::forecast(fit2, h = 1)$mean
+  fc_upper <- forecast::forecast(fit_upper, h = 1)$mean
+  point_fc <- c(fc_upper, fc1, fc2)
+
+  # Residuals matrix (T x n, columns in same order as point_fc)
+  res <- cbind(residuals(fit_upper),
+               residuals(fit1),
+               residuals(fit2))
+
+  # Reconcile (covariance estimated internally via Schafer-Strimmer)
+  result <- reconc_gaussian(A, base_forecasts.mu = point_fc, residuals = res, return_uppers = TRUE)
+
+  bottom_mu <- result$bottom_reconciled_mean
+  bottom_Sigma <- result$bottom_reconciled_covariance
+  upper_mu <- result$upper_reconciled_mean
+  upper_Sigma <- result$upper_reconciled_covariance
+
+  # Print reconciled means
+  cat("Reconciled bottom means:", round(bottom_mu, 3), "\n")
+  cat("Reconciled upper mean:", round(A \%*\% bottom_mu, 3), "\n")
+
+  # Print 95\% predictions intervals
+  cat("Reconciled bottom 95\% prediction intervals:\n")
+  for (i in 1:length(bottom_mu)) {
+    lower <- bottom_mu[i] - 1.96 * sqrt(bottom_Sigma[i, i])
+    upper <- bottom_mu[i] + 1.96 * sqrt(bottom_Sigma[i, i])
+    cat(paste0("Bottom ", i, ": [", round(lower, 3), ", ", round(upper, 3), "]\n"))
+  }
+  cat("Reconciled upper 95\% prediction interval:\n")
+  lower <- upper_mu - 1.96 * sqrt(upper_Sigma[1, 1])
+  upper <- upper_mu + 1.96 * sqrt(upper_Sigma[1, 1])
+  cat(paste0("Upper: [", round(lower, 3), ", ", round(upper, 3), "]\n"))
+
+}
+}
 
 }
 \references{
