@@ -190,6 +190,7 @@ multi_log_score_optimization <- function(res, prior_mean, trim = 0.1) {
 #' @param prior Optional list containing 'nu' and 'Psi' (prior parameters).
 #' @param posterior Optional list containing 'nu' and 'Psi' (posterior parameters).
 #' @param l_shr Shrinkage intensity (0 to 1) for stabilizing the sample covariance matrix (default 1e-4).
+#' @param return_uppers Logical; if TRUE, also returns parameters for the upper level reconciled distribution.
 #' @param return_parameters Logical; if TRUE, returns internal parameters like C and posterior nu.
 #'
 #' @details
@@ -247,7 +248,9 @@ reconc_t <- function(A,
                      prior = NULL,
                      posterior = NULL,
                      l_shr = 1e-4,
+                     return_uppers = FALSE,
                      return_parameters = FALSE) {
+  
   .check_input_t(A, point_fc, y_train, residuals, freq, prior, posterior, l_shr)
 
   ##############################################################################
@@ -293,7 +296,7 @@ reconc_t <- function(A,
 
   out <- .core_reconc_t(
     A = A, point_fc = point_fc, Psi_post = Psi_post, nu_post = nu_post,
-    return_uppers = FALSE, return_parameters = FALSE, suppress_warnings = FALSE
+    return_uppers = return_uppers, return_parameters = return_parameters, suppress_warnings = FALSE
   )
 
   return(out)
@@ -332,8 +335,8 @@ reconc_t <- function(A,
 #' @keywords internal
 #' @noRd
 #' @export
-.core_reconc_t <- function(A, point_fc, Psi_post, nu_post, return_uppers,
-                           return_parameters, suppress_warnings) {
+.core_reconc_t <- function(A, point_fc, Psi_post, nu_post, return_uppers = FALSE,
+                           return_parameters = FALSE, suppress_warnings = FALSE) {
   # Indices for Upper and Bottom
   k <- nrow(A)
   m <- ncol(A)

@@ -13,6 +13,7 @@ reconc_t(
   prior = NULL,
   posterior = NULL,
   l_shr = 1e-04,
+  return_uppers = FALSE,
   return_parameters = FALSE
 )
 }
@@ -32,6 +33,8 @@ reconc_t(
 \item{posterior}{Optional list containing 'nu' and 'Psi' (posterior parameters).}
 
 \item{l_shr}{Shrinkage intensity (0 to 1) for stabilizing the sample covariance matrix (default 1e-4).}
+
+\item{return_uppers}{Logical; if TRUE, also returns parameters for the upper level reconciled distribution.}
 
 \item{return_parameters}{Logical; if TRUE, returns internal parameters like C and posterior nu.}
 }
