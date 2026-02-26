@@ -1,6 +1,9 @@
 # Function for estimating the covariance matrix of the residuals of the naive or seasonal naive forecasts
 # For each series, choose by using some criterion (RSS or test of seasonality)
 # TODO: implement statistical test; leave dependence as suggested; default: choose using RSS
+#' @keywords internal
+#' @noRd
+#' @export 
 compute_naive_cov = function(y_train, freq = 1, criterion = "RSS") {
   
   n = ncol(y_train)
