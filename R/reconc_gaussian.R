@@ -10,6 +10,7 @@
 #' @param residuals a matrix with the residuals of the base forecasts, with n_upper + n_bottom columns.
 #' The covariance matrix of the base forecasts is computed from the residuals using the Schäfer Strimmer shrinkage estimator.
 #' If base_forecasts.Sigma is provided, residuals are ignored.
+#' @param return_uppers logical, whether to return the reconciled parameters for the upper variables (default is FALSE).
 #'
 #' @details
 #' In the vector of the means of the base forecasts the order must be: first the upper,
@@ -17,16 +18,14 @@
 #' the order within the bottoms by the columns of A.
 #' The order of the rows of the covariance matrix of the base forecasts is the same.
 #'
-#' The function returns only the reconciled parameters of the bottom variables.
-#' The reconciled upper parameters and the reconciled samples for the entire hierarchy
-#' can be obtained from the reconciled bottom parameters.
-#' See the example section.
+#' Unless `return_uppers = TRUE`, the function returns only the reconciled parameters of the bottom variables.
 #'
-#'
-#' @return A list containing the bottom reconciled forecasts. The list has the following named elements:
+#' @return A list containing the reconciled forecasts. The list has the following named elements:
 #'
 #' * `bottom_reconciled_mean`: reconciled mean for the bottom forecasts;
-#' * `bottom_reconciled_covariance`: reconciled covariance for the bottom forecasts.
+#' * `bottom_reconciled_covariance`: reconciled covariance for the bottom forecasts;
+#' * `upper_reconciled_mean`: reconciled mean for the upper forecasts (if `return_uppers = TRUE`);
+#' * `upper_reconciled_covariance`: reconciled covariance for the upper forecasts (if `return_uppers = TRUE`).
 #'
 #'
 #' @examples
@@ -90,7 +89,8 @@
 #' @export
 reconc_gaussian <- function(A, base_forecasts.mu,
                             base_forecasts.Sigma = NULL,
-                            residuals = NULL) {
+                            residuals = NULL,
+                            return_uppers = FALSE) {
   # Check matrix A
   .check_A(A)
   k <- nrow(A) # number of upper TS
@@ -145,5 +145,11 @@ reconc_gaussian <- function(A, base_forecasts.mu,
     bottom_reconciled_mean = as.vector(mu_b_tilde),
     bottom_reconciled_covariance = Sigma_b_tilde
   )
+
+  if (return_uppers) {
+    out$upper_reconciled_mean <- as.vector(A %*% mu_b_tilde)
+    out$upper_reconciled_covariance <- A %*% Sigma_b_tilde %*% t(A)
+  }
+
   return(out)
 }

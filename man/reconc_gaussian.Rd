@@ -8,7 +8,8 @@ reconc_gaussian(
   A,
   base_forecasts.mu,
   base_forecasts.Sigma = NULL,
-  residuals = NULL
+  residuals = NULL,
+  return_uppers = FALSE
 )
 }
 \arguments{
@@ -21,12 +22,16 @@ reconc_gaussian(
 \item{residuals}{a matrix with the residuals of the base forecasts, with n_upper + n_bottom columns.
 The covariance matrix of the base forecasts is computed from the residuals using the Schäfer Strimmer shrinkage estimator.
 If base_forecasts.Sigma is provided, residuals are ignored.}
+
+\item{return_uppers}{logical, whether to return the reconciled parameters for the upper variables (default is FALSE).}
 }
 \value{
-A list containing the bottom reconciled forecasts. The list has the following named elements:
+A list containing the reconciled forecasts. The list has the following named elements:
 \itemize{
 \item \code{bottom_reconciled_mean}: reconciled mean for the bottom forecasts;
-\item \code{bottom_reconciled_covariance}: reconciled covariance for the bottom forecasts.
+\item \code{bottom_reconciled_covariance}: reconciled covariance for the bottom forecasts;
+\item \code{upper_reconciled_mean}: reconciled mean for the upper forecasts (if \code{return_uppers = TRUE});
+\item \code{upper_reconciled_covariance}: reconciled covariance for the upper forecasts (if \code{return_uppers = TRUE}).
 }
 }
 \description{
@@ -38,10 +43,7 @@ then the bottom; the order within the uppers is given by the rows of A,
 the order within the bottoms by the columns of A.
 The order of the rows of the covariance matrix of the base forecasts is the same.
 
-The function returns only the reconciled parameters of the bottom variables.
-The reconciled upper parameters and the reconciled samples for the entire hierarchy
-can be obtained from the reconciled bottom parameters.
-See the example section.
+Unless \code{return_uppers = TRUE}, the function returns only the reconciled parameters of the bottom variables.
 }
 \examples{
 
