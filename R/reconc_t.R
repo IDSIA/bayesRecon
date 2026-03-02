@@ -1,7 +1,7 @@
 # Function for estimating the covariance matrix of the residuals of the naive or seasonal naive forecasts
 # For each series, choose by using some criterion (RSS or test of seasonality)
 # TODO: implement statistical test; leave dependence as suggested; default: choose using RSS
-compute_naive_cov <- function(y_train, freq = 1, criterion = "RSS") {
+compute_naive_cov <- function(y_train, freq = NULL, criterion = "RSS") {
   n <- ncol(y_train)
   L <- nrow(y_train)
 
@@ -17,7 +17,7 @@ compute_naive_cov <- function(y_train, freq = 1, criterion = "RSS") {
   }
   y_train <- stats::ts(y_train, frequency = freq)
 
-  if (freq == 1) {
+  if (is.null(freq) || freq == 1) {
     residuals <- res_n
   } else {
     # compute residuals of seasonal naive
@@ -25,12 +25,21 @@ compute_naive_cov <- function(y_train, freq = 1, criterion = "RSS") {
 
     # Choose which residuals to use based on the criterion
     if (criterion == "seas-test") {
-      stop("seas-test criterion not yet implemented")
+      # check if forecast package is installed
+      if (!requireNamespace("forecast", quietly = TRUE)) {
+        stop("Package 'forecast' is required for criterion = 'seas-test'. 
+              Please install it using install.packages('forecast') or use criterion = 'RSS'."
+        )
+      }
+      # Seasonality test for each time series
+      is_seas = as.logical(apply(y_train, 2, function(col) forecast::nsdiffs(col)))
+      
     } else if (criterion == "RSS") {
       # Compute RSS for both methods, for each series
       RSS_n <- colSums(res_n^2, na.rm = TRUE)
       RSS_seas <- colSums(res_seas^2, na.rm = TRUE)
       is_seas <- RSS_seas < RSS_n
+      
     } else {
       stop("Input error: criterion must be either 'RSS' or 'seas-test'")
     }
