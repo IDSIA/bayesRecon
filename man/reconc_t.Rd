@@ -9,10 +9,7 @@ reconc_t(
   point_fc,
   y_train = NULL,
   residuals = NULL,
-  freq = 1,
-  prior = NULL,
-  posterior = NULL,
-  l_shr = 1e-04,
+  ...,
   return_uppers = FALSE,
   return_parameters = FALSE
 )
@@ -22,17 +19,11 @@ reconc_t(
 
 \item{point_fc}{Vector of base forecasts (length n = n_upp + n_bott).}
 
-\item{y_train}{Matrix of historical training data (T x n) used for setting prior parameters.}
+\item{y_train}{mts (or matrix) of historical training data (T x n) used for setting prior parameters.}
 
-\item{residuals}{Optional matrix (T x n) of base forecast residuals.}
+\item{residuals}{Matrix (T x n) of base forecast residuals.}
 
-\item{freq}{Seasonal frequency for naive covariance estimation (default is 1).}
-
-\item{prior}{Optional list containing 'nu' and 'Psi' (prior parameters).}
-
-\item{posterior}{Optional list containing 'nu' and 'Psi' (posterior parameters).}
-
-\item{l_shr}{Shrinkage intensity (0 to 1) for stabilizing the sample covariance matrix (default 1e-4).}
+\item{...}{Additional arguments for advanced usage: see details.}
 
 \item{return_uppers}{Logical; if TRUE, also returns parameters for the upper level reconciled distribution.}
 
@@ -44,6 +35,12 @@ A list containing:
 \item \code{bottom_mean}: Reconciled bottom-level mean forecasts.
 \item \code{bottom_scale_matrix}: Reconciled bottom-level scale matrix.
 \item \code{bottom_df}: Reconciled degrees of freedom.
+}
+If \code{return_uppers} is TRUE, also returns:
+\itemize{
+\item \code{upper_mean}: Reconciled upper-level mean forecasts.
+\item \code{upper_scale_matrix}: Reconciled upper-level scale matrix.
+\item \code{upper_df}: Reconciled upper-level degrees of freedom.
 }
 If \code{return_parameters} is TRUE, also returns:
 \itemize{
@@ -75,8 +72,22 @@ Cross-Validation (LOOCV) to maximize out-of-sample performance.
 \strong{Advanced Options:}
 Users can bypass the automated estimation by:
 \enumerate{
-\item Directly passing the \code{prior} parameters (requires \code{residuals} to compute the posterior).
-\item Directly passing the \code{posterior} parameters, which skips all internal estimation and updating logic.
+\item Directly passing the \code{prior} parameters as a list with entries 'nu' and 'Psi'.
+This skips the LOOCV step for \eqn{\nu_0} and the covariance estimation from \code{y_train}.
+It requires \code{residuals} to compute the posterior.
+\item Directly passing the \code{posterior} parameters as a list with entries 'nu' and 'Psi'.
+This skips all internal estimation and updating logic.
+}
+Moreover, users can specify:
+\itemize{
+\item \code{freq}: positive integer, used as frequency of data for the seasonal naive forecast in the specification of \eqn{\Psi_0}.
+By default, if \code{y_train} is a multivariate time series, the frequency of the data is used; otherwise, it is set to 1 (no seasonality).
+\item \code{criterion}: either 'RSS' (default) or 'seas-test', specifying which criterior is used to choose between
+the naive and seasonal naive forecasts for the specification of \eqn{\Psi_0}.
+'RSS' computes the residual sum of squares for both methods and chooses the one with lower RSS,
+while 'seas-test' uses a statistical test for seasonality
+(currently implemented using the number of seasonal differences suggested by the \code{forecast} package,
+which must be installed).
 }
 
 \strong{The Reconciled Bottom Distribution:}

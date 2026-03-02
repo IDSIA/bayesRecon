@@ -202,11 +202,9 @@ multi_log_score_optimization <- function(res, prior_mean, trim = 0.1) {
 #'
 #' @param A Matrix (n_upp x n_bott) defining the hierarchy (u = Ab).
 #' @param point_fc Vector of base forecasts (length n = n_upp + n_bott).
-#' @param y_train Matrix of historical training data (T x n) used for setting prior parameters.
-#' @param residuals Optional matrix (T x n) of base forecast residuals.
-#' @param freq Seasonal frequency for naive covariance estimation (default is 1).
-#' @param prior Optional list containing 'nu' and 'Psi' (prior parameters).
-#' @param posterior Optional list containing 'nu' and 'Psi' (posterior parameters).
+#' @param y_train mts (or matrix) of historical training data (T x n) used for setting prior parameters.
+#' @param residuals Matrix (T x n) of base forecast residuals.
+#' @param ... Additional arguments for advanced usage: see details.
 #' @param return_uppers Logical; if TRUE, also returns parameters for the upper level reconciled distribution.
 #' @param return_parameters Logical; if TRUE, returns internal parameters like C and posterior nu.
 #'
@@ -224,8 +222,22 @@ multi_log_score_optimization <- function(res, prior_mean, trim = 0.1) {
 #' \strong{Advanced Options:}
 #' Users can bypass the automated estimation by:
 #' \enumerate{
-#'   \item Directly passing the \code{prior} parameters (requires \code{residuals} to compute the posterior).
-#'   \item Directly passing the \code{posterior} parameters, which skips all internal estimation and updating logic.
+#'   \item Directly passing the \code{prior} parameters as a list with entries 'nu' and 'Psi'.
+#'         This skips the LOOCV step for \eqn{\nu_0} and the covariance estimation from \code{y_train}.
+#'         It requires \code{residuals} to compute the posterior.
+#'   \item Directly passing the \code{posterior} parameters as a list with entries 'nu' and 'Psi'.
+#'         This skips all internal estimation and updating logic.
+#' }
+#' Moreover, users can specify:
+#' \itemize{
+#'   \item \code{freq}: positive integer, used as frequency of data for the seasonal naive forecast in the specification of \eqn{\Psi_0}.
+#'         By default, if \code{y_train} is a multivariate time series, the frequency of the data is used; otherwise, it is set to 1 (no seasonality).
+#'   \item \code{criterion}: either 'RSS' (default) or 'seas-test', specifying which criterior is used to choose between 
+#'                           the naive and seasonal naive forecasts for the specification of \eqn{\Psi_0}. 
+#'                           'RSS' computes the residual sum of squares for both methods and chooses the one with lower RSS, 
+#'                           while 'seas-test' uses a statistical test for seasonality 
+#'                           (currently implemented using the number of seasonal differences suggested by the `forecast` package, 
+#'                           which must be installed). 
 #' }
 #'
 #' \strong{The Reconciled Bottom Distribution:}
@@ -248,6 +260,12 @@ multi_log_score_optimization <- function(res, prior_mean, trim = 0.1) {
 #'   \item \code{bottom_scale_matrix}: Reconciled bottom-level scale matrix.
 #'   \item \code{bottom_df}: Reconciled degrees of freedom.
 #' }
+#' If \code{return_uppers} is TRUE, also returns:
+#' \itemize{
+#'  \item \code{upper_mean}: Reconciled upper-level mean forecasts.
+#'  \item \code{upper_scale_matrix}: Reconciled upper-level scale matrix.
+#'  \item \code{upper_df}: Reconciled upper-level degrees of freedom.
+#'  }
 #' If \code{return_parameters} is TRUE, also returns:
 #' \itemize{
 #'   \item \code{prior_nu}: Prior degrees of freedom.
@@ -333,13 +351,21 @@ reconc_t <- function(A,
                      point_fc,
                      y_train = NULL,
                      residuals = NULL,
-                     freq = 1,
-                     prior = NULL,
-                     posterior = NULL,
+                     ...,
                      return_uppers = FALSE,
                      return_parameters = FALSE) {
   
-  .check_input_t(A, point_fc, y_train, residuals, freq, prior, posterior)
+  add_args <- list(...)
+  unused_names <- setdiff(names(add_args), c("prior", "posterior", "freq", "criterion"))
+  if (length(unused_names) > 0) {
+    warning(paste("The following additional arguments are not used:", paste(unused_names, collapse = ", ")))
+  }
+  
+  prior <- add_args$prior
+  posterior <- add_args$posterior
+  freq <- add_args$freq
+  criterion <- add_args$criterion
+  .check_input_t(A, point_fc, y_train, residuals, ...)  
 
   ##############################################################################
   ### CASE 1 ###
@@ -347,12 +373,13 @@ reconc_t <- function(A,
   if (!is.null(posterior)) {
     nu_post <- posterior$nu
     Psi_post <- posterior$Psi
+    
     ### CASE 2 ###
     # If posterior not provided, first check that residuals are provided
   } else {
     L <- nrow(residuals) # number of residual samples (i.e., training length)
     n <- length(point_fc) # number of series
-    # TODO: implement fallback
+    
     # Compute sample covariance of the residuals
     Samp_cov <- crossprod(residuals) / nrow(residuals) 
     # Shrink to diagonal for numerical reasons
@@ -363,14 +390,15 @@ reconc_t <- function(A,
     if (!is.null(prior)) {
       nu_prior <- prior$nu
       Psi_prior <- prior$Psi
+      
       ### CASE 2b ###
       # If prior not provided:
       # - compute Psi using the (shrinked) covariance matrix of the residuals of the naive
       #   or seasonal naive forecasts
       # - set nu using LOOCV
     } else {
-      # Compute the covariance residuals of the (seasonal) naive forecasts on training data
-      cov_naive <- compute_naive_cov(y_train, freq)
+      # Compute the covariance residuals of the naive or seasonal naive forecasts on training data
+      cov_naive <- compute_naive_cov(y_train, freq = freq, criterion = criterion)
       # Use it to set the prior
       bayesian_LOO <- multi_log_score_optimization(residuals, cov_naive)
       nu_prior <- bayesian_LOO$optimal_nu

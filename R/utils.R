@@ -271,7 +271,7 @@
   }
 }
 
-.check_input_t <- function(A, point_fc, y_train, residuals, freq, prior, posterior) {
+.check_input_t <- function(A, point_fc, y_train, residuals, ...) {
   .check_A(A)
 
   n_b <- ncol(A) # number of bottom TS
@@ -284,6 +284,12 @@
   if (n_u + n_b != n) {
     stop("Input error: the length of point_fc must be equal to nrow(A) + ncol(A)")
   }
+  
+  add_args <- list(...)
+  prior <- add_args$prior
+  posterior <- add_args$posterior
+  freq <- add_args$freq
+  criterion <- add_args$criterion
 
   ##############################################################################
   ### CASE 1 ###
@@ -397,6 +403,11 @@
                    The prior will be set assuming no seasonality.")
         }
       }
+      
+      if (!is.null(criterion)) {
+        if (!(criterion %in% c("RSS", "seas-test"))) {
+          stop("Input error: criterion must be either 'RSS' or 'seas-test'")
+        }
       }
     }
   }
