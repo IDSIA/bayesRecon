@@ -1,8 +1,6 @@
 # A pmf is represented as normalized numeric vector v:
 # for each j = 0, ..., M, the probability of j is the value v[[j+1]]
 
-.NEGBIN_TOLL <- 1e-6 # used when fitting a Negative Binomial distribution
-
 ###
 
 # Fit a Negative Binomial distribution on a given vector of samples.

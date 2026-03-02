@@ -189,7 +189,6 @@ multi_log_score_optimization <- function(res, prior_mean, trim = 0.1) {
 #' @param freq Seasonal frequency for naive covariance estimation (default is 1).
 #' @param prior Optional list containing 'nu' and 'Psi' (prior parameters).
 #' @param posterior Optional list containing 'nu' and 'Psi' (posterior parameters).
-#' @param l_shr Shrinkage intensity (0 to 1) for stabilizing the sample covariance matrix (default 1e-4).
 #' @param return_uppers Logical; if TRUE, also returns parameters for the upper level reconciled distribution.
 #' @param return_parameters Logical; if TRUE, returns internal parameters like C and posterior nu.
 #'
@@ -319,11 +318,10 @@ reconc_t <- function(A,
                      freq = 1,
                      prior = NULL,
                      posterior = NULL,
-                     l_shr = 1e-4,
                      return_uppers = FALSE,
                      return_parameters = FALSE) {
   
-  .check_input_t(A, point_fc, y_train, residuals, freq, prior, posterior, l_shr)
+  .check_input_t(A, point_fc, y_train, residuals, freq, prior, posterior)
 
   ##############################################################################
   ### CASE 1 ###
@@ -337,9 +335,11 @@ reconc_t <- function(A,
     L <- nrow(residuals) # number of residual samples (i.e., training length)
     n <- length(point_fc) # number of series
     # TODO: implement fallback
-    Samp_cov <- crossprod(residuals) / nrow(residuals) # sample covariance of the residuals
-    Samp_cov <- (1 - l_shr) * Samp_cov + l_shr * diag(diag(Samp_cov)) # apply shrinkage to stabilize
-
+    # Compute sample covariance of the residuals
+    Samp_cov <- crossprod(residuals) / nrow(residuals) 
+    # Shrink to diagonal for numerical reasons
+    Samp_cov <- (1 - .L_SHRINK_RECONC_T) * Samp_cov + .L_SHRINK_RECONC_T * diag(diag(Samp_cov)) 
+    
     ### CASE 2a ###
     # If prior is provided, check if is a list with entries nu and Psi and extract values
     if (!is.null(prior)) {

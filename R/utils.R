@@ -14,6 +14,12 @@
 .LAP_SMOOTHING <- FALSE
 
 ################################################################################
+# OTHER PARAMETERS
+
+.NEGBIN_TOLL <- 1e-6 # used when fitting a Negative Binomial distribution
+.L_SHRINK_RECONC_T <- 1e-4  # used for shrinking the empirical covariance matrix in reconc_t
+
+################################################################################
 # CHECK INPUT
 
 # Function to check values allowed in S.
@@ -265,7 +271,7 @@
   }
 }
 
-.check_input_t <- function(A, point_fc, y_train, residuals, freq, prior, posterior, l_shr) {
+.check_input_t <- function(A, point_fc, y_train, residuals, freq, prior, posterior) {
   .check_A(A)
 
   n_b <- ncol(A) # number of bottom TS
@@ -350,10 +356,6 @@
         stop("Input error: freq must be a positive integer")
       }
     }
-  }
-
-  if (!.check_positive_number(l_shr) | l_shr > 1) {
-    stop("Input error: l_shr must be a number between 0 and 1")
   }
 }
 
