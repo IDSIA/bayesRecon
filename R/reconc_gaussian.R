@@ -57,8 +57,8 @@
 #' bottom_mu_reconc <- analytic_rec$bottom_reconciled_mean
 #' bottom_Sigma_reconc <- analytic_rec$bottom_reconciled_covariance
 #'
-#' # To obtain reconciled samples for the entire hierarchy, sample from the reconciled bottom distribution 
-#' # and then aggregate using A. 
+#' # To obtain reconciled samples for the entire hierarchy, sample from the reconciled 
+#' # bottom distribution and then aggregate using A. 
 #' 
 #' # Sample from the reconciled bottom-level Gaussian distribution
 #' # First, compute the Cholesky decomposition of the reconciled covariance matrix:
@@ -68,7 +68,7 @@
 #' B <- t(chol_decomp) %*% Z + matrix(rep(bottom_mu_reconc, 1000), nrow = 2) 
 #'
 #' # Aggregate bottom samples to get upper samples, then stack
-#' U <- S %*% B
+#' U <- A %*% B
 #' Y_reconc <- rbind(U, B)
 #' 
 #' cat("Dimensions of reconciled samples (upper + bottom):", dim(Y_reconc), "\n")
