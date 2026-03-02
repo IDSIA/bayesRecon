@@ -1,10 +1,28 @@
-# Function for estimating the covariance matrix of the residuals of the naive or seasonal naive forecasts
-# For each series, choose by using some criterion (RSS or test of seasonality)
-# TODO: implement statistical test; leave dependence as suggested; default: choose using RSS
+#' Estimate covariance from naive or seasonal-naive residuals
+#'
+#' Computes a shrinkage covariance matrix from one-step naive residuals, or from a
+#' seasonal-naive alternative when `freq > 1`.
+#'
+#' For `freq > 1`, the function can choose between naive and seasonal-naive
+#' residuals series-by-series according to a selection criterion. Currently,
+#' `"RSS"` is implemented, while `"seas-test"` is reserved for future use.
+#'
+#' @param y_train Numeric matrix of historical observations with dimensions
+#'   `T x n` (rows are time points, columns are series).
+#' @param freq Positive integer seasonal frequency. Use `1` for non-seasonal
+#'   naive residuals.
+#' @param criterion Character string used when `freq > 1` to choose residuals.
+#'   Supported values are `"RSS"` and `"seas-test"` (not yet implemented).
+#'
+#' @return A numeric `n x n` shrinkage covariance matrix estimated with
+#'   [schaferStrimmer_cov()].
+#'
+#' @seealso [schaferStrimmer_cov()], [reconc_t()]
+#'
 #' @keywords internal
 #' @noRd
-#' @export 
-compute_naive_cov = function(y_train, freq = 1, criterion = "RSS") {
+#' @export
+.compute_naive_cov = function(y_train, freq = 1, criterion = "RSS") {
   
   n = ncol(y_train)
   L = nrow(y_train)
@@ -279,7 +297,7 @@ reconc_t = function(A,
     # - set nu using LOOCV
     } else {
       # Compute the covariance residuals of the (seasonal) naive forecasts on training data
-      cov_naive = compute_naive_cov(y_train, freq)
+      cov_naive = .compute_naive_cov(y_train, freq)
       # Use it to set the prior
       bayesian_LOO = multi_log_score_optimization(residuals, cov_naive)
       nu_prior = bayesian_LOO$optimal_nu
