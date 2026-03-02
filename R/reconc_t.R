@@ -7,6 +7,15 @@ compute_naive_cov <- function(y_train, freq = 1, criterion = "RSS") {
 
   # Compute residuals of naive
   res_n <- y_train[2:L, ] - y_train[1:(L - 1), ]
+  
+  # If freq is not provided and the data is a multivariate time series, 
+  # set freq to the frequency of the data
+  if (stats::is.mts(y_train)) {
+    if (is.null(freq)) {
+      freq <- stats::frequency(y_train)
+    }
+  }
+  y_train <- stats::ts(y_train, frequency = freq)
 
   if (freq == 1) {
     residuals <- res_n

@@ -294,6 +294,21 @@
       Psi_post <- posterior$Psi
       if (is.null(nu_post) | is.null(Psi_post)) {
         stop("Input error: posterior must be a list with entries nu and Psi")
+      } else if (!is.numeric(nu_post) | length(nu_post) != 1 | nu_post <= n-1) {
+        stop("Input error: nu in posterior must be a number greater than n. of series - 1")
+      } else if (!is.matrix(Psi_post) | any(dim(Psi_post) != c(n, n))) {
+        stop("Input error: Psi in posterior must be a matrix with dimensions compatible with point_fc")
+      }
+      # If posterior is provided, then y_train, residuals, and prior are ignored:
+      # if they are provided, throw a warning
+      if (!is.null(y_train)) {
+        warning("Input warning: posterior is provided, ignoring y_train")
+      }
+      if (!is.null(residuals)) {
+        warning("Input warning: posterior is provided, ignoring residuals")
+      }
+      if (!is.null(prior)) {
+        warning("Input warning: posterior is provided, ignoring prior")
       }
     } else {
       stop("Input error: posterior must be a list with entries nu and Psi")
@@ -326,6 +341,14 @@
         Psi_prior <- prior$Psi
         if (is.null(nu_prior) | is.null(Psi_prior)) {
           stop("Input error: prior must be a list with entries nu and Psi")
+        } else if (!is.numeric(nu_prior) | length(nu_prior) != 1 | nu_prior <= n-1) {
+          stop("Input error: nu in prior must be a number greater than n. of series - 1")
+        } else if (!is.matrix(Psi_prior) | any(dim(Psi_prior) != c(n, n))) {
+          stop("Input error: Psi in prior must be a matrix with dimensions compatible with point_fc")
+        }
+        # If prior is provided, then y_train is ignored: if it is provided, throw a warning
+        if (!is.null(y_train)) {
+          warning("Input warning: prior is provided, ignoring y_train")
         }
       } else {
         stop("Input error: prior must be a list with entries nu and Psi")
@@ -339,21 +362,41 @@
     # - set nu using LOOCV
     else {
       if (is.null(y_train)) {
-        stop("Input error: y_train must be provided when prior/posterior are not given")
+        stop("Input error: y_train must be provided when neither prior nor posterior are given")
       }
-      if (!is.matrix(y_train)) {
+      if (!is.matrix(y_train)) {  
         stop("Input error: y_train must be a matrix")
       }
-      # TODO: allow for other types, e.g. data.frame, ts, xts...
+      # this works also if y_train is a mts; TODO: allow for other types, e.g. data.frame
       if (ncol(y_train) != n) {
         stop("Input error: number of columns of y_train must be equal to length of point_fc")
       }
       if (nrow(y_train) != L) {
         warning("Numbers of rows of y_train and of residuals are different!")
       }
-
-      if (!is.numeric(freq) | length(freq) != 1 | freq < 1 | (freq %% 1) != 0) {
-        stop("Input error: freq must be a positive integer")
+      
+      if (!is.null(freq)) {
+        if (!is.numeric(freq) | length(freq) != 1 | freq < 1 | (freq %% 1) != 0) {
+          stop("Input error: freq must be a positive integer")
+        }
+      }
+      
+      # Current logic: 
+      # * if y_train is a mts object: check if freq is provided and is equal to the frequency of y_train; 
+      #                               if they are different, throw a warning and ignore the frequency of y_train (see compute_naive_cov function)
+      # * if y_train is not a mts object: check if freq is provided and is a positive integer; 
+      #                                   if not, throw a warning  
+      if (stats::is.mts(y_train)) {
+        if (!is.null(freq) && freq != stats::frequency(y_train)) {
+          warning("Input warning: the provided freq is different from the frequency of y_train.
+                   The frequency of y_train will be ignored.")
+        } 
+      } else {
+        if (is.null(freq)) {
+          warning("Input warning: y_train is not a mts object and freq is not provided. 
+                   The prior will be set assuming no seasonality.")
+        }
+      }
       }
     }
   }
