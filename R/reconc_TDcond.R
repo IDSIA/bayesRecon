@@ -48,7 +48,7 @@
     return(matrix(u, nrow = 1))
   }
 
-  l_l_pmf <- rev(PMF.bottom_up(bott_pmf,
+  l_l_pmf <- rev(PMF_bottom_up(bott_pmf,
     toll = toll, Rtoll = Rtoll, return_all = TRUE,
     smoothing = smoothing, al_smooth = al_smooth, lap_smooth = lap_smooth
   ))
@@ -163,15 +163,15 @@
 #' res.TDcond <- reconc_TDcond(A, fc_bottom, fc_upper)
 #'
 #' # Note that the bottom distributions are shifted to the right
-#' PMF.summary(res.TDcond$bottom_reconciled$pmf[[1]])
-#' PMF.summary(fc_bottom[[1]])
+#' PMF_summary(res.TDcond$bottom_reconciled$pmf[[1]])
+#' PMF_summary(fc_bottom[[1]])
 #'
-#' PMF.summary(res.TDcond$bottom_reconciled$pmf[[2]])
-#' PMF.summary(fc_bottom[[2]])
+#' PMF_summary(res.TDcond$bottom_reconciled$pmf[[2]])
+#' PMF_summary(fc_bottom[[2]])
 #'
 #' # The upper distribution remains similar
-#' PMF.summary(res.TDcond$upper_reconciled$pmf[[1]])
-#' PMF.get_var(res.TDcond$upper_reconciled$pmf[[1]])
+#' PMF_summary(res.TDcond$upper_reconciled$pmf[[1]])
+#' PMF_get_var(res.TDcond$upper_reconciled$pmf[[1]])
 #'
 #' ## Example 2: reconciliation with unbalanced hierarchy
 #' # We consider the example in Fig. 9 of Zambon et al. (2024).
@@ -271,9 +271,9 @@ reconc_TDcond <- function(A, fc_bottom, fc_upper,
   if (bottom_in_type == "pmf") {
     L_pmf <- fc_bottom
   } else if (bottom_in_type == "samples") {
-    L_pmf <- lapply(fc_bottom, PMF.from_samples)
+    L_pmf <- lapply(fc_bottom, PMF_from_samples)
   } else if (bottom_in_type == "params") {
-    L_pmf <- lapply(fc_bottom, PMF.from_params, distr = distr)
+    L_pmf <- lapply(fc_bottom, PMF_from_params, distr = distr)
   }
 
   out <- .core_reconc_TDcond(
@@ -370,7 +370,7 @@ reconc_TDcond <- function(A, fc_bottom, fc_upper,
   }
 
   # Check that each multiv. sample of U is contained in the supp of the bottom-up distr
-  samp_ok <- mapply(PMF.check_support, U_js, L_pmf_js)
+  samp_ok <- mapply(PMF_check_support, U_js, L_pmf_js)
   samp_ok <- rowSums(samp_ok) == n_u_low
   # Only keep the "good" upper samples, and throw a warning if some samples are discarded:
   U_js <- lapply(U_js, "[", samp_ok)
@@ -395,8 +395,8 @@ reconc_TDcond <- function(A, fc_bottom, fc_upper,
   # Prepare output: include the marginal pmfs and/or the samples (depending on "return" inputs)
   out <- list(bottom_reconciled = list(), upper_reconciled = list())
   if (return_type %in% c("pmf", "all")) {
-    upper_pmf <- lapply(1:n_u, function(i) PMF.from_samples(U[i, ]))
-    bottom_pmf <- lapply(1:n_b, function(i) PMF.from_samples(B[i, ]))
+    upper_pmf <- lapply(1:n_u, function(i) PMF_from_samples(U[i, ]))
+    bottom_pmf <- lapply(1:n_b, function(i) PMF_from_samples(B[i, ]))
     out$bottom_reconciled$pmf <- bottom_pmf
     out$upper_reconciled$pmf <- upper_pmf
   }

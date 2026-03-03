@@ -6,8 +6,8 @@
 \usage{
 reconc_gaussian(
   A,
-  base_forecasts.mu,
-  base_forecasts.Sigma = NULL,
+  base_forecasts_mu,
+  base_forecasts_Sigma = NULL,
   residuals = NULL,
   return_uppers = FALSE
 )
@@ -15,13 +15,13 @@ reconc_gaussian(
 \arguments{
 \item{A}{aggregation matrix (n_upper x n_bottom).}
 
-\item{base_forecasts.mu}{a vector containing the means of the base forecasts.}
+\item{base_forecasts_mu}{a vector containing the means of the base forecasts.}
 
-\item{base_forecasts.Sigma}{a matrix containing the covariance matrix of the base forecasts.}
+\item{base_forecasts_Sigma}{a matrix containing the covariance matrix of the base forecasts.}
 
 \item{residuals}{a matrix with the residuals of the base forecasts, with n_upper + n_bottom columns.
 The covariance matrix of the base forecasts is computed from the residuals using the Schäfer Strimmer shrinkage estimator.
-If base_forecasts.Sigma is provided, residuals are ignored.}
+If base_forecasts_Sigma is provided, residuals are ignored.}
 
 \item{return_uppers}{logical, whether to return the reconciled parameters for the upper variables (default is FALSE).}
 }
@@ -67,8 +67,8 @@ sigmas <- c(sigmaY, sigma1, sigma2)
 Sigma <- diag(sigmas^2)  # covariance matrix
 
 analytic_rec <- reconc_gaussian(A,
-  base_forecasts.mu = mus,
-  base_forecasts.Sigma = Sigma
+  base_forecasts_mu = mus,
+  base_forecasts_Sigma = Sigma
 )
 
 bottom_mu_reconc <- analytic_rec$bottom_reconciled_mean
@@ -124,7 +124,7 @@ if (requireNamespace("forecast", quietly = TRUE)) {
                residuals(fit2))
 
   # Reconcile (covariance estimated internally via Schafer-Strimmer)
-  result <- reconc_gaussian(A, base_forecasts.mu = point_fc, residuals = res, return_uppers = TRUE)
+  result <- reconc_gaussian(A, base_forecasts_mu = point_fc, residuals = res, return_uppers = TRUE)
 
   bottom_mu <- result$bottom_reconciled_mean
   bottom_Sigma <- result$bottom_reconciled_covariance

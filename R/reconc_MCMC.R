@@ -128,15 +128,15 @@ reconc_MCMC <- function(A,
   b <- matrix(nrow = num_samples, ncol = n_bottom)
 
   # Get matrix A and bottom base forecasts
-  split_hierarchy.res <- list(
+  split_hierarchy_res <- list(
     A = A,
     upper = base_forecasts[1:nrow(A)],
     bottom = base_forecasts[(nrow(A) + 1):n_ts],
     upper_idxs = 1:nrow(A),
     bottom_idxs = (nrow(A) + 1):n_ts
   )
-  bottom_base_forecasts <- split_hierarchy.res$bottom
-  bottom_distr <- distr[split_hierarchy.res$bottom_idxs]
+  bottom_base_forecasts <- split_hierarchy_res$bottom
+  bottom_distr <- distr[split_hierarchy_res$bottom_idxs]
 
   # Initialize first sample (draw from base distribution)
   b[1, ] <- .initialize_b(bottom_base_forecasts, bottom_distr)

@@ -175,15 +175,15 @@ fc_upper <- list(mu = 40, Sigma = matrix(5^2))
 res.mixCond <- reconc_MixCond(A, fc_bottom, fc_upper)
 
 # Note that the bottom distributions are slightly shifted to the right
-PMF.summary(res.mixCond$bottom_reconciled$pmf[[1]])
-PMF.summary(fc_bottom[[1]])
+PMF_summary(res.mixCond$bottom_reconciled$pmf[[1]])
+PMF_summary(fc_bottom[[1]])
 
-PMF.summary(res.mixCond$bottom_reconciled$pmf[[2]])
-PMF.summary(fc_bottom[[2]])
+PMF_summary(res.mixCond$bottom_reconciled$pmf[[2]])
+PMF_summary(fc_bottom[[2]])
 
 # The upper distribution is slightly shifted to the left
-PMF.summary(res.mixCond$upper_reconciled$pmf[[1]])
-PMF.get_var(res.mixCond$upper_reconciled$pmf[[1]])
+PMF_summary(res.mixCond$upper_reconciled$pmf[[1]])
+PMF_get_var(res.mixCond$upper_reconciled$pmf[[1]])
 
 
 library(bayesRecon)
@@ -204,15 +204,15 @@ fc_upper <- list(mu = 40, Sigma = matrix(c(5^2)))
 res.TDcond <- reconc_TDcond(A, fc_bottom, fc_upper)
 
 # Note that the bottom distributions are shifted to the right
-PMF.summary(res.TDcond$bottom_reconciled$pmf[[1]])
-PMF.summary(fc_bottom[[1]])
+PMF_summary(res.TDcond$bottom_reconciled$pmf[[1]])
+PMF_summary(fc_bottom[[1]])
 
-PMF.summary(res.TDcond$bottom_reconciled$pmf[[2]])
-PMF.summary(fc_bottom[[2]])
+PMF_summary(res.TDcond$bottom_reconciled$pmf[[2]])
+PMF_summary(fc_bottom[[2]])
 
 # The upper distribution remains similar
-PMF.summary(res.TDcond$upper_reconciled$pmf[[1]])
-PMF.get_var(res.TDcond$upper_reconciled$pmf[[1]])
+PMF_summary(res.TDcond$upper_reconciled$pmf[[1]])
+PMF_get_var(res.TDcond$upper_reconciled$pmf[[1]])
 
 ## Example 2: reconciliation with unbalanced hierarchy
 # We consider the example in Fig. 9 of Zambon et al. (2024).

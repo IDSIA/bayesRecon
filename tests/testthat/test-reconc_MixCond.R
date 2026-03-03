@@ -39,21 +39,21 @@ test_that("reconc_MixCond simple example", {
 
   res.MixCond <- reconc_MixCond(A, fc_bottom, fc_upper, bottom_in_type = "samples", seed = 42)
 
-  bott_rec_means <- unlist(lapply(res.MixCond$bottom_reconciled$pmf, PMF.get_mean))
-  bott_rec_vars <- unlist(lapply(res.MixCond$bottom_reconciled$pmf, PMF.get_var))
+  bott_rec_means <- unlist(lapply(res.MixCond$bottom_reconciled$pmf, PMF_get_mean))
+  bott_rec_vars <- unlist(lapply(res.MixCond$bottom_reconciled$pmf, PMF_get_var))
 
 
   # Create PMF from samples
   fc_bottom_pmf <- list()
   for (i in seq(ncol(A))) {
-    fc_bottom_pmf[[i]] <- PMF.from_samples(fc_bottom[[i]])
+    fc_bottom_pmf[[i]] <- PMF_from_samples(fc_bottom[[i]])
   }
 
   # Reconcile from bottom PMF
   res.MixCond_pmf <- reconc_MixCond(A, fc_bottom_pmf, fc_upper, seed = 42)
 
-  bott_rec_means_pmf <- unlist(lapply(res.MixCond_pmf$bottom_reconciled$pmf, PMF.get_mean))
-  bott_rec_vars_pmf <- unlist(lapply(res.MixCond_pmf$bottom_reconciled$pmf, PMF.get_var))
+  bott_rec_means_pmf <- unlist(lapply(res.MixCond_pmf$bottom_reconciled$pmf, PMF_get_mean))
+  bott_rec_vars_pmf <- unlist(lapply(res.MixCond_pmf$bottom_reconciled$pmf, PMF_get_var))
 
   expect_equal(bott_rec_means, bott_rec_means_pmf, tolerance = 0.01)
   expect_equal(bott_rec_vars, bott_rec_vars_pmf, tolerance = 0.1)
@@ -96,7 +96,7 @@ test_that("reconc_MixCond and reconc_TDcond with temporal hier and params", {
   res.TDcond <- reconc_TDcond(rec_mat$A, fc_bottom, fc_upper, bottom_in_type = "params", distr = "poisson")
 
   # Summary of the upper reconciled with TDcond
-  pmfSum <- PMF.summary(res.TDcond$upper_reconciled$pmf[[1]])
+  pmfSum <- PMF_summary(res.TDcond$upper_reconciled$pmf[[1]])
   # We expect that the reconciled mean is very similar to the initial mean (should be equal)
   expect_equal(pmfSum$Mean, fc_upper$mu, tolerance = 0.01)
 

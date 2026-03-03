@@ -5,11 +5,11 @@
 #' Closed form computation of the reconciled forecasts in case of Gaussian base forecasts.
 #'
 #' @param A aggregation matrix (n_upper x n_bottom).
-#' @param base_forecasts.mu a vector containing the means of the base forecasts.
-#' @param base_forecasts.Sigma a matrix containing the covariance matrix of the base forecasts.
+#' @param base_forecasts_mu a vector containing the means of the base forecasts.
+#' @param base_forecasts_Sigma a matrix containing the covariance matrix of the base forecasts.
 #' @param residuals a matrix with the residuals of the base forecasts, with n_upper + n_bottom columns.
 #' The covariance matrix of the base forecasts is computed from the residuals using the Schäfer Strimmer shrinkage estimator.
-#' If base_forecasts.Sigma is provided, residuals are ignored.
+#' If base_forecasts_Sigma is provided, residuals are ignored.
 #' @param return_uppers logical, whether to return the reconciled parameters for the upper variables (default is FALSE).
 #'
 #' @details
@@ -50,8 +50,8 @@
 #' Sigma <- diag(sigmas^2)  # covariance matrix
 #' 
 #' analytic_rec <- reconc_gaussian(A,
-#'   base_forecasts.mu = mus,
-#'   base_forecasts.Sigma = Sigma
+#'   base_forecasts_mu = mus,
+#'   base_forecasts_Sigma = Sigma
 #' )
 #'
 #' bottom_mu_reconc <- analytic_rec$bottom_reconciled_mean
@@ -107,7 +107,7 @@
 #'                residuals(fit2))
 #'
 #'   # Reconcile (covariance estimated internally via Schafer-Strimmer)
-#'   result <- reconc_gaussian(A, base_forecasts.mu = point_fc, residuals = res, return_uppers = TRUE)
+#'   result <- reconc_gaussian(A, base_forecasts_mu = point_fc, residuals = res, return_uppers = TRUE)
 #'
 #'   bottom_mu <- result$bottom_reconciled_mean
 #'   bottom_Sigma <- result$bottom_reconciled_covariance
@@ -147,45 +147,45 @@
 #' @seealso [reconc_BUIS()]
 #'
 #' @export
-reconc_gaussian <- function(A, base_forecasts.mu,
-                            base_forecasts.Sigma = NULL,
+reconc_gaussian <- function(A, base_forecasts_mu,
+                            base_forecasts_Sigma = NULL,
                             residuals = NULL,
                             return_uppers = FALSE) {
   # Check matrix A
   .check_A(A)
   k <- nrow(A) # number of upper TS
   m <- ncol(A) # number of bottom TS
-  n <- length(base_forecasts.mu) # total number of TS
+  n <- length(base_forecasts_mu) # total number of TS
   if (!(k + m == n)) {
     stop("Input error: the shape of A is not correct")
   }
 
-  # If residuals are not provided, base_forecasts.Sigma must be provided
+  # If residuals are not provided, base_forecasts_Sigma must be provided
   if (is.null(residuals)) {
-    if (is.null(base_forecasts.Sigma)) {
-      stop("Input error: either residuals or base_forecasts.Sigma must be provided")
+    if (is.null(base_forecasts_Sigma)) {
+      stop("Input error: either residuals or base_forecasts_Sigma must be provided")
     }
-    if (!(nrow(base_forecasts.Sigma) == n)) {
-      stop("Input error: nrow(base_forecasts.Sigma) != length(base_forecasts.mu)")
+    if (!(nrow(base_forecasts_Sigma) == n)) {
+      stop("Input error: nrow(base_forecasts_Sigma) != length(base_forecasts_mu)")
     }
-    .check_cov(base_forecasts.Sigma, "Sigma", pd_check = FALSE, symm_check = TRUE)
+    .check_cov(base_forecasts_Sigma, "Sigma", pd_check = FALSE, symm_check = TRUE)
   } else {
-    if (!is.null(base_forecasts.Sigma)) {
-      warning("Input warning: both residuals and base_forecasts.Sigma are provided, ignoring residuals")
-      .check_cov(base_forecasts.Sigma, "Sigma", pd_check = FALSE, symm_check = TRUE)
+    if (!is.null(base_forecasts_Sigma)) {
+      warning("Input warning: both residuals and base_forecasts_Sigma are provided, ignoring residuals")
+      .check_cov(base_forecasts_Sigma, "Sigma", pd_check = FALSE, symm_check = TRUE)
     } else if (ncol(residuals) != n) {
-      stop("Input error: ncol(residuals) != length(base_forecasts.mu)")
+      stop("Input error: ncol(residuals) != length(base_forecasts_mu)")
     } else {
       # Compute the covariance matrix of the base forecasts from the residuals
-      base_forecasts.Sigma <- schaferStrimmer_cov(residuals)$shrink_cov
+      base_forecasts_Sigma <- schaferStrimmer_cov(residuals)$shrink_cov
     }
   }
 
-  Sigma_u <- base_forecasts.Sigma[1:k, 1:k]
-  Sigma_b <- base_forecasts.Sigma[(k + 1):n, (k + 1):n]
-  Sigma_ub <- base_forecasts.Sigma[1:k, (k + 1):n, drop = FALSE]
-  mu_u <- base_forecasts.mu[1:k]
-  mu_b <- base_forecasts.mu[(k + 1):n]
+  Sigma_u <- base_forecasts_Sigma[1:k, 1:k]
+  Sigma_b <- base_forecasts_Sigma[(k + 1):n, (k + 1):n]
+  Sigma_ub <- base_forecasts_Sigma[1:k, (k + 1):n, drop = FALSE]
+  mu_u <- base_forecasts_mu[1:k]
+  mu_b <- base_forecasts_mu[(k + 1):n]
 
   # Formulation from:
   # Zambon, L., et al. "Properties of the reconciled distributions for

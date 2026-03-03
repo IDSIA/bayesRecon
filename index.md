@@ -240,8 +240,8 @@ Gaussian and can be computed in closed form:
 ``` r
 Sigma <- diag(sigmas ^ 2)  #transform into covariance matrix
 analytic_rec <- reconc_gaussian(A,
-                                base_forecasts.mu = mus,
-                                base_forecasts.Sigma = Sigma)
+                                base_forecasts_mu = mus,
+                                base_forecasts_Sigma = Sigma)
 analytic_means_bottom <- analytic_rec$bottom_reconciled_mean
 analytic_means_upper <- A %*% analytic_means_bottom
 analytic_means <- rbind(analytic_means_upper,analytic_means_bottom)

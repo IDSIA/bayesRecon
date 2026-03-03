@@ -35,7 +35,7 @@
 }
 
 .emp_pmf <- function(l, density_samples) {
-  empirical_pmf <- PMF.from_samples(density_samples)
+  empirical_pmf <- PMF_from_samples(density_samples)
   w <- sapply(l, function(i) empirical_pmf[i + 1])
   return(w)
 }
@@ -169,8 +169,8 @@
 #' # computed in closed form
 #' Sigma <- diag(sigmas^2) # transform into covariance matrix
 #' analytic_rec <- reconc_gaussian(A,
-#'   base_forecasts.mu = mus,
-#'   base_forecasts.Sigma = Sigma
+#'   base_forecasts_mu = mus,
+#'   base_forecasts_Sigma = Sigma
 #' )
 #'
 #' # Compare the reconciled means obtained analytically and via BUIS
@@ -239,55 +239,55 @@ reconc_BUIS <- function(A,
   # the first nrow(A) elements of base_forecasts are upper
   # the second ncol(A) elements of base_forecasts are lower
 
-  split_hierarchy.res <- list(
+  split_hierarchy_res <- list(
     A = A,
     upper = base_forecasts[1:nrow(A)],
     bottom = base_forecasts[(nrow(A) + 1):n_tot],
     upper_idxs = 1:nrow(A),
     bottom_idxs = (nrow(A) + 1):n_tot
   )
-  upper_base_forecasts <- split_hierarchy.res$upper
-  bottom_base_forecasts <- split_hierarchy.res$bottom
+  upper_base_forecasts <- split_hierarchy_res$upper
+  bottom_base_forecasts <- split_hierarchy_res$bottom
 
   # Check on continuous/discrete in relationship to the hierarchy
-  .check_hierfamily_rel(split_hierarchy.res, distr)
+  .check_hierfamily_rel(split_hierarchy_res, distr)
 
   # H, G
-  is.hier <- .check_hierarchical(A)
+  is_hier <- .check_hierarchical(A)
   # If A is hierarchical we do not solve the integer linear programming problem
-  if (is.hier) {
+  if (is_hier) {
     H <- A
     G <- NULL
     upper_base_forecasts_H <- upper_base_forecasts
     upper_base_forecasts_G <- NULL
-    in_typeH <- in_type[split_hierarchy.res$upper_idxs]
-    distr_H <- distr[split_hierarchy.res$upper_idxs]
+    in_typeH <- in_type[split_hierarchy_res$upper_idxs]
+    distr_H <- distr[split_hierarchy_res$upper_idxs]
     in_typeG <- NULL
     distr_G <- NULL
   } else {
-    get_HG.res <- .get_HG(A, upper_base_forecasts, distr[split_hierarchy.res$upper_idxs], in_type[split_hierarchy.res$upper_idxs])
-    H <- get_HG.res$H
-    upper_base_forecasts_H <- get_HG.res$Hv
-    G <- get_HG.res$G
-    upper_base_forecasts_G <- get_HG.res$Gv
-    in_typeH <- get_HG.res$Hin_type
-    distr_H <- get_HG.res$Hdistr
-    in_typeG <- get_HG.res$Gin_type
-    distr_G <- get_HG.res$Gdistr
+    get_HG_res <- .get_HG(A, upper_base_forecasts, distr[split_hierarchy_res$upper_idxs], in_type[split_hierarchy_res$upper_idxs])
+    H <- get_HG_res$H
+    upper_base_forecasts_H <- get_HG_res$Hv
+    G <- get_HG_res$G
+    upper_base_forecasts_G <- get_HG_res$Gv
+    in_typeH <- get_HG_res$Hin_type
+    distr_H <- get_HG_res$Hdistr
+    in_typeG <- get_HG_res$Gin_type
+    distr_G <- get_HG_res$Gdistr
   }
 
   # Reconciliation using BUIS
 
   # 1. Bottom samples
   B <- list()
-  in_type_bottom <- in_type[split_hierarchy.res$bottom_idxs]
+  in_type_bottom <- in_type[split_hierarchy_res$bottom_idxs]
   for (bi in 1:n_bottom) {
     if (in_type_bottom[[bi]] == "samples") {
       B[[bi]] <- unlist(bottom_base_forecasts[[bi]])
     } else if (in_type_bottom[[bi]] == "params") {
       B[[bi]] <- .distr_sample(
         bottom_base_forecasts[[bi]],
-        distr[split_hierarchy.res$bottom_idxs][[bi]],
+        distr[split_hierarchy_res$bottom_idxs][[bi]],
         num_samples
       )
     }
@@ -315,9 +315,9 @@ reconc_BUIS <- function(A,
   #     in_type_ = in_typeH[[hi]],
   #     distr_ = distr_H[[hi]]
   #   )
-  #   check_weights.res = .check_weights(weights)
-  #   if (check_weights.res$warning & !suppress_warnings) {
-  #     warning_msg = check_weights.res$warning_msg
+  #   check_weights_res = .check_weights(weights)
+  #   if (check_weights_res$warning & !suppress_warnings) {
+  #     warning_msg = check_weights_res$warning_msg
   #     # add information to the warning message
   #     upper_fromA_i = which(lapply(seq_len(nrow(A)), function(i) sum(abs(A[i,] - c))) == 0)
   #     for (wmsg in warning_msg) {
@@ -325,7 +325,7 @@ reconc_BUIS <- function(A,
   #       warning(wmsg)
   #     }
   #   }
-  #   if(check_weights.res$warning & (1 %in% check_weights.res$warning_code)){
+  #   if(check_weights_res$warning & (1 %in% check_weights_res$warning_code)){
   #     next
   #   }
   #   B[, b_mask] = .resample(B[, b_mask], weights)
@@ -343,9 +343,9 @@ reconc_BUIS <- function(A,
   #       distr_ = distr_G[[gi]]
   #     )
   #   }
-  #   check_weights.res = .check_weights(weights)
-  #   if (check_weights.res$warning & !suppress_warnings) {
-  #     warning_msg = check_weights.res$warning_msg
+  #   check_weights_res = .check_weights(weights)
+  #   if (check_weights_res$warning & !suppress_warnings) {
+  #     warning_msg = check_weights_res$warning_msg
   #     # add information to the warning message
   #     upper_fromA_i = c()
   #     for (gi in 1:nrow(G)) {
@@ -358,7 +358,7 @@ reconc_BUIS <- function(A,
   #       warning(wmsg)
   #     }
   #   }
-  #   if(!(check_weights.res$warning & (1 %in% check_weights.res$warning_code))){
+  #   if(!(check_weights_res$warning & (1 %in% check_weights_res$warning_code))){
   #     B = .resample(B, weights)
   #   }
 
@@ -426,9 +426,9 @@ reconc_BUIS <- function(A,
       in_type_ = in_typeH[[hi]],
       distr_ = distr_H[[hi]]
     )
-    check_weights.res <- .check_weights(weights)
-    if (check_weights.res$warning & !suppress_warnings) {
-      warning_msg <- check_weights.res$warning_msg
+    check_weights_res <- .check_weights(weights)
+    if (check_weights_res$warning & !suppress_warnings) {
+      warning_msg <- check_weights_res$warning_msg
       # add information to the warning message
       upper_fromA_i <- which(lapply(seq_len(nrow(A)), function(i) sum(abs(A[i, ] - c))) == 0)
       for (wmsg in warning_msg) {
@@ -436,7 +436,7 @@ reconc_BUIS <- function(A,
         warning(wmsg)
       }
     }
-    if (check_weights.res$warning & (1 %in% check_weights.res$warning_code)) {
+    if (check_weights_res$warning & (1 %in% check_weights_res$warning_code)) {
       next
     }
     B[, b_mask] <- .resample(B[, b_mask], weights)
@@ -455,9 +455,9 @@ reconc_BUIS <- function(A,
         distr_ = distr_G[[gi]]
       )
     }
-    check_weights.res <- .check_weights(weights)
-    if (check_weights.res$warning & !suppress_warnings) {
-      warning_msg <- check_weights.res$warning_msg
+    check_weights_res <- .check_weights(weights)
+    if (check_weights_res$warning & !suppress_warnings) {
+      warning_msg <- check_weights_res$warning_msg
       # add information to the warning message
       upper_fromA_i <- c()
       for (gi in 1:nrow(G)) {
@@ -472,7 +472,7 @@ reconc_BUIS <- function(A,
         warning(wmsg)
       }
     }
-    if (!(check_weights.res$warning & (1 %in% check_weights.res$warning_code))) {
+    if (!(check_weights_res$warning & (1 %in% check_weights_res$warning_code))) {
       B <- .resample(B, weights)
     }
   }

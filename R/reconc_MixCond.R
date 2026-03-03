@@ -95,15 +95,15 @@
 #' res.mixCond <- reconc_MixCond(A, fc_bottom, fc_upper)
 #'
 #' # Note that the bottom distributions are slightly shifted to the right
-#' PMF.summary(res.mixCond$bottom_reconciled$pmf[[1]])
-#' PMF.summary(fc_bottom[[1]])
+#' PMF_summary(res.mixCond$bottom_reconciled$pmf[[1]])
+#' PMF_summary(fc_bottom[[1]])
 #'
-#' PMF.summary(res.mixCond$bottom_reconciled$pmf[[2]])
-#' PMF.summary(fc_bottom[[2]])
+#' PMF_summary(res.mixCond$bottom_reconciled$pmf[[2]])
+#' PMF_summary(fc_bottom[[2]])
 #'
 #' # The upper distribution is slightly shifted to the left
-#' PMF.summary(res.mixCond$upper_reconciled$pmf[[1]])
-#' PMF.get_var(res.mixCond$upper_reconciled$pmf[[1]])
+#' PMF_summary(res.mixCond$upper_reconciled$pmf[[1]])
+#' PMF_get_var(res.mixCond$upper_reconciled$pmf[[1]])
 #'
 #' @references
 #' Zambon, L., Azzimonti, D., Rubattu, N., Corani, G. (2024).
@@ -129,14 +129,14 @@ reconc_MixCond <- function(A, fc_bottom, fc_upper,
 
   # Prepare samples from the base bottom distribution
   if (bottom_in_type == "pmf") {
-    B <- lapply(fc_bottom, PMF.sample, N_samples = num_samples)
+    B <- lapply(fc_bottom, PMF_sample, N_samples = num_samples)
     B <- do.call("cbind", B) # matrix of bottom samples (N_samples x n_bottom)
   } else if (bottom_in_type == "samples") {
     B <- do.call("cbind", fc_bottom)
     num_samples <- nrow(B)
   } else if (bottom_in_type == "params") {
-    L_pmf <- lapply(fc_bottom, PMF.from_params, distr = distr)
-    B <- lapply(L_pmf, PMF.sample, N_samples = num_samples)
+    L_pmf <- lapply(fc_bottom, PMF_from_params, distr = distr)
+    B <- lapply(L_pmf, PMF_sample, N_samples = num_samples)
     B <- do.call("cbind", B) # matrix of bottom samples (N_samples x n_bottom)
   }
 
@@ -186,12 +186,12 @@ reconc_MixCond <- function(A, fc_bottom, fc_upper,
   weights <- .MVN_density(x = U, mu = mu_u, Sigma = Sigma_u)
 
 
-  check_weights.res <- .check_weights(weights)
-  if (check_weights.res$warning & !suppress_warnings) {
-    warning_msg <- check_weights.res$warning_msg
+  check_weights_res <- .check_weights(weights)
+  if (check_weights_res$warning & !suppress_warnings) {
+    warning_msg <- check_weights_res$warning_msg
     warning(warning_msg)
   }
-  if (!(check_weights.res$warning & (1 %in% check_weights.res$warning_code))) {
+  if (!(check_weights_res$warning & (1 %in% check_weights_res$warning_code))) {
     B <- .resample(B, weights, num_samples)
   }
 
@@ -203,8 +203,8 @@ reconc_MixCond <- function(A, fc_bottom, fc_upper,
   # Prepare output: include the marginal pmfs and/or the samples (depending on "return" inputs)
   out <- list(bottom_reconciled = list(), upper_reconciled = list(), ESS = ESS)
   if (return_type %in% c("pmf", "all")) {
-    upper_pmf <- lapply(1:n_u, function(i) PMF.from_samples(U[i, ]))
-    bottom_pmf <- lapply(1:n_b, function(i) PMF.from_samples(B[i, ]))
+    upper_pmf <- lapply(1:n_u, function(i) PMF_from_samples(U[i, ]))
+    bottom_pmf <- lapply(1:n_b, function(i) PMF_from_samples(B[i, ]))
 
     out$bottom_reconciled$pmf <- bottom_pmf
     out$upper_reconciled$pmf <- upper_pmf

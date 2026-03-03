@@ -81,12 +81,12 @@ test_that("reconc_TDcond simple example", {
   bott_reconc_mean <- fc_bott_gauss$mu + tcrossprod(bott_reconc_cov, A) %*% inv_U %*% (fc_upper$mu - A %*% fc_bott_gauss$mu)
 
   # compute the difference between empirical and analytical
-  m_diff <- unlist(lapply(res.TDcond$bottom_reconciled$pmf, PMF.get_mean)) - bott_reconc_mean
+  m_diff <- unlist(lapply(res.TDcond$bottom_reconciled$pmf, PMF_get_mean)) - bott_reconc_mean
 
   expect_true(all(abs(m_diff / bott_reconc_mean) < 8e-3))
 
 
   # The variances are different
-  # unlist(lapply(res.TDcond$pmf$bottom,PMF.get_var))
+  # unlist(lapply(res.TDcond$pmf$bottom,PMF_get_var))
   # diag(bott_reconc_cov)
 })

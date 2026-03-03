@@ -126,8 +126,8 @@ samples_buis <- buis$reconciled_samples
 # computed in closed form
 Sigma <- diag(sigmas^2) # transform into covariance matrix
 analytic_rec <- reconc_gaussian(A,
-  base_forecasts.mu = mus,
-  base_forecasts.Sigma = Sigma
+  base_forecasts_mu = mus,
+  base_forecasts_Sigma = Sigma
 )
 
 # Compare the reconciled means obtained analytically and via BUIS

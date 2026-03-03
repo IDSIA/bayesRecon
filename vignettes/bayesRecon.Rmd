@@ -298,8 +298,8 @@ between the two approaches.
 ```{r m3-reco} 
 recon.gauss <- bayesRecon::reconc_gaussian(
   A = rmat$A,
-  base_forecasts.mu = sapply(fc, "[[", 1),
-  base_forecasts.Sigma = diag(sapply(fc, "[[", 2))^2
+  base_forecasts_mu = sapply(fc, "[[", 1),
+  base_forecasts_Sigma = diag(sapply(fc, "[[", 2))^2
 )
 
 reconc.buis <- bayesRecon::reconc_BUIS(
@@ -450,8 +450,8 @@ We now perform Gaussian reconciliation:
 
 ```{r infants-recon}
 recon.gauss <- bayesRecon::reconc_gaussian(A,
-  base_forecasts.mu = mu,
-  base_forecasts.Sigma = Sigma
+  base_forecasts_mu = mu,
+  base_forecasts_Sigma = Sigma
 )
 
 bottom_mu_reconc <- recon.gauss$bottom_reconciled_mean
