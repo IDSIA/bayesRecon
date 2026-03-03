@@ -317,7 +317,6 @@ reconc_TDcond <- function(A, fc_bottom, fc_upper,
 #' }
 #'
 #' @keywords internal
-#' @noRd
 #' @export
 .core_reconc_TDcond <- function(A, mu_u, Sigma_u, L_pmf, num_samples,
                                 return_type, suppress_warnings) {

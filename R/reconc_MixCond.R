@@ -175,7 +175,6 @@ reconc_MixCond <- function(A, fc_bottom, fc_upper,
 #'   }
 #'
 #' @keywords internal
-#' @noRd
 #' @export
 .core_reconc_MixCond <- function(A, B, mu_u, Sigma_u, num_samples, return_type, suppress_warnings) {
   # Get dimensions

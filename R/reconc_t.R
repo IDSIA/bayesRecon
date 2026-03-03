@@ -22,7 +22,6 @@
 #' @seealso [schaferStrimmer_cov()], [reconc_t()]
 #'
 #' @keywords internal
-#' @noRd
 #' @export
 .compute_naive_cov = function(y_train, freq = NULL, criterion = "RSS") {
   
@@ -475,7 +474,6 @@ reconc_t <- function(A,
 #'   }
 #'
 #' @keywords internal
-#' @noRd
 #' @export
 .core_reconc_t <- function(A, point_fc, Psi_post, nu_post, return_uppers = FALSE,
                            return_parameters = FALSE, suppress_warnings = FALSE) {

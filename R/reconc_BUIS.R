@@ -403,7 +403,6 @@ reconc_BUIS <- function(A,
 #'   }
 #'
 #' @keywords internal
-#' @noRd
 #' @export
 .core_reconc_BUIS <- function(A,
                               H, G,
