@@ -162,3 +162,36 @@
 #' @source
 #' Makridakis, Spyros & Spiliotis, Evangelos & Assimakopoulos, Vassilis. (2020). *The M5 Accuracy competition: Results, findings and conclusions.* International Journal of Forecasting 38(4) 1346-1364. \doi{10.1016/j.ijforecast.2021.10.009}
 "M5_CA1_basefc"
+
+
+#' Swiss tourism: monthly Swiss overnight stay data
+#'
+#' A dataset of 27 time series with monthly observations of the number of 
+#' overnight stays in Switzerland, from Jan 2005 to Jan 2025.
+#' 
+#' This is a hierarchy of time series that contains:
+#' - 26 bottom-level series corresponding to the 26 Swiss cantons 
+#' - 1 top-level series corresponding to the Swiss total.
+#' Each time series has 241 observations. 
+#' 
+#'
+#' @format
+#' A list that contains: 
+#' - \code{ts}: a multivariate time series of class \link[stats]{ts};
+#' - \code{n_bottom}: integer with the number of bottom time series (26);
+#' - \code{n_upper}: integer with the number of upper time series (1);
+#' - \code{agg_mat}: the aggregation matrix for the hierarchy. (1x26)
+#' 
+#' @source 
+#' Federal Statistical Office of Switzerland (2025).
+#' *Hotel sector: arrivals and overnight stays of open establishments by year, month, canton and visitors' country of residence*.
+#' \url{https://www.bfs.admin.ch/asset/en/px-x-1003020000_102}
+#' 
+#' @references 
+#' 
+#' Carrara, C., Azzimonti, D., Corani, G., Zambon, L. (2025).
+#' *Modeling the uncertainty on the covariance matrix for probabilistic forecast reconciliation*.
+#' arXiv:2506.19554
+#' \doi{10.48550/arXiv.2506.19554}.
+#' 
+"swiss_tourism"
