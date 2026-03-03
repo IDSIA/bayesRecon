@@ -90,66 +90,72 @@ Please check the base forecasts in case of warnings.
 library(bayesRecon)
 
 # Create a minimal hierarchy with 2 bottom and 1 upper variable
-rec_mat <- get_reconc_matrices(agg_levels=c(1,2), h=2)
+rec_mat <- get_reconc_matrices(agg_levels = c(1, 2), h = 2)
 A <- rec_mat$A
 S <- rec_mat$S
 
 
-#1) Gaussian base forecasts
+# 1) Gaussian base forecasts
 
-#Set the parameters of the Gaussian base forecast distributions
+# Set the parameters of the Gaussian base forecast distributions
 mu1 <- 2
 mu2 <- 4
 muY <- 9
-mus <- c(muY,mu1,mu2)
+mus <- c(muY, mu1, mu2)
 
 sigma1 <- 2
 sigma2 <- 2
 sigmaY <- 3
-sigmas <- c(sigmaY,sigma1,sigma2)
+sigmas <- c(sigmaY, sigma1, sigma2)
 
-base_forecasts = list()
+base_forecasts <- list()
 for (i in 1:length(mus)) {
-base_forecasts[[i]] = list(mean = mus[[i]], sd = sigmas[[i]])
+  base_forecasts[[i]] <- list(mean = mus[[i]], sd = sigmas[[i]])
 }
 
 
-#Sample from the reconciled forecast distribution using the BUIS algorithm
-buis <- reconc_BUIS(A, base_forecasts, in_type="params",
-                 distr="gaussian", num_samples=100000, seed=42)
+# Sample from the reconciled forecast distribution using the BUIS algorithm
+buis <- reconc_BUIS(A, base_forecasts,
+  in_type = "params",
+  distr = "gaussian", num_samples = 100000, seed = 42
+)
 
 samples_buis <- buis$reconciled_samples
 
-#In the Gaussian case, the reconciled distribution is still Gaussian and can be
-#computed in closed form
-Sigma <- diag(sigmas^2)  #transform into covariance matrix
-analytic_rec <- reconc_gaussian(A, base_forecasts.mu = mus,
-                                base_forecasts.Sigma = Sigma)
+# In the Gaussian case, the reconciled distribution is still Gaussian and can be
+# computed in closed form
+Sigma <- diag(sigmas^2) # transform into covariance matrix
+analytic_rec <- reconc_gaussian(A,
+  base_forecasts.mu = mus,
+  base_forecasts.Sigma = Sigma
+)
 
-#Compare the reconciled means obtained analytically and via BUIS
+# Compare the reconciled means obtained analytically and via BUIS
 print(c(S \%*\% analytic_rec$bottom_reconciled_mean))
 print(rowMeans(samples_buis))
 
 
-#2) Poisson base forecasts
+# 2) Poisson base forecasts
 
-#Set the parameters of the Poisson base forecast distributions
+# Set the parameters of the Poisson base forecast distributions
 lambda1 <- 2
 lambda2 <- 4
 lambdaY <- 9
-lambdas <- c(lambdaY,lambda1,lambda2)
+lambdas <- c(lambdaY, lambda1, lambda2)
 
 base_forecasts <- list()
 for (i in 1:length(lambdas)) {
- base_forecasts[[i]] = list(lambda = lambdas[i])
+  base_forecasts[[i]] <- list(lambda = lambdas[i])
 }
 
-#Sample from the reconciled forecast distribution using the BUIS algorithm
-buis <- reconc_BUIS(A, base_forecasts, in_type="params",
-                          distr="poisson", num_samples=100000, seed=42)
+# Sample from the reconciled forecast distribution using the BUIS algorithm
+buis <- reconc_BUIS(A, base_forecasts,
+  in_type = "params",
+  distr = "poisson", num_samples = 100000, seed = 42
+)
 samples_buis <- buis$reconciled_samples
 
-#Print the reconciled means
+# Print the reconciled means
 print(rowMeans(samples_buis))
 
 }

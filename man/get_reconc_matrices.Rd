@@ -26,8 +26,8 @@ from a user-selected list of aggregation levels.
 
 library(bayesRecon)
 
-#Create monthly hierarchy
-agg_levels <- c(1,2,3,4,6,12)
+# Create monthly hierarchy
+agg_levels <- c(1, 2, 3, 4, 6, 12)
 h <- 12
 rec_mat <- get_reconc_matrices(agg_levels, h)
 S <- rec_mat$S
