@@ -422,7 +422,7 @@ reconc_t <- function(A,
       # - set nu using LOOCV
     } else {
       # Compute the covariance residuals of the naive or seasonal naive forecasts on training data
-      cov_naive <- compute_naive_cov(y_train, freq = freq, criterion = criterion)
+      cov_naive <- .compute_naive_cov(y_train, freq = freq, criterion = criterion)
       # Use it to set the prior
       bayesian_LOO <- multi_log_score_optimization(residuals, cov_naive)
       nu_prior <- bayesian_LOO$optimal_nu
