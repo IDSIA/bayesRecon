@@ -6,7 +6,7 @@
 \usage{
 .core_reconc_t(
   A,
-  point_fc,
+  base_fc_mean,
   Psi_post,
   nu_post,
   return_uppers = FALSE,
@@ -17,7 +17,7 @@
 \arguments{
 \item{A}{Matrix (n_upper x n_bottom) defining the hierarchy where upper = A \%*\% bottom.}
 
-\item{point_fc}{Vector of length (n_upper + n_bottom) containing the base forecast means
+\item{base_fc_mean}{Vector of length (n_upper + n_bottom) containing the base forecast means
 for both upper and bottom levels (upper first, then bottom).}
 
 \item{Psi_post}{Scale matrix (n_upper + n_bottom x n_upper + n_bottom) of the posterior

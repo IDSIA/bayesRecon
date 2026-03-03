@@ -25,8 +25,8 @@ test_that("reconc_MixCond simple example", {
   # create the lists for reconciliation
   ## upper
   fc_upper <- list(
-    mu = means[1:10],
-    Sigma = diag(vars[1:10])
+    mean = means[1:10],
+    cov = diag(vars[1:10])
   )
 
   ## bottom
@@ -78,7 +78,7 @@ test_that("reconc_MixCond and reconc_TDcond with temporal hier and params", {
 
   # We compute the empirical mean and variance of the yearly ts
   # we forecast with a Gaussian with those parameters
-  fc_upper <- list(mu = mean(y_agg$`f=1`), Sigma = matrix(var(y_agg$`f=1`)))
+  fc_upper <- list(mean = mean(y_agg$`f=1`), cov = matrix(var(y_agg$`f=1`)))
 
   # Obtain the aggregation matrix for this hierarchy
   rec_mat <- get_reconc_matrices(c(1, 12), 12)
@@ -98,7 +98,7 @@ test_that("reconc_MixCond and reconc_TDcond with temporal hier and params", {
   # Summary of the upper reconciled with TDcond
   pmfSum <- PMF_summary(res.TDcond$upper_reconciled$pmf[[1]])
   # We expect that the reconciled mean is very similar to the initial mean (should be equal)
-  expect_equal(pmfSum$Mean, fc_upper$mu, tolerance = 0.01)
+  expect_equal(pmfSum$Mean, fc_upper$mean, tolerance = 0.01)
 
   # Check that all bottom and upper reconciled PMF sum to 1
   check_pmf_bott_mixCond <- sum(unlist(lapply(res.mixCond$bottom_reconciled$pmf, function(x) {

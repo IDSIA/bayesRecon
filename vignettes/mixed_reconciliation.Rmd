@@ -93,24 +93,24 @@ for (fc_b in base_fc_bottom) {
 Sigma_b <- diag(sd_b**2)
 
 # Mean and covariance matrix of the base forecasts
-base_forecasts_mu <- c(mu_u, mu_b)
-base_forecasts_Sigma <- matrix(0, nrow = n, ncol = n)
-base_forecasts_Sigma[1:n_u, 1:n_u] <- Sigma_u
-base_forecasts_Sigma[(n_u + 1):n, (n_u + 1):n] <- Sigma_b
+base_fc_mean <- c(mu_u, mu_b)
+base_fc_cov <- matrix(0, nrow = n, ncol = n)
+base_fc_cov[1:n_u, 1:n_u] <- Sigma_u
+base_fc_cov[(n_u + 1):n, (n_u + 1):n] <- Sigma_b
 ```
 
 We reconcile using the function `reconc_gaussian()`, which takes as input: 
 
 * the summing matrix `A`;
-* the means of the  base forecast,  `base_forecasts_mu`; 
-* the covariance of the base forecast,  `base_forecasts_Sigma`. 
+* the means of the  base forecast,  `base_fc_mean`; 
+* the covariance of the base forecast,  `base_fc_cov`. 
 
 The function returns the reconciled mean and covariance for the bottom time series. 
 
 ```{r GaussianReconciliation}    
 # Gaussian reconciliation
 start <- Sys.time()
-gauss <- reconc_gaussian(A, base_forecasts_mu, base_forecasts_Sigma)
+gauss <- reconc_gaussian(A, base_fc_mean, base_fc_cov)
 stop <- Sys.time()
 
 rec_fc$Gauss <- list(
@@ -133,7 +133,7 @@ The algorithm is implemented in the function `reconc_MixCond()`. The function ta
 
 * the aggregation matrix `A`;
 * the probability mass functions of the bottom base forecasts, stored in the list `fc_bottom_4rec`;
-* the parameters of the multivariate Gaussian distribution for the upper variables, `fc_upper_4rec`;
+* the parameters of the multivariate Gaussian distribution for the upper variables, `fc_upper_4rec` (a list with `mean` and `cov` entries);
 * additional function parameters; among those note that `num_samples` specifies the number of samples used in the internal importance sampling (IS) algorithm. 
 
 The function returns the reconciled forecasts in the form of probability mass functions for both the upper and bottom time series. The function parameter `return_type` can be changed to `samples` or `all` to obtain the IS samples. 
@@ -143,7 +143,7 @@ seed <- 1
 N_samples_IS <- 5e4
 
 # Base forecasts
-fc_upper_4rec <- list(mu = mu_u, Sigma = Sigma_u)
+fc_upper_4rec <- list(mean = mu_u, cov = Sigma_u)
 fc_bottom_4rec <- lapply(base_fc_bottom, "[[", "pmf") # list of PMFs
 
 # MixCond reconciliation

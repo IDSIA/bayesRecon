@@ -7,7 +7,7 @@ output: html_vignette
 bibliography: references.bib
 cite:
 - '@zambon2022efficient'
-- '@zambon2023properties'
+- '@zambon2024properties'
 - '@corani2023probabilistic'
 - '@corani2021probabilistic'
 vignette: >
@@ -173,7 +173,7 @@ the $\mathbf{A}$ matrix, the *base forecasts*, the  type  of the base forecasts 
 ``` {r reconc}
 recon.res <- bayesRecon::reconc_BUIS(
   A,
-  base_forecasts = fc.samples,
+  base_fc = fc.samples,
   in_type = "samples",
   distr = "discrete",
   seed = 42
@@ -298,13 +298,13 @@ between the two approaches.
 ```{r m3-reco} 
 recon.gauss <- bayesRecon::reconc_gaussian(
   A = rmat$A,
-  base_forecasts_mu = sapply(fc, "[[", 1),
-  base_forecasts_Sigma = diag(sapply(fc, "[[", 2))^2
+  base_fc_mean = sapply(fc, "[[", 1),
+  base_fc_cov = diag(sapply(fc, "[[", 2))^2
 )
 
 reconc.buis <- bayesRecon::reconc_BUIS(
   A = rmat$A,
-  base_forecasts = fc,
+  base_fc = fc,
   in_type = "params",
   distr = "gaussian",
   num_samples = 20000,
@@ -450,8 +450,8 @@ We now perform Gaussian reconciliation:
 
 ```{r infants-recon}
 recon.gauss <- bayesRecon::reconc_gaussian(A,
-  base_forecasts_mu = mu,
-  base_forecasts_Sigma = Sigma
+  base_fc_mean = mu,
+  base_fc_cov = Sigma
 )
 
 bottom_mu_reconc <- recon.gauss$bottom_reconciled_mean

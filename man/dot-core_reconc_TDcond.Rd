@@ -6,8 +6,8 @@
 \usage{
 .core_reconc_TDcond(
   A,
-  mu_u,
-  Sigma_u,
+  mean_upper,
+  cov_upper,
   L_pmf,
   num_samples,
   return_type,
@@ -17,9 +17,9 @@
 \arguments{
 \item{A}{Matrix (n_upper x n_bottom) defining the hierarchy where upper = A \%*\% bottom.}
 
-\item{mu_u}{Vector of mean forecasts for upper level.}
+\item{mean_upper}{Vector of mean forecasts for upper level.}
 
-\item{Sigma_u}{Covariance matrix of upper level forecasts.}
+\item{cov_upper}{Covariance matrix of upper level forecasts.}
 
 \item{L_pmf}{List of PMF objects representing the bottom level base forecasts.}
 

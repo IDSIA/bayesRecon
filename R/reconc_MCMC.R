@@ -15,7 +15,7 @@
 #'
 #'
 #' @param A aggregation matrix (n_upper x n_bottom).
-#' @param base_forecasts list of the parameters of the base forecast distributions, see details.
+#' @param base_fc list of the parameters of the base forecast distributions, see details.
 #' @param distr a string describing the type of predictive distribution.
 #' @param num_samples number of samples to draw using MCMC.
 #' @param tuning_int number of iterations between scale updates of the proposal.
@@ -25,7 +25,7 @@
 #'
 #' @details
 #'
-#' The parameter `base_forecast` is a list containing n = n_upper + n_bottom elements.
+#' The parameter `base_fc` is a list containing n = n_upper + n_bottom elements.
 #' Each element is a list containing the estimated:
 #'
 #' * mean and sd for the Gaussian base forecast, see \link[stats]{Normal}, if `distr`='gaussian';
@@ -55,20 +55,20 @@
 #' lambdaY <- 9
 #' lambdas <- c(lambdaY, lambda1, lambda2)
 #'
-#' base_forecasts <- list()
+#' base_fc <- list()
 #' for (i in 1:length(lambdas)) {
-#'   base_forecasts[[i]] <- list(lambda = lambdas[i])
+#'   base_fc[[i]] <- list(lambda = lambdas[i])
 #' }
 #'
 #' # Sample from the reconciled forecast distribution using MCMC
-#' mcmc <- reconc_MCMC(A, base_forecasts,
+#' mcmc <- reconc_MCMC(A, base_fc,
 #'   distr = "poisson",
 #'   num_samples = 30000, seed = 42
 #' )
 #' samples_mcmc <- mcmc$reconciled_samples
 #'
 #' # Compare the reconciled means with those obtained via BUIS
-#' buis <- reconc_BUIS(A, base_forecasts,
+#' buis <- reconc_BUIS(A, base_fc,
 #'   in_type = "params",
 #'   distr = "poisson", num_samples = 100000, seed = 42
 #' )
@@ -88,7 +88,7 @@
 #'
 #' @export
 reconc_MCMC <- function(A,
-                        base_forecasts,
+                        base_fc,
                         distr,
                         num_samples = 10000,
                         tuning_int = 100,
@@ -110,7 +110,7 @@ reconc_MCMC <- function(A,
     distr <- rep(list(distr), n_ts)
   }
   # Check input
-  .check_input_BUIS(A, base_forecasts, in_type = as.list(rep("params", n_ts)), distr = distr)
+  .check_input_BUIS(A, base_fc, in_type = as.list(rep("params", n_ts)), distr = distr)
 
   # the first burn_in samples will be removed
   num_samples <- num_samples + burn_in
@@ -130,16 +130,16 @@ reconc_MCMC <- function(A,
   # Get matrix A and bottom base forecasts
   split_hierarchy_res <- list(
     A = A,
-    upper = base_forecasts[1:nrow(A)],
-    bottom = base_forecasts[(nrow(A) + 1):n_ts],
+    upper = base_fc[1:nrow(A)],
+    bottom = base_fc[(nrow(A) + 1):n_ts],
     upper_idxs = 1:nrow(A),
     bottom_idxs = (nrow(A) + 1):n_ts
   )
-  bottom_base_forecasts <- split_hierarchy_res$bottom
+  bottom_base_fc <- split_hierarchy_res$bottom
   bottom_distr <- distr[split_hierarchy_res$bottom_idxs]
 
   # Initialize first sample (draw from base distribution)
-  b[1, ] <- .initialize_b(bottom_base_forecasts, bottom_distr)
+  b[1, ] <- .initialize_b(bottom_base_fc, bottom_distr)
 
   # Initialize prop list
   old_prop <- list(
@@ -157,7 +157,7 @@ reconc_MCMC <- function(A,
 
     prop <- .proposal(old_prop, cov_mat_prop)
     b_prop <- prop$b
-    alpha <- .accept_prob(b_prop, b[i - 1, ], A, distr, base_forecasts)
+    alpha <- .accept_prob(b_prop, b[i - 1, ], A, distr, base_fc)
 
     if (stats::runif(1) < alpha) {
       b[i, ] <- b_prop
@@ -190,10 +190,10 @@ reconc_MCMC <- function(A,
 
 #-------------------------------------------------------------------------------
 ##################################
-.initialize_b <- function(bottom_base_forecasts, bottom_distr) {
+.initialize_b <- function(bottom_base_fc, bottom_distr) {
   b <- c()
   for (i in 1:length(bottom_distr)) {
-    b[i] <- .distr_sample(bottom_base_forecasts[[i]], bottom_distr[[i]], 1)
+    b[i] <- .distr_sample(bottom_base_fc[[i]], bottom_distr[[i]], 1)
   }
 
   return(b)

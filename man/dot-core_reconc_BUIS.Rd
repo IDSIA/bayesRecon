@@ -9,10 +9,10 @@
   H,
   G,
   B,
-  upper_base_forecasts_H,
+  upper_base_fc_H,
   in_typeH,
   distr_H,
-  upper_base_forecasts_G,
+  upper_base_fc_G,
   in_typeG,
   distr_G,
   .comp_w = .compute_weights,
@@ -28,13 +28,13 @@
 
 \item{B}{Matrix of bottom level base forecast samples.}
 
-\item{upper_base_forecasts_H}{List of upper base forecasts for hierarchical constraints.}
+\item{upper_base_fc_H}{List of upper base forecasts for hierarchical constraints.}
 
 \item{in_typeH}{Character string specifying input type for H forecasts ('pmf', 'samples', or 'params').}
 
 \item{distr_H}{Character string specifying distribution type for H forecasts ('poisson' or 'nbinom').}
 
-\item{upper_base_forecasts_G}{List of upper base forecasts for general constraints.}
+\item{upper_base_fc_G}{List of upper base forecasts for general constraints.}
 
 \item{in_typeG}{Character string specifying input type for G forecasts ('pmf', 'samples', or 'params').}
 

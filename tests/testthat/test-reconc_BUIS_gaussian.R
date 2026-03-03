@@ -152,7 +152,7 @@ test_that("Monthly simple, in_type=='params', distr='nbinom'", {
   res.buis_params <- reconc_BUIS(rec_mat$A, base_forecasts, in_type = "params", distr = "nbinom", seed = 42)
 
 
-  fc_upper_gauss <- list(mu = mm, Sigma = matrix(vv))
+  fc_upper_gauss <- list(mean = mm, cov = matrix(vv))
   res.mixCond <- reconc_MixCond(rec_mat$A, fc_bottom, fc_upper_gauss, bottom_in_type = "params", distr = "nbinom")
   upp_pmf <- PMF_from_samples(as.integer(res.buis_params$upper_reconciled_samples))
 

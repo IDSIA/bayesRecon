@@ -224,7 +224,7 @@ multi_log_score_optimization <- function(res, prior_mean, trim = 0.1) {
 #' The reconciliation is in closed-form, yielding a multivariate Student-t reconciled distribution.
 #'
 #' @param A Matrix (n_upp x n_bott) defining the hierarchy (u = Ab).
-#' @param point_fc Vector of base forecasts (length n = n_upp + n_bott).
+#' @param base_fc_mean Vector of base forecasts (length n = n_upp + n_bott).
 #' @param y_train mts (or matrix) of historical training data (T x n) used for setting prior parameters.
 #' @param residuals Matrix (T x n) of base forecast residuals.
 #' @param ... Additional arguments for advanced usage: see details.
@@ -323,14 +323,14 @@ multi_log_score_optimization <- function(res, prior_mean, trim = 0.1) {
 #'   fc_upper <- as.numeric(forecast::forecast(fit_upper, h = 1)$mean)
 #'   fc1 <- as.numeric(forecast::forecast(fit1, h = 1)$mean)
 #'   fc2 <- as.numeric(forecast::forecast(fit2, h = 1)$mean)
-#'   point_fc <- c(fc_upper, fc1, fc2)
+#'   base_fc_mean <- c(fc_upper, fc1, fc2)
 #'
-#'   # Residuals and training data (n_obs x n matrices, columns in same order as point_fc)
+#'   # Residuals and training data (n_obs x n matrices, columns in same order as base_fc_mean)
 #'   res <- cbind(residuals(fit_upper), residuals(fit1), residuals(fit2))
 #'   y_train <- cbind(y_upper, y1, y2)
 #'
 #'   # --- 1) Generate joint reconciled samples ---
-#'   result <- reconc_t(A, point_fc, y_train = y_train, residuals = res)
+#'   result <- reconc_t(A, base_fc_mean, y_train = y_train, residuals = res)
 #'
 #'   # Sample from the reconciled bottom-level Student-t distribution
 #'   n_samples <- 2000
@@ -350,7 +350,7 @@ multi_log_score_optimization <- function(res, prior_mean, trim = 0.1) {
 #'   print(round(apply(joint_samples, 1, sd), 3))
 #'
 #'   # --- 2) 95% prediction intervals via t-distribution quantiles ---
-#'   result2 <- reconc_t(A, point_fc, y_train = y_train,
+#'   result2 <- reconc_t(A, base_fc_mean, y_train = y_train,
 #'                       residuals = res, return_uppers = TRUE)
 #'
 #'   alpha <- 0.05
@@ -371,7 +371,7 @@ multi_log_score_optimization <- function(res, prior_mean, trim = 0.1) {
 #'
 #' @export
 reconc_t <- function(A,
-                     point_fc,
+                     base_fc_mean,
                      y_train = NULL,
                      residuals = NULL,
                      ...,
@@ -388,7 +388,7 @@ reconc_t <- function(A,
   posterior <- add_args$posterior
   freq <- add_args$freq
   criterion <- add_args$criterion
-  .check_input_t(A, point_fc, y_train, residuals, ...)  
+  .check_input_t(A, base_fc_mean, y_train, residuals, ...)  
 
   ##############################################################################
   ### CASE 1 ###
@@ -401,7 +401,7 @@ reconc_t <- function(A,
     # If posterior not provided, first check that residuals are provided
   } else {
     L <- nrow(residuals) # number of residual samples (i.e., training length)
-    n <- length(point_fc) # number of series
+    n <- length(base_fc_mean) # number of series
     
     # Compute sample covariance of the residuals
     Samp_cov <- crossprod(residuals) / nrow(residuals) 
@@ -436,7 +436,7 @@ reconc_t <- function(A,
   # Reconcile via conditioning the t-distribution in closed form
 
   out <- .core_reconc_t(
-    A = A, point_fc = point_fc, Psi_post = Psi_post, nu_post = nu_post,
+    A = A, base_fc_mean = base_fc_mean, Psi_post = Psi_post, nu_post = nu_post,
     return_uppers = return_uppers, return_parameters = return_parameters, suppress_warnings = FALSE
   )
 
@@ -449,7 +449,7 @@ reconc_t <- function(A,
 #' reconciliation method. This function assumes an uncertain covariance matrix with an Inverse-Wishart prior.
 #'
 #' @param A Matrix (n_upper x n_bottom) defining the hierarchy where upper = A %*% bottom.
-#' @param point_fc Vector of length (n_upper + n_bottom) containing the base forecast means
+#' @param base_fc_mean Vector of length (n_upper + n_bottom) containing the base forecast means
 #'   for both upper and bottom levels (upper first, then bottom).
 #' @param Psi_post Scale matrix (n_upper + n_bottom x n_upper + n_bottom) of the posterior
 #'   Student-t distribution.
@@ -475,7 +475,7 @@ reconc_t <- function(A,
 #'
 #' @keywords internal
 #' @export
-.core_reconc_t <- function(A, point_fc, Psi_post, nu_post, return_uppers = FALSE,
+.core_reconc_t <- function(A, base_fc_mean, Psi_post, nu_post, return_uppers = FALSE,
                            return_parameters = FALSE, suppress_warnings = FALSE) {
   # Indices for Upper and Bottom
   k <- nrow(A)
@@ -489,8 +489,8 @@ reconc_t <- function(A,
   Psi_UB <- Psi_post[idx_u, idx_b, drop = FALSE]
 
   # Extract means
-  u_hat <- point_fc[idx_u]
-  b_hat <- point_fc[idx_b]
+  u_hat <- base_fc_mean[idx_u]
+  b_hat <- base_fc_mean[idx_b]
 
   # Compute Q = Psi_U - (Psi_UB %*% t(A)) - (A %*% t(Psi_UB)) + (A %*% Psi_B %*% t(A))
   Psi_UB_At <- tcrossprod(Psi_UB, A)

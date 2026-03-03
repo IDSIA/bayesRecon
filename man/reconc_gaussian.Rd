@@ -6,8 +6,8 @@
 \usage{
 reconc_gaussian(
   A,
-  base_forecasts_mu,
-  base_forecasts_Sigma = NULL,
+  base_fc_mean,
+  base_fc_cov = NULL,
   residuals = NULL,
   return_uppers = FALSE
 )
@@ -15,13 +15,13 @@ reconc_gaussian(
 \arguments{
 \item{A}{aggregation matrix (n_upper x n_bottom).}
 
-\item{base_forecasts_mu}{a vector containing the means of the base forecasts.}
+\item{base_fc_mean}{a vector containing the means of the base forecasts.}
 
-\item{base_forecasts_Sigma}{a matrix containing the covariance matrix of the base forecasts.}
+\item{base_fc_cov}{a matrix containing the covariance matrix of the base forecasts.}
 
 \item{residuals}{a matrix with the residuals of the base forecasts, with n_upper + n_bottom columns.
 The covariance matrix of the base forecasts is computed from the residuals using the Schäfer Strimmer shrinkage estimator.
-If base_forecasts_Sigma is provided, residuals are ignored.}
+If base_fc_cov is provided, residuals are ignored.}
 
 \item{return_uppers}{logical, whether to return the reconciled parameters for the upper variables (default is FALSE).}
 }
@@ -58,31 +58,31 @@ A <- get_reconc_matrices(agg_levels = c(1, 2), h = 2)$A
 mu1 <- 2
 mu2 <- 4
 muY <- 9
-mus <- c(muY, mu1, mu2)  # vector of means
+base_fc_mean <- c(muY, mu1, mu2)  # vector of means
 
 sigma1 <- 2
 sigma2 <- 2
 sigmaY <- 3
 sigmas <- c(sigmaY, sigma1, sigma2)
-Sigma <- diag(sigmas^2)  # covariance matrix
+base_fc_cov <- diag(sigmas^2)  # covariance matrix
 
 analytic_rec <- reconc_gaussian(A,
-  base_forecasts_mu = mus,
-  base_forecasts_Sigma = Sigma
+  base_fc_mean = base_fc_mean,
+  base_fc_cov = base_fc_cov
 )
 
-bottom_mu_reconc <- analytic_rec$bottom_reconciled_mean
-bottom_Sigma_reconc <- analytic_rec$bottom_reconciled_covariance
+bottom_mean_rec <- analytic_rec$bottom_reconciled_mean
+bottom_cov_rec <- analytic_rec$bottom_reconciled_covariance
 
 # To obtain reconciled samples for the entire hierarchy, sample from the reconciled 
 # bottom distribution and then aggregate using A. 
 
 # Sample from the reconciled bottom-level Gaussian distribution
 # First, compute the Cholesky decomposition of the reconciled covariance matrix:
-chol_decomp <- chol(bottom_Sigma_reconc)
+chol_decomp <- chol(bottom_cov_rec)
 # Then, sample from the standard normal distribution and apply the transformation:
 Z <- matrix(stats::rnorm(n = 2000), nrow = 2) 
-B <- t(chol_decomp) \%*\% Z + matrix(rep(bottom_mu_reconc, 1000), nrow = 2) 
+B <- t(chol_decomp) \%*\% Z + matrix(rep(bottom_mean_rec, 1000), nrow = 2) 
 
 # Aggregate bottom samples to get upper samples, then stack
 U <- A \%*\% B
@@ -116,35 +116,35 @@ if (requireNamespace("forecast", quietly = TRUE)) {
   fc1 <- forecast::forecast(fit1, h = 1)$mean
   fc2 <- forecast::forecast(fit2, h = 1)$mean
   fc_upper <- forecast::forecast(fit_upper, h = 1)$mean
-  point_fc <- c(fc_upper, fc1, fc2)
+  base_fc_mean <- c(fc_upper, fc1, fc2)
 
-  # Residuals matrix (T x n, columns in same order as point_fc)
+  # Residuals matrix (T x n, columns in same order as base_fc_mean)
   res <- cbind(residuals(fit_upper),
                residuals(fit1),
                residuals(fit2))
 
   # Reconcile (covariance estimated internally via Schafer-Strimmer)
-  result <- reconc_gaussian(A, base_forecasts_mu = point_fc, residuals = res, return_uppers = TRUE)
+  result <- reconc_gaussian(A, base_fc_mean = base_fc_mean, residuals = res, return_uppers = TRUE)
 
-  bottom_mu <- result$bottom_reconciled_mean
-  bottom_Sigma <- result$bottom_reconciled_covariance
-  upper_mu <- result$upper_reconciled_mean
-  upper_Sigma <- result$upper_reconciled_covariance
+  bottom_mean <- result$bottom_reconciled_mean
+  bottom_cov <- result$bottom_reconciled_covariance
+  upper_mean <- result$upper_reconciled_mean
+  upper_cov <- result$upper_reconciled_covariance
 
   # Print reconciled means
-  cat("Reconciled bottom means:", round(bottom_mu, 3), "\n")
-  cat("Reconciled upper mean:", round(A \%*\% bottom_mu, 3), "\n")
+  cat("Reconciled bottom means:", round(bottom_mean, 3), "\n")
+  cat("Reconciled upper mean:", round(upper_mean, 3), "\n")
 
   # Print 95\% predictions intervals
   cat("Reconciled bottom 95\% prediction intervals:\n")
-  for (i in 1:length(bottom_mu)) {
-    lower <- bottom_mu[i] - 1.96 * sqrt(bottom_Sigma[i, i])
-    upper <- bottom_mu[i] + 1.96 * sqrt(bottom_Sigma[i, i])
+  for (i in 1:length(bottom_mean)) {
+    lower <- bottom_mean[i] - 1.96 * sqrt(bottom_cov[i, i])
+    upper <- bottom_mean[i] + 1.96 * sqrt(bottom_cov[i, i])
     cat(paste0("Bottom ", i, ": [", round(lower, 3), ", ", round(upper, 3), "]\n"))
   }
   cat("Reconciled upper 95\% prediction interval:\n")
-  lower <- upper_mu - 1.96 * sqrt(upper_Sigma[1, 1])
-  upper <- upper_mu + 1.96 * sqrt(upper_Sigma[1, 1])
+  lower <- upper_mean - 1.96 * sqrt(upper_cov[1, 1])
+  upper <- upper_mean + 1.96 * sqrt(upper_cov[1, 1])
   cat(paste0("Upper: [", round(lower, 3), ", ", round(upper, 3), "]\n"))
 
 }

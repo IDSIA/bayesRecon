@@ -6,7 +6,7 @@
 \usage{
 reconc_t(
   A,
-  point_fc,
+  base_fc_mean,
   y_train = NULL,
   residuals = NULL,
   ...,
@@ -17,7 +17,7 @@ reconc_t(
 \arguments{
 \item{A}{Matrix (n_upp x n_bott) defining the hierarchy (u = Ab).}
 
-\item{point_fc}{Vector of base forecasts (length n = n_upp + n_bott).}
+\item{base_fc_mean}{Vector of base forecasts (length n = n_upp + n_bott).}
 
 \item{y_train}{mts (or matrix) of historical training data (T x n) used for setting prior parameters.}
 
@@ -125,14 +125,14 @@ if (requireNamespace("forecast", quietly = TRUE)) {
   fc_upper <- as.numeric(forecast::forecast(fit_upper, h = 1)$mean)
   fc1 <- as.numeric(forecast::forecast(fit1, h = 1)$mean)
   fc2 <- as.numeric(forecast::forecast(fit2, h = 1)$mean)
-  point_fc <- c(fc_upper, fc1, fc2)
+  base_fc_mean <- c(fc_upper, fc1, fc2)
 
-  # Residuals and training data (n_obs x n matrices, columns in same order as point_fc)
+  # Residuals and training data (n_obs x n matrices, columns in same order as base_fc_mean)
   res <- cbind(residuals(fit_upper), residuals(fit1), residuals(fit2))
   y_train <- cbind(y_upper, y1, y2)
 
   # --- 1) Generate joint reconciled samples ---
-  result <- reconc_t(A, point_fc, y_train = y_train, residuals = res)
+  result <- reconc_t(A, base_fc_mean, y_train = y_train, residuals = res)
 
   # Sample from the reconciled bottom-level Student-t distribution
   n_samples <- 2000
@@ -152,7 +152,7 @@ if (requireNamespace("forecast", quietly = TRUE)) {
   print(round(apply(joint_samples, 1, sd), 3))
 
   # --- 2) 95\% prediction intervals via t-distribution quantiles ---
-  result2 <- reconc_t(A, point_fc, y_train = y_train,
+  result2 <- reconc_t(A, base_fc_mean, y_train = y_train,
                       residuals = res, return_uppers = TRUE)
 
   alpha <- 0.05

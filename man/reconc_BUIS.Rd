@@ -6,7 +6,7 @@
 \usage{
 reconc_BUIS(
   A,
-  base_forecasts,
+  base_fc,
   in_type,
   distr,
   num_samples = 20000,
@@ -17,7 +17,7 @@ reconc_BUIS(
 \arguments{
 \item{A}{aggregation matrix (n_upper x n_bottom).}
 
-\item{base_forecasts}{A list containing the base_forecasts, see details.}
+\item{base_fc}{A list containing the base_forecasts, see details.}
 
 \item{in_type}{A string or a list of length n_upper + n_bottom. If it is a list the i-th element is a string with two possible values:
 \itemize{
@@ -58,15 +58,15 @@ Uses the Bottom-Up Importance Sampling algorithm to draw samples from the reconc
 forecast distribution, obtained via conditioning.
 }
 \details{
-The parameter \code{base_forecast} is a list containing n = n_upper + n_bottom elements.
+The parameter \code{base_fc} is a list containing n = n_upper + n_bottom elements.
 The first n_upper elements of the list are the upper base forecasts, in the order given by the rows of A.
 The elements from n_upper+1 until the end of the list are the bottom base forecasts, in the order given by the columns of A.
 
 The i-th element depends on the values of \code{in_type[[i]]} and \code{distr[[i]]}.
 
-If \code{in_type[[i]]}='samples', then \code{base_forecast[[i]]} is a vector containing samples from the base forecast distribution.
+If \code{in_type[[i]]}='samples', then \code{base_fc[[i]]} is a vector containing samples from the base forecast distribution.
 
-If \code{in_type[[i]]}='params', then \code{base_forecast[[i]]} is a list containing the estimated:
+If \code{in_type[[i]]}='params', then \code{base_fc[[i]]} is a list containing the estimated:
 \itemize{
 \item mean and sd for the Gaussian base forecast if \code{distr[[i]]}='gaussian', see \link[stats]{Normal};
 \item lambda for the Poisson base forecast if \code{distr[[i]]}='poisson', see \link[stats]{Poisson};
@@ -108,14 +108,14 @@ sigma2 <- 2
 sigmaY <- 3
 sigmas <- c(sigmaY, sigma1, sigma2)
 
-base_forecasts <- list()
+base_fc <- list()
 for (i in 1:length(mus)) {
-  base_forecasts[[i]] <- list(mean = mus[[i]], sd = sigmas[[i]])
+  base_fc[[i]] <- list(mean = mus[[i]], sd = sigmas[[i]])
 }
 
 
 # Sample from the reconciled forecast distribution using the BUIS algorithm
-buis <- reconc_BUIS(A, base_forecasts,
+buis <- reconc_BUIS(A, base_fc,
   in_type = "params",
   distr = "gaussian", num_samples = 100000, seed = 42
 )
@@ -126,8 +126,8 @@ samples_buis <- buis$reconciled_samples
 # computed in closed form
 Sigma <- diag(sigmas^2) # transform into covariance matrix
 analytic_rec <- reconc_gaussian(A,
-  base_forecasts_mu = mus,
-  base_forecasts_Sigma = Sigma
+  base_fc_mean = mus,
+  base_fc_cov = Sigma
 )
 
 # Compare the reconciled means obtained analytically and via BUIS
@@ -143,13 +143,13 @@ lambda2 <- 4
 lambdaY <- 9
 lambdas <- c(lambdaY, lambda1, lambda2)
 
-base_forecasts <- list()
+base_fc <- list()
 for (i in 1:length(lambdas)) {
-  base_forecasts[[i]] <- list(lambda = lambdas[i])
+  base_fc[[i]] <- list(lambda = lambdas[i])
 }
 
 # Sample from the reconciled forecast distribution using the BUIS algorithm
-buis <- reconc_BUIS(A, base_forecasts,
+buis <- reconc_BUIS(A, base_fc,
   in_type = "params",
   distr = "poisson", num_samples = 100000, seed = 42
 )
