@@ -16,7 +16,9 @@
 #' * [reconc_MixCond()]: reconciliation via conditioning of mixed hierarchies, where
 #'    the upper forecasts are multivariate Gaussian and the bottom forecasts are discrete distributions;
 #' * [reconc_TDcond()]: reconciliation via top-down conditioning of mixed hierarchies, where
-#'    the upper forecasts are multivariate Gaussian and the bottom forecasts are discrete distributions.
+#'    the upper forecasts are multivariate Gaussian and the bottom forecasts are discrete distributions;
+#' * [reconc_t()]: reconciliation via conditioning with uncertain covariance of 
+#'    multivariate Student-t base forecasts; this is done analytically.
 #'
 #' @section Utility functions:
 #'
@@ -24,6 +26,8 @@
 #' * [get_reconc_matrices()]: aggregation and summing matrices for a temporal hierarchy
 #'    of time series from user-selected list of aggregation levels;
 #' * [schaferStrimmer_cov()]: computes the Schäfer-Strimmer shrinkage estimator for the covariance matrix;
+#' * [multi_log_score_optimization()]: estimates the optimal degrees of freedom for [reconc_t()] 
+#'    by maximizing the leave-one-out (LOO) multivariate log density;
 #' * [PMF]: functions for handling PMF objects (sampling, computing statistics like mean, variance, quantiles, and summaries).
 #'
 #' @references
@@ -51,6 +55,10 @@
 #' *Probabilistic reconciliation of mixed-type hierarchical time series*.
 #' Proceedings of the Fortieth Conference on Uncertainty in Artificial Intelligence,
 #' PMLR 244:4078-4095. <https://proceedings.mlr.press/v244/zambon24a.html>.
+#'
+#' Carrara, C., Corani, G., Azzimonti, D., & Zambon, L. (2025).
+#' *Modeling the uncertainty on the covariance matrix for probabilistic forecast reconciliation*.
+#' arXiv preprint arXiv:2506.19554. <https://arxiv.org/abs/2506.19554>.
 #'
 #' @keywords internal
 "_PACKAGE"

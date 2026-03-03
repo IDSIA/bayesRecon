@@ -31,7 +31,9 @@ forecasts via Markov Chain Monte Carlo;
 \item \code{\link[=reconc_MixCond]{reconc_MixCond()}}: reconciliation via conditioning of mixed hierarchies, where
 the upper forecasts are multivariate Gaussian and the bottom forecasts are discrete distributions;
 \item \code{\link[=reconc_TDcond]{reconc_TDcond()}}: reconciliation via top-down conditioning of mixed hierarchies, where
-the upper forecasts are multivariate Gaussian and the bottom forecasts are discrete distributions.
+the upper forecasts are multivariate Gaussian and the bottom forecasts are discrete distributions;
+\item \code{\link[=reconc_t]{reconc_t()}}: reconciliation via conditioning with uncertain covariance of
+multivariate Student-t base forecasts; this is done analytically.
 }
 }
 
@@ -42,6 +44,8 @@ the upper forecasts are multivariate Gaussian and the bottom forecasts are discr
 \item \code{\link[=get_reconc_matrices]{get_reconc_matrices()}}: aggregation and summing matrices for a temporal hierarchy
 of time series from user-selected list of aggregation levels;
 \item \code{\link[=schaferStrimmer_cov]{schaferStrimmer_cov()}}: computes the Schäfer-Strimmer shrinkage estimator for the covariance matrix;
+\item \code{\link[=multi_log_score_optimization]{multi_log_score_optimization()}}: estimates the optimal degrees of freedom for \code{\link[=reconc_t]{reconc_t()}}
+by maximizing the leave-one-out (LOO) multivariate log density;
 \item \link{PMF}: functions for handling PMF objects (sampling, computing statistics like mean, variance, quantiles, and summaries).
 }
 }
@@ -71,6 +75,10 @@ Zambon, L., Azzimonti, D., Rubattu, N., Corani, G. (2024).
 \emph{Probabilistic reconciliation of mixed-type hierarchical time series}.
 Proceedings of the Fortieth Conference on Uncertainty in Artificial Intelligence,
 PMLR 244:4078-4095. \url{https://proceedings.mlr.press/v244/zambon24a.html}.
+
+Carrara, C., Corani, G., Azzimonti, D., & Zambon, L. (2025).
+\emph{Modeling the uncertainty on the covariance matrix for probabilistic forecast reconciliation}.
+arXiv preprint arXiv:2506.19554. \url{https://arxiv.org/abs/2506.19554}.
 }
 \seealso{
 Useful links:
