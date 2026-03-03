@@ -1,4 +1,5 @@
 url: https://idsia.github.io/bayesRecon/
 template:
   bootstrap: 5
+logo: man/figures/logo.png
 

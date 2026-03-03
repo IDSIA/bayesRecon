@@ -1,11 +1,8 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# bayesRecon: BAyesian reCONciliation of hierarchical forecasts
+# bayesRecon: BAyesian reCONciliation of hierarchical forecasts <a href="https://idsia.github.io/bayesRecon/"><img src="man/figures/logo.png" align="right" height="150" alt="bayesRecon website" /></a>
 
-<!-- 
-<img src="./man/figures/logo.png" align="right" />
--->
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/IDSIA/bayesRecon/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/IDSIA/bayesRecon/actions/workflows/R-CMD-check.yaml)
@@ -102,11 +99,11 @@ lambdaS1 <- 2
 lambdaS2 <- 4
 lambdaY <- 9
 lambdas <- c(lambdaY, lambdaS1, lambdaS2)
-n_tot = length(lambdas)
+n_tot <- length(lambdas)
 
-base_forecasts = list()
+base_forecasts <- list()
 for (i in 1:n_tot) {
-  base_forecasts[[i]] = list(lambda = lambdas[i])
+  base_forecasts[[i]] <- list(lambda = lambdas[i])
 }
 ```
 
@@ -131,7 +128,7 @@ Since there is a positive incoherence in the forecasts
 reconciled forecast increases. We show below this behavior for $S_1$.
 
 ``` r
-reconciled_forecast_S1 <- buis$bottom_reconciled_samples[1,]
+reconciled_forecast_S1 <- buis$bottom_reconciled_samples[1, ]
 range_forecats <- range(reconciled_forecast_S1)
 hist(
   reconciled_forecast_S1,
@@ -143,8 +140,7 @@ hist(
 )
 points(
   seq(range_forecats[1], range_forecats[2]),
-  stats::dpois(seq(range_forecats[1], range_forecats[2]), lambda =
-                 lambdaS1),
+  stats::dpois(seq(range_forecats[1], range_forecats[2]), lambda = lambdaS1),
   pch = 16,
   col = 4,
   cex = 2
@@ -166,17 +162,19 @@ reconciled samples of $S_2$.
 
 ``` r
 AA <-
-  xyTable(buis$bottom_reconciled_samples[1, ],
-          buis$bottom_reconciled_samples[2, ])
+  xyTable(
+    buis$bottom_reconciled_samples[1, ],
+    buis$bottom_reconciled_samples[2, ]
+  )
 plot(
-  AA$x ,
-  AA$y ,
-  cex = AA$number * 0.001  ,
-  pch = 16 ,
-  col = rgb(0, 0, 1, 0.4) ,
-  xlab = "S_1" ,
-  ylab = "S_2" ,
-  xlim = range(buis$bottom_reconciled_samples[1, ]) ,
+  AA$x,
+  AA$y,
+  cex = AA$number * 0.001,
+  pch = 16,
+  col = rgb(0, 0, 1, 0.4),
+  xlab = "S_1",
+  ylab = "S_2",
+  xlim = range(buis$bottom_reconciled_samples[1, ]),
   ylim = range(buis$bottom_reconciled_samples[2, ])
 )
 ```
@@ -187,7 +185,7 @@ We also provide a function for sampling using Markov Chain Monte Carlo
 (Corani et al., 2023).
 
 ``` r
-mcmc = reconc_MCMC(
+mcmc <- reconc_MCMC(
   A,
   base_forecasts,
   distr = "poisson",
@@ -217,9 +215,9 @@ sigmaS2 <- 2
 sigmaY <- 3
 sigmas <- c(sigmaY, sigmaS1, sigmaS2)
 
-base_forecasts = list()
+base_forecasts <- list()
 for (i in 1:n_tot) {
-  base_forecasts[[i]] = list(mean = mus[[i]], sd = sigmas[[i]])
+  base_forecasts[[i]] <- list(mean = mus[[i]], sd = sigmas[[i]])
 }
 ```
 
@@ -242,19 +240,22 @@ If the base forecasts are Gaussian, the reconciled distribution is still
 Gaussian and can be computed in closed form:
 
 ``` r
-Sigma <- diag(sigmas ^ 2)  #transform into covariance matrix
+Sigma <- diag(sigmas^2) # transform into covariance matrix
 analytic_rec <- reconc_gaussian(A,
-                                base_forecasts.mu = mus,
-                                base_forecasts.Sigma = Sigma)
+  base_forecasts.mu = mus,
+  base_forecasts.Sigma = Sigma
+)
 analytic_means_bottom <- analytic_rec$bottom_reconciled_mean
 analytic_means_upper <- A %*% analytic_means_bottom
-analytic_means <- rbind(analytic_means_upper,analytic_means_bottom)
+analytic_means <- rbind(analytic_means_upper, analytic_means_bottom)
+#> Warning in rbind(analytic_means_upper, analytic_means_bottom): number of
+#> columns of result is not a multiple of vector length (arg 2)
 ```
 
 The base means of $Y$, $S_1$, and $S_2$ are 9, 2, 4.
 
-The reconciled means obtained analytically are 7.41, 2.71, 4.71, while
-the reconciled means obtained via BUIS are 7.41, 2.71, 4.71.
+The reconciled means obtained analytically are 7.41, 2.71, while the
+reconciled means obtained via BUIS are 7.41, 2.71, 4.71.
 
 ## References
 
@@ -287,39 +288,56 @@ Intelligence, in Proceedings of Machine Learning Research 244:4078-4095.
 ## Contributors
 
 <!-- prettier-ignore-start -->
+
 <!-- markdownlint-disable -->
+
 <table>
+
 <tbody>
+
 <tr>
+
 <td align="center" valign="top" width="14.28%">
+
 <a href="https://sites.google.com/view/darioazzimonti/home">
 <img src="https://github.com/dazzimonti.png" width="100px;" alt="Dario Azzimonti" style="border-radius:50%;border:1px solid #646464;"/><br />
 <sub><b>Dario Azzimonti</b></sub></a><br />
 <sub>(Maintainer)</sub><br />
 <a href="mailto:dario.azzimonti@gmail.com?subject=bayesRecon package!">dario.azzimonti@gmail.com</a>
 </td>
+
 <td align="center" valign="top" width="14.28%">
+
 <a href="#">
 <img src="https://github.com/nicorbtt.png" width="100px;" alt="Nicolò Rubattu" style="border-radius:50%;border:1px solid #646464;"/><br />
 <sub><b>Nicolò Rubattu</b></sub></a><br />
 <a href="mailto:nicolo.rubattu@idsia.ch?subject=bayesRecon package!">nicolo.rubattu@idsia.ch</a>
 </td>
+
 <td align="center" valign="top" width="14.28%">
+
 <a href="#">
 <img src="https://github.com/LorenzoZambon.png" width="100px;" alt="Lorenzo Zambon" style="border-radius:50%;border:1px solid #646464;"/><br />
 <sub><b>Lorenzo Zambon</b></sub></a><br />
 <a href="mailto:lorenzo.zambon@idsia.ch?subject=bayesRecon package!">lorenzo.zambon@idsia.ch</a>
 </td>
+
 <td align="center" valign="top" width="14.28%">
+
 <a href="https://sites.google.com/site/awerbhjkl678214/home">
 <img src="https://github.com/gcorani.png" width="100px;" alt="Giorgio Corani" style="border-radius:50%;border:1px solid #646464;"/><br />
 <sub><b>Giorgio Corani</b></sub></a><br />
 <a href="mailto:giorgio.corani@idsia.ch">giorgio.corani@idsia.ch</a>
 </td>
+
 </tr>
+
 </tbody>
+
 </table>
+
 <!-- markdownlint-restore -->
+
 <!-- prettier-ignore-end -->
 
 ## Getting help

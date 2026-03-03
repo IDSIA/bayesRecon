@@ -1,149 +1,144 @@
-# A pmf is represented as normalized numeric vector v: 
+# A pmf is represented as normalized numeric vector v:
 # for each j = 0, ..., M, the probability of j is the value v[[j+1]]
-
-.NEGBIN_TOLL = 1e-6  # used when fitting a Negative Binomial distribution
 
 ###
 
 # Fit a Negative Binomial distribution on a given vector of samples.
 # If data are underdispersed, fit a Poisson.
 # If min_supp is specified, the returned pmf must have minimum length of min_supp+1
-# Use Rtoll instead of 1e-6? 
-.fit_static_negbin = function(v_, toll = .NEGBIN_TOLL) {
-  v = v_[!is.na(v_)]  # remove NA
-  Mu = mean(v)
-  Var  = stats::var(v)
-  if (Var <= Mu) {  # if data are underdispersed, fit Poisson
-    M = stats::qpois(1-toll, Mu)
-    pmf = stats::dpois(0:M, Mu)
-  } else {          # else, fit Negative Binomial
-    size = Mu^2 / (Var - Mu)
-    M = stats::qnbinom(1-toll, size = size, mu = Mu)
-    pmf = stats::dnbinom(0:M, size = size, mu = Mu)
+# Use Rtoll instead of 1e-6?
+.fit_static_negbin <- function(v_, toll = .NEGBIN_TOLL) {
+  v <- v_[!is.na(v_)] # remove NA
+  Mu <- mean(v)
+  Var <- stats::var(v)
+  if (Var <= Mu) { # if data are underdispersed, fit Poisson
+    M <- stats::qpois(1 - toll, Mu)
+    pmf <- stats::dpois(0:M, Mu)
+  } else { # else, fit Negative Binomial
+    size <- Mu^2 / (Var - Mu)
+    M <- stats::qnbinom(1 - toll, size = size, mu = Mu)
+    pmf <- stats::dnbinom(0:M, size = size, mu = Mu)
   }
-  return(pmf/sum(pmf))
+  return(pmf / sum(pmf))
 }
 
 # Estimate the pmf from a vector of non-negative discrete samples.
 # If there are NA, they are removed before computing the pmf.
 # Several estimates are possible: naive empirical pmf, parametric, KDE (...)
-PMF.from_samples = function(v_, 
-                            estim_type = "naive", 
-                            weights_ = NULL,
-                            estim_params = NULL,
-                            min_supp = NULL,
-                            al_smooth = .ALPHA_SMOOTHING,
-                            check_in = TRUE) {
-  
+PMF.from_samples <- function(v_,
+                             estim_type = "naive",
+                             weights_ = NULL,
+                             estim_params = NULL,
+                             min_supp = NULL,
+                             al_smooth = .ALPHA_SMOOTHING,
+                             check_in = TRUE) {
   # First, remove NA
-  v = v_[!is.na(v_)] 
-  
+  v <- v_[!is.na(v_)]
+
   if (check_in) {
     # Check that samples are discrete and non-negative
     .check_discrete_samples(v)
-    if (any(v<0)) stop("Input error: the are negative samples")
+    if (any(v < 0)) stop("Input error: the are negative samples")
   }
-  
+
   if (estim_type == "naive") {
     if (!is.null(estim_params)) {
       warning("Not yet implemented. Do not specify estim_params if estim_type = 'naive'")
-    } 
-    
+    }
+
     # TODO: add possibility of doing a smoothing (e.g. Laplace)
     #       maybe default = TRUE only if there are holes?
     # TODO: implement min_supp
-    
+
     if (is.null(weights_)) {
-      pmf = tabulate(v+1) / length(v)  # the support starts from 0
+      pmf <- tabulate(v + 1) / length(v) # the support starts from 0
     } else {
-      weights = weights_[!is.na(v_)]
-      weights = weights / sum(weights)
-      pmf = rep(0, max(v)+1)
+      weights <- weights_[!is.na(v_)]
+      weights <- weights / sum(weights)
+      pmf <- rep(0, max(v) + 1)
       for (vv in unique(v)) {
-        pmf[[vv+1]] = sum(weights[v==vv])
+        pmf[[vv + 1]] <- sum(weights[v == vv])
       }
     }
-  
-    } else if (estim_type == "parametric") {
-      if (!is.null(estim_params)) {
-        stop("Not yet implemented. Do not specify estim_params if estim_type = 'parametric'")
-      }
-      # TODO: add more flexibility in the parametric estim (add other distr, e.g. for underdispersed data)
-    
-      pmf = .fit_static_negbin(v)
-      
-    } else if (estim_type == "kde") {
-    
-      stop("Kernel density estimation not yet implemented")
-      # TODO
-    
-      } else {
+  } else if (estim_type == "parametric") {
+    if (!is.null(estim_params)) {
+      stop("Not yet implemented. Do not specify estim_params if estim_type = 'parametric'")
+    }
+    # TODO: add more flexibility in the parametric estim (add other distr, e.g. for underdispersed data)
+
+    pmf <- .fit_static_negbin(v)
+  } else if (estim_type == "kde") {
+    stop("Kernel density estimation not yet implemented")
+    # TODO
+  } else {
     stop("The choice of estim_type is not valid")
-      }
-  
+  }
+
   # pad with zeros to reach the specified length
   if (!is.null(min_supp) && length(pmf) <= min_supp) {
-    pmf = c(pmf, rep(0,min_supp-length(pmf)+1))
-  } 
-  
-  if (!is.null(al_smooth)) pmf = PMF.smoothing(pmf, al_smooth, laplace = T)
-  
+    pmf <- c(pmf, rep(0, min_supp - length(pmf) + 1))
+  }
+
+  if (!is.null(al_smooth)) pmf <- PMF.smoothing(pmf, al_smooth, laplace = T)
+
   return(pmf)
 }
 
 
 # Compute the pmf from a parametric distribution
-PMF.from_params = function(params, distr, Rtoll = .RTOLL) {
+PMF.from_params <- function(params, distr, Rtoll = .RTOLL) {
   # Check that the distribution is implemented, and that the params are ok
   if (!(distr %in% .DISCR_DISTR)) {
-    stop(paste0("Input error: distr must be one of {",
-                paste(.DISCR_DISTR, collapse = ', '), "}"))
+    stop(paste0(
+      "Input error: distr must be one of {",
+      paste(.DISCR_DISTR, collapse = ", "), "}"
+    ))
   }
   .check_distr_params(distr, params)
   # Compute the pmf
-  switch(
-    distr,
-    "poisson"  = {
-      lambda = params$lambda
-      M = stats::qpois(1-Rtoll, lambda)
-      pmf = stats::dpois(0:M, lambda)},
-    "nbinom"   = {
-      size = params$size
-      prob = params$prob
-      mu   = params$mu
+  switch(distr,
+    "poisson" = {
+      lambda <- params$lambda
+      M <- stats::qpois(1 - Rtoll, lambda)
+      pmf <- stats::dpois(0:M, lambda)
+    },
+    "nbinom" = {
+      size <- params$size
+      prob <- params$prob
+      mu <- params$mu
       if (!is.null(prob)) {
-        M   = stats::qnbinom(1-Rtoll, size=size, prob=prob)
-        pmf = stats::dnbinom(0:M, size=size, prob=prob)
+        M <- stats::qnbinom(1 - Rtoll, size = size, prob = prob)
+        pmf <- stats::dnbinom(0:M, size = size, prob = prob)
       } else if (!is.null(mu)) {
-        M   = stats::qnbinom(1-Rtoll, size=size, mu=mu)
-        pmf = stats::dnbinom(0:M, size=size, mu=mu)
-        }
-      },
+        M <- stats::qnbinom(1 - Rtoll, size = size, mu = mu)
+        pmf <- stats::dnbinom(0:M, size = size, mu = mu)
+      }
+    },
   )
-  pmf = pmf / sum(pmf)
+  pmf <- pmf / sum(pmf)
   return(pmf)
 }
 
 #' @title PMF operations and utilities
 #'
 #' @description
-#' 
+#'
 #' A set of functions for working with Probability Mass Functions (PMFs) in bayesRecon.
 #' A PMF is represented as a normalized numeric vector where element `v[j+1]` represents
 #' the probability of value `j` (support starts from 0).
-#' 
+#'
 #' These functions provide utilities for:
 #' * Drawing samples from PMFs
 #' * Computing summary statistics (mean, variance, quantiles)
 #' * Summarizing PMF distributions
-#' 
+#'
 #' @usage
 #' PMF.sample(pmf, N_samples)
 #' PMF.get_mean(pmf)
 #' PMF.get_var(pmf)
 #' PMF.get_quantile(pmf, p)
 #' PMF.summary(pmf, Ltoll = .TOLL, Rtoll = .RTOLL)
-#' 
+#'
 #' @param pmf A PMF object (numeric vector where element j+1 is the probability of value j).
 #' @param N_samples Number of samples to draw from the PMF.
 #' @param p Probability level for quantile computation (between 0 and 1).
@@ -152,194 +147,199 @@ PMF.from_params = function(params, distr, Rtoll = .RTOLL) {
 #'
 #' @examples
 #' library(bayesRecon)
-#' 
+#'
 #' # Let's build the pmf of a Binomial distribution with parameters n and p
 #' n <- 10
-#' p <- 0.6 
-#' pmf_binomial <- apply(matrix(seq(0,n)),MARGIN=1,FUN=function(x) dbinom(x,size=n,prob=p))
-#' 
+#' p <- 0.6
+#' pmf_binomial <- apply(matrix(seq(0, n)), MARGIN = 1, FUN = \(x) dbinom(x, size = n, prob = p))
+#'
 #' # Draw samples from the PMF object
 #' set.seed(1)
-#' samples <- PMF.sample(pmf=pmf_binomial,N_samples = 1e4)
-#' 
+#' samples <- PMF.sample(pmf = pmf_binomial, N_samples = 1e4)
+#'
 #' # Compute statistics
-#' PMF.get_mean(pmf_binomial)      # Mean: should be close to n*p = 6
-#' PMF.get_var(pmf_binomial)       # Variance: should be close to n*p*(1-p) = 2.4
-#' PMF.get_quantile(pmf_binomial, 0.5)  # Median
-#' PMF.summary(pmf_binomial)       # Full summary
-#' 
+#' PMF.get_mean(pmf_binomial) # Mean: should be close to n*p = 6
+#' PMF.get_var(pmf_binomial) # Variance: should be close to n*p*(1-p) = 2.4
+#' PMF.get_quantile(pmf_binomial, 0.5) # Median
+#' PMF.summary(pmf_binomial) # Full summary
+#'
 #' @section Functions:
-#' 
+#'
 #' \describe{
 #'   \item{\code{PMF.sample(pmf, N_samples)}}{
 #'     Draws random samples from the probability distribution specified by the PMF.
-#'     Uses sampling with replacement from the discrete support values, weighted by 
-#'     their probabilities. This is useful for generating synthetic data or for 
+#'     Uses sampling with replacement from the discrete support values, weighted by
+#'     their probabilities. This is useful for generating synthetic data or for
 #'     Monte Carlo simulations.
 #'   }
-#'   
+#'
 #'   \item{\code{PMF.get_mean(pmf)}}{
 #'     Computes the expected value (mean) of the distribution represented by the PMF.
-#'     The mean is calculated as the sum of each value in the support weighted by 
+#'     The mean is calculated as the sum of each value in the support weighted by
 #'     its probability: \eqn{\sum_{x} x \cdot P(X=x)}.
 #'   }
-#'   
+#'
 #'   \item{\code{PMF.get_var(pmf)}}{
 #'     Computes the variance of the distribution represented by the PMF.
 #'     The variance measures the spread of the distribution and is calculated as
 #'     \eqn{E[X^2] - (E[X])^2}, where \eqn{E[X]} is the mean.
 #'   }
-#'   
+#'
 #'   \item{\code{PMF.get_quantile(pmf, p)}}{
 #'     Computes the quantile of the distribution at probability level \code{p}.
 #'     Returns the smallest value \code{x} such that the cumulative probability up to \code{x}
 #'     is greater than or equal to \code{p}. For example, \code{p=0.5} gives the median.
 #'   }
-#'   
+#'
 #'   \item{\code{PMF.summary(pmf, Ltoll, Rtoll)}}{
 #'     Provides a comprehensive summary of the distribution including minimum, maximum,
 #'     quartiles, median, and mean. The minimum and maximum are determined based on
 #'     probability thresholds to handle the potentially infinite tails of discrete distributions.
 #'   }
 #' }
-#' 
+#'
 #' @name PMF
 #' @export
-PMF.sample = function(pmf, N_samples) {
-  s = sample(0:(length(pmf)-1), prob = pmf, replace = TRUE, size = N_samples)
+PMF.sample <- function(pmf, N_samples) {
+  s <- sample(0:(length(pmf) - 1), prob = pmf, replace = TRUE, size = N_samples)
   return(s)
 }
 
 #' @rdname PMF
 #' @export
-PMF.get_mean = function(pmf) {
-  supp = 0:(length(pmf)-1)
-  m = pmf %*% supp
+PMF.get_mean <- function(pmf) {
+  supp <- 0:(length(pmf) - 1)
+  m <- pmf %*% supp
   return(m)
 }
 
 #' @rdname PMF
 #' @export
-PMF.get_var = function(pmf) {
-  supp = 0:(length(pmf)-1)
-  v = pmf %*% supp^2 - PMF.get_mean(pmf)^2
+PMF.get_var <- function(pmf) {
+  supp <- 0:(length(pmf) - 1)
+  v <- pmf %*% supp^2 - PMF.get_mean(pmf)^2
   return(v)
 }
 
 
 #' @rdname PMF
 #' @export
-PMF.get_quantile = function(pmf, p) {
+PMF.get_quantile <- function(pmf, p) {
   if (p <= 0 | p >= 1) {
     stop("Input error: probability p must be between 0 and 1")
   }
-  cdf = cumsum(pmf)
-  x = min(which(cdf >= p))
-  return(x-1)
+  cdf <- cumsum(pmf)
+  x <- min(which(cdf >= p))
+  return(x - 1)
 }
 
 
 #' @rdname PMF
 #' @export
-PMF.summary = function(pmf, Ltoll=.TOLL, Rtoll=.RTOLL) {
-  min_pmf = min(which(pmf > Ltoll)) - 1
-  max_pmf = max(which(pmf > Rtoll)) - 1
-  all_summaries <- data.frame("Min."    = min_pmf,
-                              `1st Qu.` = PMF.get_quantile(pmf,0.25),
-                              "Median"  = PMF.get_quantile(pmf,0.5),
-                              "Mean"    = PMF.get_mean(pmf), 
-                              `3rd Qu.` = PMF.get_quantile(pmf,0.75),
-                              "Max"     = max_pmf,
-                              check.names = FALSE)
+PMF.summary <- function(pmf, Ltoll = .TOLL, Rtoll = .RTOLL) {
+  min_pmf <- min(which(pmf > Ltoll)) - 1
+  max_pmf <- max(which(pmf > Rtoll)) - 1
+  all_summaries <- data.frame(
+    "Min." = min_pmf,
+    `1st Qu.` = PMF.get_quantile(pmf, 0.25),
+    "Median" = PMF.get_quantile(pmf, 0.5),
+    "Mean" = PMF.get_mean(pmf),
+    `3rd Qu.` = PMF.get_quantile(pmf, 0.75),
+    "Max" = max_pmf,
+    check.names = FALSE
+  )
   return(all_summaries)
 }
 
 # Apply smoothing to a pmf.
-# If the smoothing parameter alpha is not specified, it is set to the min of pmf. 
-# If laplace is set to TRUE, add alpha to all the points. 
+# If the smoothing parameter alpha is not specified, it is set to the min of pmf.
+# If laplace is set to TRUE, add alpha to all the points.
 # Otherwise, add alpha only to points with zero mass.
-PMF.smoothing = function(pmf, alpha = .ALPHA_SMOOTHING, laplace=FALSE) {
-  
-  if (is.null(alpha)) alpha = min(pmf[pmf!=0])
+PMF.smoothing <- function(pmf, alpha = .ALPHA_SMOOTHING, laplace = FALSE) {
+  if (is.null(alpha)) alpha <- min(pmf[pmf != 0])
 
-  if (laplace) { 
-    pmf = pmf + rep(alpha, length(pmf))
-  } else pmf[pmf==0] = alpha
-  
-  
+  if (laplace) {
+    pmf <- pmf + rep(alpha, length(pmf))
+  } else {
+    pmf[pmf == 0] <- alpha
+  }
+
+
   return(pmf / sum(pmf))
 }
 
 
-
-# Compute convolution between 2 pmfs. Then, for numerical reasons: 
+# Compute convolution between 2 pmfs. Then, for numerical reasons:
 # -removes small values at the end of the vector (< Rtoll)
 # -set to zero all the values to the left of the support
 # -set to zero small values (< toll)
-PMF.conv = function(pmf1, pmf2, toll=.TOLL, Rtoll=.RTOLL) {
-  pmf = stats::convolve(pmf1, rev(pmf2), type="open")
+PMF.conv <- function(pmf1, pmf2, toll = .TOLL, Rtoll = .RTOLL) {
+  pmf <- stats::convolve(pmf1, rev(pmf2), type = "open")
   # Look for last value > Rtoll and remove all the elements after it:
-  last_pos = max(which(pmf > Rtoll))  
-  pmf = pmf[1:last_pos]
+  last_pos <- max(which(pmf > Rtoll))
+  pmf <- pmf[1:last_pos]
   # Set to zero values smaller than toll:
-  pmf[pmf<toll] = 0  
+  pmf[pmf < toll] <- 0
   # Set to zero elements at the left of m1 + m2, which are the minima of the supports
-  # of pmf1 and pmf2: guarantees that supp(v) is not "larger" than supp(v1) + supp(v2) 
-  m1 = min(which(pmf1>0))
-  m2 = min(which(pmf2>0))
-  m = m1 + m2 -1
-  if (m>1) pmf[1:(m-1)] = 0
-  pmf = pmf / sum(pmf)  # re-normalize
+  # of pmf1 and pmf2: guarantees that supp(v) is not "larger" than supp(v1) + supp(v2)
+  m1 <- min(which(pmf1 > 0))
+  m2 <- min(which(pmf2 > 0))
+  m <- m1 + m2 - 1
+  if (m > 1) pmf[1:(m - 1)] <- 0
+  pmf <- pmf / sum(pmf) # re-normalize
   return(pmf)
 }
 
 # Computes the pmf of the bottom-up distribution analytically
 # l_pmf: list of bottom pmfs
 # toll and Rtoll: used during convolution (see PMF.conv)
-# smoothing: whether to apply smoothing to the bottom pmfs to "cover the holes"  
+# smoothing: whether to apply smoothing to the bottom pmfs to "cover the holes"
 # al_smooth, lap_smooth: smoothing parameters (see PMF.smoothing)
 # Returns:
 # -the bottom-up pmf, if return_all=FALSE
-# -otherwise, a list of lists of pmfs for all the steps of the algorithm; 
+# -otherwise, a list of lists of pmfs for all the steps of the algorithm;
 #  they correspond to the variables of the "auxiliary binary tree"
-PMF.bottom_up = function(l_pmf, toll=.TOLL, Rtoll=.RTOLL, return_all=FALSE,
-                         smoothing=TRUE, al_smooth=.ALPHA_SMOOTHING, lap_smooth=.LAP_SMOOTHING) {
-  
+PMF.bottom_up <- function(l_pmf, toll = .TOLL, Rtoll = .RTOLL, return_all = FALSE,
+                          smoothing = TRUE, al_smooth = .ALPHA_SMOOTHING, lap_smooth = .LAP_SMOOTHING) {
   # Smoothing to "cover the holes" in the supports of the bottom pmfs
-  if (smoothing) l_pmf = lapply(l_pmf, PMF.smoothing, 
-                                alpha=al_smooth, laplace=lap_smooth)
-  
+  if (smoothing) {
+    l_pmf <- lapply(l_pmf, PMF.smoothing,
+      alpha = al_smooth, laplace = lap_smooth
+    )
+  }
+
   # In case we have an upper which is a duplicate of a bottom,
   # the bottom up is simply that bottom.
-  if(length(l_pmf)==1){
+  if (length(l_pmf) == 1) {
     if (return_all) {
       return(list(l_pmf))
     } else {
       return(l_pmf[[1]])
     }
   }
-  
-  # Doesn't do convolutions sequentially 
-  # Instead, for each iteration (while) it creates a new list of vectors 
+
+  # Doesn't do convolutions sequentially
+  # Instead, for each iteration (while) it creates a new list of vectors
   # by doing convolution between 1 and 2, 3 and 4, ...
   # Then, the new list has length halved (if L is odd, just copy the last element)
-  # Ends when the list has length 1: contains just 1 vector that is the convolution 
-  # of all the vectors of the list 
-  old_v = l_pmf
-  l_l_v = list(old_v)   # list with all the step-by-step lists of pmf
-  L = length(old_v)
+  # Ends when the list has length 1: contains just 1 vector that is the convolution
+  # of all the vectors of the list
+  old_v <- l_pmf
+  l_l_v <- list(old_v) # list with all the step-by-step lists of pmf
+  L <- length(old_v)
   while (L > 1) {
-    new_v = c()
-    for (j in 1:(L%/%2)) {
-      new_v = c(new_v, list(PMF.conv(old_v[[2*j-1]], old_v[[2*j]], 
-                                     toll=toll, Rtoll=Rtoll)))
+    new_v <- c()
+    for (j in 1:(L %/% 2)) {
+      new_v <- c(new_v, list(PMF.conv(old_v[[2 * j - 1]], old_v[[2 * j]],
+        toll = toll, Rtoll = Rtoll
+      )))
     }
-    if (L%%2 == 1) new_v = c(new_v, list(old_v[[L]]))
-    old_v = new_v
-    l_l_v = c(l_l_v, list(old_v))
-    L = length(old_v)
+    if (L %% 2 == 1) new_v <- c(new_v, list(old_v[[L]]))
+    old_v <- new_v
+    l_l_v <- c(l_l_v, list(old_v))
+    L <- length(old_v)
   }
-  
+
   if (return_all) {
     return(l_l_v)
   } else {
@@ -348,26 +348,29 @@ PMF.bottom_up = function(l_pmf, toll=.TOLL, Rtoll=.RTOLL, return_all=FALSE,
 }
 
 # Given a vector v_u and a list of bottom pmf l_pmf,
-# checks if the elements of v_u are contained in the support of the bottom-up distr 
-# Returns a vector with the same length of v_u with TRUE if it is contained and FALSE otherwise 
-PMF.check_support = function(v_u, l_pmf, toll=.TOLL, Rtoll=.RTOLL,
-                             smoothing=TRUE, al_smooth=.ALPHA_SMOOTHING, lap_smooth=.LAP_SMOOTHING) {
-  pmf_u = PMF.bottom_up(l_pmf, toll=toll, Rtoll=Rtoll, return_all=FALSE,
-                        smoothing=smoothing, al_smooth=al_smooth, lap_smooth=lap_smooth)
+# checks if the elements of v_u are contained in the support of the bottom-up distr
+# Returns a vector with the same length of v_u with TRUE if it is contained and FALSE otherwise
+PMF.check_support <- function(v_u, l_pmf, toll = .TOLL, Rtoll = .RTOLL,
+                              smoothing = TRUE, al_smooth = .ALPHA_SMOOTHING, lap_smooth = .LAP_SMOOTHING) {
+  pmf_u <- PMF.bottom_up(l_pmf,
+    toll = toll, Rtoll = Rtoll, return_all = FALSE,
+    smoothing = smoothing, al_smooth = al_smooth, lap_smooth = lap_smooth
+  )
   # The elements of v_u must be in the support of pmf_u
-  supp_u = which(pmf_u > 0) - 1
-  mask = v_u %in% supp_u
+  supp_u <- which(pmf_u > 0) - 1
+  mask <- v_u %in% supp_u
   return(mask)
 }
 
 # Compute the tempered pmf
 # The pmf is raised to the power of 1/temp, and then normalized
 # temp must be a positive number
-PMF.tempering = function(pmf, temp) {
-  
+PMF.tempering <- function(pmf, temp) {
   if (temp <= 0) stop("temp must be positive")
-  if (temp == 1) return(pmf)
-  
-  temp_pmf = pmf**(1/temp)
+  if (temp == 1) {
+    return(pmf)
+  }
+
+  temp_pmf <- pmf**(1 / temp)
   return(temp_pmf / sum(temp_pmf))
 }
