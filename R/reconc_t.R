@@ -267,9 +267,9 @@ multi_log_score_optimization <- function(res, prior_mean, trim = 0.1) {
 #' The reconciliation yields a distribution:
 #' \deqn{\tilde{\mathbf{b}} \sim t(\hat{\mathbf{b}}_{tilde}, \tilde{\Sigma}_B, \tilde{\nu})}
 #' where the reconciled mean is:
-#' \deqn{\hat{\mathbf{b}}_{tilde} = \hat{\mathbf{b}} + (\Psi'_{UB}^\top - \Psi'_B A^\top) Q^{-1} (A\hat{\mathbf{b}} - \hat{\mathbf{u}})}
+#' \deqn{\hat{\mathbf{b}}_{tilde} = \hat{\mathbf{b}} + ((\Psi'_{UB})^\top - \Psi'_B A^\top) Q^{-1} (A\hat{\mathbf{b}} - \hat{\mathbf{u}})}
 #' and the scale matrix is:
-#' \deqn{\tilde{\Sigma}_B = C [\Psi'_B - (\Psi'_{UB}^\top - \Psi'_B A^\top) Q^{-1} (\Psi'_{UB}^\top - \Psi'_B A^\top)^\top]}
+#' \deqn{\tilde{\Sigma}_B = C [\Psi'_B - ((\Psi'_{UB})^\top - \Psi'_B A^\top) Q^{-1} ((\Psi'_{UB})^\top - \Psi'_B A^\top)^\top]}
 #' with scalar \deqn{C = \frac{1 + (A\hat{\mathbf{b}} - \hat{\mathbf{u}})^\top Q^{-1} (A\hat{\mathbf{b}} - \hat{\mathbf{u}})}{\tilde{\nu}}.}
 #'
 #' @references
