@@ -16,7 +16,8 @@
   in_typeG,
   distr_G,
   .comp_w = .compute_weights,
-  suppress_warnings = FALSE
+  suppress_warnings = FALSE,
+  return_upper = TRUE
 )
 }
 \arguments{
@@ -47,9 +48,9 @@
 \value{
 A list containing:
 \itemize{
-\item \code{bottom_reconciled}: List with reconciled bottom forecasts (pmf and/or samples).
-\item \code{upper_reconciled_H}: List with reconciled upper forecasts for H constraints.
-\item \code{upper_reconciled_G}: List with reconciled upper forecasts for G constraints.
+\item \code{bottom_rec}: List with reconciled bottom forecasts (pmf and/or samples).
+\item \code{upper_rec_H}: List with reconciled upper forecasts for H constraints.
+\item \code{upper_rec_G}: List with reconciled upper forecasts for G constraints.
 }
 }
 \description{

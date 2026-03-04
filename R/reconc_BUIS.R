@@ -120,13 +120,13 @@
 #'
 #' @param suppress_warnings Logical. If \code{TRUE}, no warnings about effective sample size
 #'        are triggered. If \code{FALSE}, warnings are generated. Default is \code{FALSE}. See Details.
+#' @param return_upper Logical, whether to return the reconciled parameters for the upper variables (default is TRUE).
 #' @param seed Seed for reproducibility.
 #'
 #' @return A list containing the reconciled forecasts. The list has the following named elements:
 #'
-#' * `bottom_reconciled_samples`: a matrix (n_bottom x `num_samples`) containing the reconciled samples for the bottom time series;
-#' * `upper_reconciled_samples`: a matrix (n_upper x `num_samples`) containing the reconciled samples for the upper time series;
-#' * `reconciled_samples`: a matrix (n x `num_samples`) containing the reconciled samples for all time series.
+#' * `bottom_rec_samples`: a matrix (n_bottom x `num_samples`) containing the reconciled samples for the bottom time series;
+#' * `upper_rec_samples`: (only if `return_upper = TRUE`) a matrix (n_upper x `num_samples`) containing the reconciled samples for the upper time series.
 #'
 #' @examples
 #'
@@ -163,7 +163,7 @@
 #'   distr = "gaussian", num_samples = 100000, seed = 42
 #' )
 #'
-#' samples_buis <- buis$reconciled_samples
+#' samples_buis <- rbind(buis$upper_rec_samples, buis$bottom_rec_samples)
 #'
 #' # In the Gaussian case, the reconciled distribution is still Gaussian and can be
 #' # computed in closed form
@@ -174,7 +174,7 @@
 #' )
 #'
 #' # Compare the reconciled means obtained analytically and via BUIS
-#' print(c(S %*% analytic_rec$bottom_reconciled_mean))
+#' print(c(S %*% analytic_rec$bottom_rec_mean))
 #' print(rowMeans(samples_buis))
 #'
 #'
@@ -196,7 +196,7 @@
 #'   in_type = "params",
 #'   distr = "poisson", num_samples = 100000, seed = 42
 #' )
-#' samples_buis <- buis$reconciled_samples
+#' samples_buis <- rbind(buis$upper_rec_samples, buis$bottom_rec_samples)
 #'
 #' # Print the reconciled means
 #' print(rowMeans(samples_buis))
@@ -218,6 +218,7 @@ reconc_BUIS <- function(A,
                         distr,
                         num_samples = 2e4,
                         suppress_warnings = FALSE,
+                        return_upper = TRUE,
                         seed = NULL) {
   if (!is.null(seed)) set.seed(seed)
   n_upper <- nrow(A)
@@ -294,14 +295,15 @@ reconc_BUIS <- function(A,
   }
   B <- do.call("cbind", B) # B is a matrix (num_samples x n_bottom)
 
-  B <- .core_reconc_BUIS(
+  out <- .core_reconc_BUIS(
     A = A, H = H, G = G, B = B,
     upper_base_fc_H = upper_base_fc_H,
     in_typeH = in_typeH, distr_H = distr_H,
     upper_base_fc_G = upper_base_fc_G,
     in_typeG = in_typeG, distr_G = distr_G,
     .comp_w = .compute_weights,
-    suppress_warnings = suppress_warnings
+    suppress_warnings = suppress_warnings,
+    return_upper = return_upper
   )
 
   # # Bottom-Up IS on the hierarchical part
@@ -364,15 +366,6 @@ reconc_BUIS <- function(A,
 
   # }
 
-  B <- t(B)
-  U <- A %*% B
-  Y_reconc <- rbind(U, B)
-
-  out <- list(
-    bottom_reconciled_samples = B,
-    upper_reconciled_samples = U,
-    reconciled_samples = Y_reconc
-  )
   return(out)
 }
 
@@ -397,9 +390,9 @@ reconc_BUIS <- function(A,
 #'
 #' @return A list containing:
 #'   \itemize{
-#'     \item `bottom_reconciled`: List with reconciled bottom forecasts (pmf and/or samples).
-#'     \item `upper_reconciled_H`: List with reconciled upper forecasts for H constraints.
-#'     \item `upper_reconciled_G`: List with reconciled upper forecasts for G constraints.
+#'     \item `bottom_rec`: List with reconciled bottom forecasts (pmf and/or samples).
+#'     \item `upper_rec_H`: List with reconciled upper forecasts for H constraints.
+#'     \item `upper_rec_G`: List with reconciled upper forecasts for G constraints.
 #'   }
 #'
 #' @keywords internal
@@ -414,7 +407,8 @@ reconc_BUIS <- function(A,
                               in_typeG,
                               distr_G,
                               .comp_w = .compute_weights,
-                              suppress_warnings = FALSE) {
+                              suppress_warnings = FALSE,
+                              return_upper = TRUE) {
   # Hierarchical part
   for (hi in 1:nrow(H)) {
     c <- H[hi, ]
@@ -476,5 +470,11 @@ reconc_BUIS <- function(A,
       B <- .resample(B, weights)
     }
   }
-  return(B)
+  B <- t(B)
+  U <- A %*% B
+  out <- list(bottom_rec_samples = B)
+  if (return_upper) {
+    out$upper_rec_samples <- U
+  }
+  return(out)
 }

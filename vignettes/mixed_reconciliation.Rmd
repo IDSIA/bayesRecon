@@ -114,10 +114,10 @@ gauss <- reconc_gaussian(A, base_fc_mean, base_fc_cov)
 stop <- Sys.time()
 
 rec_fc$Gauss <- list(
-  mu_b = gauss$bottom_reconciled_mean,
-  Sigma_b = gauss$bottom_reconciled_covariance,
-  mu_u = A %*% gauss$bottom_reconciled_mean,
-  Sigma_u = A %*% gauss$bottom_reconciled_covariance %*% t(A)
+  mu_b = gauss$bottom_rec_mean,
+  Sigma_b = gauss$bottom_rec_covariance,
+  mu_u = A %*% gauss$bottom_rec_mean,
+  Sigma_u = A %*% gauss$bottom_rec_covariance %*% t(A)
 )
 
 Gauss_time <- as.double(round(difftime(stop, start, units = "secs"), 2))
@@ -155,8 +155,8 @@ mix_cond <- reconc_MixCond(A, fc_bottom_4rec, fc_upper_4rec,
 stop <- Sys.time()
 
 rec_fc$Mixed_cond <- list(
-  bottom = mix_cond$bottom_reconciled$pmf,
-  upper  = mix_cond$upper_reconciled$pmf,
+  bottom = mix_cond$bottom_rec$pmf,
+  upper  = mix_cond$upper_rec$pmf,
   ESS    = mix_cond$ESS
 )
 
@@ -189,8 +189,8 @@ We will see that this warning does not impact the performances of TD-cond.
 
 ```{r print computational time TD cond}
 rec_fc$TD_cond <- list(
-  bottom = td$bottom_reconciled$pmf,
-  upper  = td$upper_reconciled$pmf
+  bottom = td$bottom_rec$pmf,
+  upper  = td$upper_rec$pmf
 )
 
 TDCond_time <- as.double(round(difftime(stop, start, units = "secs"), 2))

@@ -57,8 +57,8 @@ test_that("reconc_TDcond simple example", {
   )
 
   # Check if all return_type return identical results
-  expect_identical(res.TDcond$bottom_reconciled$pmf, res.TDcond3$bottom_reconciled$pmf)
-  expect_identical(res.TDcond2$bottom_reconciled$samples, res.TDcond3$bottom_reconciled$samples)
+  expect_identical(res.TDcond$bottom_rec$pmf, res.TDcond3$bottom_rec$pmf)
+  expect_identical(res.TDcond2$bottom_rec$samples, res.TDcond3$bottom_rec$samples)
 
   # Compute the reconciliation analytically (everything Gaussian)
   ## Save bottom forecast parameters
@@ -81,7 +81,7 @@ test_that("reconc_TDcond simple example", {
   bott_reconc_mean <- fc_bott_gauss$mean + tcrossprod(bott_reconc_cov, A) %*% inv_U %*% (fc_upper$mean - A %*% fc_bott_gauss$mean)
 
   # compute the difference between empirical and analytical
-  m_diff <- unlist(lapply(res.TDcond$bottom_reconciled$pmf, PMF_get_mean)) - bott_reconc_mean
+  m_diff <- unlist(lapply(res.TDcond$bottom_rec$pmf, PMF_get_mean)) - bott_reconc_mean
 
   expect_true(all(abs(m_diff / bott_reconc_mean) < 8e-3))
 

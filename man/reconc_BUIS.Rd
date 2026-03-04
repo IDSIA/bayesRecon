@@ -11,6 +11,7 @@ reconc_BUIS(
   distr,
   num_samples = 20000,
   suppress_warnings = FALSE,
+  return_upper = TRUE,
   seed = NULL
 )
 }
@@ -43,14 +44,16 @@ the number of samples of the base forecasts.}
 \item{suppress_warnings}{Logical. If \code{TRUE}, no warnings about effective sample size
 are triggered. If \code{FALSE}, warnings are generated. Default is \code{FALSE}. See Details.}
 
+\item{return_upper}{Logical. If \code{TRUE} (default), also returns the reconciled samples for the
+upper time series. Default is \code{TRUE}.}
+
 \item{seed}{Seed for reproducibility.}
 }
 \value{
 A list containing the reconciled forecasts. The list has the following named elements:
 \itemize{
-\item \code{bottom_reconciled_samples}: a matrix (n_bottom x \code{num_samples}) containing the reconciled samples for the bottom time series;
-\item \code{upper_reconciled_samples}: a matrix (n_upper x \code{num_samples}) containing the reconciled samples for the upper time series;
-\item \code{reconciled_samples}: a matrix (n x \code{num_samples}) containing the reconciled samples for all time series.
+\item \code{bottom_rec_samples}: a matrix (n_bottom x \code{num_samples}) containing the reconciled samples for the bottom time series;
+\item \code{upper_rec_samples}: (only if \code{return_upper = TRUE}) a matrix (n_upper x \code{num_samples}) containing the reconciled samples for the upper time series.
 }
 }
 \description{
@@ -120,7 +123,7 @@ buis <- reconc_BUIS(A, base_fc,
   distr = "gaussian", num_samples = 100000, seed = 42
 )
 
-samples_buis <- buis$reconciled_samples
+samples_buis <- rbind(buis$upper_rec_samples, buis$bottom_rec_samples)
 
 # In the Gaussian case, the reconciled distribution is still Gaussian and can be
 # computed in closed form
@@ -131,7 +134,7 @@ analytic_rec <- reconc_gaussian(A,
 )
 
 # Compare the reconciled means obtained analytically and via BUIS
-print(c(S \%*\% analytic_rec$bottom_reconciled_mean))
+print(c(S \%*\% analytic_rec$bottom_rec_mean))
 print(rowMeans(samples_buis))
 
 
@@ -153,7 +156,7 @@ buis <- reconc_BUIS(A, base_fc,
   in_type = "params",
   distr = "poisson", num_samples = 100000, seed = 42
 )
-samples_buis <- buis$reconciled_samples
+samples_buis <- rbind(buis$upper_rec_samples, buis$bottom_rec_samples)
 
 # Print the reconciled means
 print(rowMeans(samples_buis))

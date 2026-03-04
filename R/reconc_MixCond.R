@@ -63,6 +63,8 @@
 #' * 'pmf' returns a list containing the reconciled marginal pmf objects;
 #' * 'samples' returns a list containing the reconciled multivariate samples;
 #' * 'all' returns a list with both pmf objects and samples.
+#' 
+#' @param return_upper Logical, whether to return the reconciled parameters for the upper variables (default is TRUE).
 #'
 #' @param suppress_warnings Logical. If \code{TRUE}, no warnings about samples
 #'        are triggered. If \code{FALSE}, warnings are generated. Default is \code{FALSE}. See Details.
@@ -70,10 +72,10 @@
 #'
 #' @return A list containing the reconciled forecasts. The list has the following named elements:
 #'
-#' * `bottom_reconciled`: a list containing the pmf, the samples (matrix n_bottom x `num_samples`) or both,
+#' * `bottom_rec`: a list containing the pmf, the samples (matrix n_bottom x `num_samples`) or both,
 #'    depending on the value of `return_type`;
-#' * `upper_reconciled`: a list containing the pmf, the samples (matrix n_upper x `num_samples`) or both,
-#'    depending on the value of `return_type`.
+#' * `upper_rec`: a list containing the pmf, the samples (matrix n_upper x `num_samples`) or both,
+#'    depending on the value of `return_type` (only if `return_upper = TRUE`).
 #'
 #' @examples
 #'
@@ -97,15 +99,15 @@
 #' res.mixCond <- reconc_MixCond(A, base_fc_bottom, base_fc_upper)
 #'
 #' # Note that the bottom distributions are slightly shifted to the right
-#' PMF_summary(res.mixCond$bottom_reconciled$pmf[[1]])
+#' PMF_summary(res.mixCond$bottom_rec$pmf[[1]])
 #' PMF_summary(base_fc_bottom[[1]])
 #'
-#' PMF_summary(res.mixCond$bottom_reconciled$pmf[[2]])
+#' PMF_summary(res.mixCond$bottom_rec$pmf[[2]])
 #' PMF_summary(base_fc_bottom[[2]])
 #'
 #' # The upper distribution is slightly shifted to the left
-#' PMF_summary(res.mixCond$upper_reconciled$pmf[[1]])
-#' PMF_get_var(res.mixCond$upper_reconciled$pmf[[1]])
+#' PMF_summary(res.mixCond$upper_rec$pmf[[1]])
+#' PMF_get_var(res.mixCond$upper_rec$pmf[[1]])
 #'
 #' @references
 #' Zambon, L., Azzimonti, D., Rubattu, N., Corani, G. (2024).
@@ -119,7 +121,8 @@
 reconc_MixCond <- function(A, base_fc_bottom, base_fc_upper,
                            bottom_in_type = "pmf", distr = NULL,
                            num_samples = 2e4, return_type = "pmf",
-                           suppress_warnings = FALSE, seed = NULL) {
+                           return_upper = TRUE, suppress_warnings = FALSE, 
+                           seed = NULL) {
   if (!is.null(seed)) set.seed(seed)
 
   # Check inputs
@@ -148,7 +151,8 @@ reconc_MixCond <- function(A, base_fc_bottom, base_fc_upper,
 
   out <- .core_reconc_MixCond(
     A, B, mean_upper, cov_upper, num_samples,
-    return_type, suppress_warnings
+    return_type, suppress_warnings,
+    return_upper = return_upper
   )
 
   return(out)
@@ -171,14 +175,15 @@ reconc_MixCond <- function(A, base_fc_bottom, base_fc_upper,
 
 #' @return A list containing:
 #'   \itemize{
-#'     \item `bottom_reconciled`: List with reconciled bottom forecasts (pmf and/or samples).
-#'     \item `upper_reconciled`: List with reconciled upper forecasts (pmf and/or samples).
+#'     \item `bottom_rec`: List with reconciled bottom forecasts (pmf and/or samples).
+#'     \item `upper_rec`: (only if `return_upper = TRUE`) List with reconciled upper forecasts (pmf and/or samples).
 #'     \item `ESS`: Effective Sample Size resulting from importance sampling reweighting.
 #'   }
 #'
 #' @keywords internal
 #' @export
-.core_reconc_MixCond <- function(A, B, mean_upper, cov_upper, num_samples, return_type, suppress_warnings) {
+.core_reconc_MixCond <- function(A, B, mean_upper, cov_upper, num_samples, return_type, suppress_warnings,
+                                 return_upper = TRUE) {
   # Get dimensions
   n_u <- nrow(A)
   n_b <- ncol(A)
@@ -203,17 +208,20 @@ reconc_MixCond <- function(A, base_fc_bottom, base_fc_upper,
   U <- A %*% B
 
   # Prepare output: include the marginal pmfs and/or the samples (depending on "return" inputs)
-  out <- list(bottom_reconciled = list(), upper_reconciled = list(), ESS = ESS)
+  out <- list(bottom_rec = list(), upper_rec = list(), ESS = ESS)
   if (return_type %in% c("pmf", "all")) {
-    upper_pmf <- lapply(1:n_u, function(i) PMF_from_samples(U[i, ]))
     bottom_pmf <- lapply(1:n_b, function(i) PMF_from_samples(B[i, ]))
-
-    out$bottom_reconciled$pmf <- bottom_pmf
-    out$upper_reconciled$pmf <- upper_pmf
+    out$bottom_rec$pmf <- bottom_pmf
+    if (return_upper) {
+      upper_pmf <- lapply(1:n_u, function(i) PMF_from_samples(U[i, ]))
+      out$upper_rec$pmf <- upper_pmf
+    }
   }
   if (return_type %in% c("samples", "all")) {
-    out$bottom_reconciled$samples <- B
-    out$upper_reconciled$samples <- U
+    out$bottom_rec$samples <- B
+    if (return_upper) {
+      out$upper_rec$samples <- U
+    }
   }
 
   return(out)

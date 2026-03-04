@@ -80,20 +80,20 @@ y.reconc.hi90 = list()
 
 for (h in 1:length(test)) {
   y.hat_ = median(fc.samples[[nrow(A)+h]])
-  y.reconc_ = median(reconc.res$bottom_reconciled_samples[, h])
+  y.reconc_ = median(reconc.res$bottom_rec_samples[, h])
   # Compute Absolute Percentage Errors (APE)
   ape.fc[[h]] = abs(test[h] - y.hat_) / abs(test[h])
   ape.reconc[[h]] = abs(test[h] - y.reconc_) / abs(test[h])
   # Compute Continuous Ranked Probability Score (CRPS)
   crps.fc[[h]] = crps_sample(y = test[h], dat = fc.samples[[nrow(A)+h]])
-  crps.reconc[[h]] = crps_sample(y = test[h], dat = reconc.res$bottom_reconciled_samples[, h])
+  crps.reconc[[h]] = crps_sample(y = test[h], dat = reconc.res$bottom_rec_samples[, h])
 
   y.hat[[h]] = y.hat_
   y.hat.lo90[[h]] = quantile(fc.samples[[nrow(A)+h]], (1 - 0.9) / 2)[[1]]
   y.hat.hi90[[h]] = quantile(fc.samples[[nrow(A)+h]], 1 - (1 - 0.9) / 2)[[1]]
   y.reconc[[h]] = y.reconc_
-  y.reconc.lo90[[h]] = quantile(reconc.res$bottom_reconciled_samples[, h], (1 - 0.9) / 2)[[1]]
-  y.reconc.hi90[[h]] = quantile(reconc.res$bottom_reconciled_samples[, h], 1 - (1 - 0.9) / 2)[[1]]
+  y.reconc.lo90[[h]] = quantile(reconc.res$bottom_rec_samples[, h], (1 - 0.9) / 2)[[1]]
+  y.reconc.hi90[[h]] = quantile(reconc.res$bottom_rec_samples[, h], 1 - (1 - 0.9) / 2)[[1]]
 }
 
 mape.fc = mean(unlist(ape.fc))

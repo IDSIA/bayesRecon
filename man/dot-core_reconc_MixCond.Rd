@@ -11,7 +11,8 @@
   cov_upper,
   num_samples,
   return_type,
-  suppress_warnings
+  suppress_warnings,
+  return_upper = TRUE
 )
 }
 \arguments{
@@ -32,8 +33,8 @@
 \value{
 A list containing:
 \itemize{
-\item \code{bottom_reconciled}: List with reconciled bottom forecasts (pmf and/or samples).
-\item \code{upper_reconciled}: List with reconciled upper forecasts (pmf and/or samples).
+\item \code{bottom_rec}: List with reconciled bottom forecasts (pmf and/or samples).
+\item \code{upper_rec}: (only if \code{return_upper = TRUE}) List with reconciled upper forecasts (pmf and/or samples).
 \item \code{ESS}: Effective Sample Size resulting from importance sampling reweighting.
 }
 }

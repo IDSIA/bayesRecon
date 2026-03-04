@@ -10,7 +10,7 @@ reconc_t(
   y_train = NULL,
   residuals = NULL,
   ...,
-  return_uppers = FALSE,
+  return_upper = FALSE,
   return_parameters = FALSE
 )
 }
@@ -25,22 +25,22 @@ reconc_t(
 
 \item{...}{Additional arguments for advanced usage: see details.}
 
-\item{return_uppers}{Logical; if TRUE, also returns parameters for the upper level reconciled distribution.}
+\item{return_upper}{Logical; if TRUE, also returns parameters for the upper level reconciled distribution.}
 
 \item{return_parameters}{Logical; if TRUE, returns internal parameters like C and posterior nu.}
 }
 \value{
 A list containing:
 \itemize{
-\item \code{bottom_mean}: Reconciled bottom-level mean forecasts.
-\item \code{bottom_scale_matrix}: Reconciled bottom-level scale matrix.
-\item \code{bottom_df}: Reconciled degrees of freedom.
+\item \code{bottom_rec_mean}: Reconciled bottom-level mean forecasts.
+\item \code{bottom_rec_scale_matrix}: Reconciled bottom-level scale matrix.
+\item \code{bottom_rec_df}: Reconciled degrees of freedom.
 }
-If \code{return_uppers} is TRUE, also returns:
+If \code{return_upper} is TRUE, also returns:
 \itemize{
-\item \code{upper_mean}: Reconciled upper-level mean forecasts.
-\item \code{upper_scale_matrix}: Reconciled upper-level scale matrix.
-\item \code{upper_df}: Reconciled upper-level degrees of freedom.
+\item \code{upper_rec_mean}: Reconciled upper-level mean forecasts.
+\item \code{upper_rec_scale_matrix}: Reconciled upper-level scale matrix.
+\item \code{upper_rec_df}: Reconciled upper-level degrees of freedom.
 }
 If \code{return_parameters} is TRUE, also returns:
 \itemize{
@@ -136,9 +136,9 @@ if (requireNamespace("forecast", quietly = TRUE)) {
 
   # Sample from the reconciled bottom-level Student-t distribution
   n_samples <- 2000
-  L_chol <- t(chol(result$bottom_scale_matrix))
-  z <- matrix(rt(ncol(A) * n_samples, df = result$bottom_df), nrow = ncol(A))
-  bottom_samples <- result$bottom_mean + L_chol \%*\% z  # 2 x n_samples
+  L_chol <- t(chol(result$bottom_rec_scale_matrix))
+  z <- matrix(rt(ncol(A) * n_samples, df = result$bottom_rec_df), nrow = ncol(A))
+  bottom_samples <- result$bottom_rec_mean + L_chol \%*\% z  # 2 x n_samples
 
   # Aggregate bottom samples to get upper samples
   upper_samples <- A \%*\% bottom_samples              
@@ -153,20 +153,20 @@ if (requireNamespace("forecast", quietly = TRUE)) {
 
   # --- 2) 95\% prediction intervals via t-distribution quantiles ---
   result2 <- reconc_t(A, base_fc_mean, y_train = y_train,
-                      residuals = res, return_uppers = TRUE)
+                      residuals = res, return_upper = TRUE)
 
   alpha <- 0.05
   # Bottom series intervals
   for (i in seq_len(ncol(A))) {
-    s_i <- sqrt(result2$bottom_scale_matrix[i, i])
-    lo  <- result2$bottom_mean[i] + s_i * qt(alpha / 2,     df = result2$bottom_df)
-    hi  <- result2$bottom_mean[i] + s_i * qt(1 - alpha / 2, df = result2$bottom_df)
+    s_i <- sqrt(result2$bottom_rec_scale_matrix[i, i])
+    lo  <- result2$bottom_rec_mean[i] + s_i * qt(alpha / 2,     df = result2$bottom_rec_df)
+    hi  <- result2$bottom_rec_mean[i] + s_i * qt(1 - alpha / 2, df = result2$bottom_rec_df)
     cat(sprintf("Bottom \%d: 95\%\% PI = [\%.3f, \%.3f]\n", i, lo, hi))
   }
   # Upper series interval
-  s_u <- sqrt(result2$upper_scale_matrix[1, 1])
-  lo  <- result2$upper_mean[1] + s_u * qt(alpha / 2,     df = result2$upper_df)
-  hi  <- result2$upper_mean[1] + s_u * qt(1 - alpha / 2, df = result2$upper_df)
+  s_u <- sqrt(result2$upper_rec_scale_matrix[1, 1])
+  lo  <- result2$upper_rec_mean[1] + s_u * qt(alpha / 2,     df = result2$upper_rec_df)
+  hi  <- result2$upper_rec_mean[1] + s_u * qt(1 - alpha / 2, df = result2$upper_rec_df)
   cat(sprintf("Upper:    95\%\% PI = [\%.3f, \%.3f]\n", lo, hi))
 }
 }

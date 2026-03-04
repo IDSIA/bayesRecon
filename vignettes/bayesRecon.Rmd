@@ -182,7 +182,7 @@ recon.res <- bayesRecon::reconc_BUIS(
 
 Here we obtain samples from the reconciled forecast distribution.
 ```{r res}
-reconciled_samples <- recon.res$reconciled_samples
+reconciled_samples <- recon.res$bottom_rec_samples
 dim(reconciled_samples)
 ```
 
@@ -198,7 +198,7 @@ crps.fc <- list()
 crps.reconc <- list()
 for (h in 1:length(test)) {
   y.hat_ <- median(fc.samples[[nrow(A) + h]])
-  y.reconc_ <- median(recon.res$bottom_reconciled_samples[h, ])
+  y.reconc_ <- median(recon.res$bottom_rec_samples[h, ])
   # Compute Absolute Errors
   ae.fc[[h]] <- abs(test[h] - y.hat_)
   ae.reconc[[h]] <- abs(test[h] - y.reconc_)
@@ -206,7 +206,7 @@ for (h in 1:length(test)) {
   crps.fc[[h]] <-
     scoringRules::crps_sample(y = test[h], dat = fc.samples[[nrow(A) + h]])
   crps.reconc[[h]] <-
-    scoringRules::crps_sample(y = test[h], dat = recon.res$bottom_reconciled_samples[h, ])
+    scoringRules::crps_sample(y = test[h], dat = recon.res$bottom_rec_samples[h, ])
 }
 
 mae.fc <- mean(unlist(ae.fc))
@@ -313,8 +313,8 @@ reconc.buis <- bayesRecon::reconc_BUIS(
 
 # check that the algorithms return consistent results
 round(rbind(
-  c(rmat$S %*% recon.gauss$bottom_reconciled_mean),
-  rowMeans(reconc.buis$reconciled_samples)
+  c(rmat$S %*% recon.gauss$bottom_rec_mean),
+  rowMeans(rbind(reconc.buis$upper_rec_samples, reconc.buis$bottom_rec_samples))
 ))
 ```
 
@@ -325,13 +325,13 @@ yhat.mu <- tail(sapply(fc, "[[", 1), 18)
 yhat.sigma <- tail(sapply(fc, "[[", 2), 18)
 yhat.hi95 <- qnorm(0.975, mean = yhat.mu, sd = yhat.sigma)
 yhat.lo95 <- qnorm(0.025, mean = yhat.mu, sd = yhat.sigma)
-yreconc.mu <- rowMeans(reconc.buis$bottom_reconciled_samples)
+yreconc.mu <- rowMeans(reconc.buis$bottom_rec_samples)
 yreconc.hi95 <- apply(
-  reconc.buis$bottom_reconciled_samples, 1,
+  reconc.buis$bottom_rec_samples, 1,
   function(x) quantile(x, 0.975)
 )
 yreconc.lo95 <- apply(
-  reconc.buis$bottom_reconciled_samples, 1,
+  reconc.buis$bottom_rec_samples, 1,
   function(x) quantile(x, 0.025)
 )
 
@@ -454,8 +454,8 @@ recon.gauss <- bayesRecon::reconc_gaussian(A,
   base_fc_cov = Sigma
 )
 
-bottom_mu_reconc <- recon.gauss$bottom_reconciled_mean
-bottom_Sigma_reconc <- recon.gauss$bottom_reconciled_covariance
+bottom_mu_reconc <- recon.gauss$bottom_rec_mean
+bottom_Sigma_reconc <- recon.gauss$bottom_rec_covariance
 
 # Obtain reconciled mu and Sigma for the upper variable
 upper_mu_reconc <- A %*% bottom_mu_reconc

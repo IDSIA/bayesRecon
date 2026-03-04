@@ -12,6 +12,7 @@ reconc_MCMC(
   tuning_int = 100,
   init_scale = 1,
   burn_in = 1000,
+  return_upper = TRUE,
   seed = NULL
 )
 }
@@ -30,14 +31,16 @@ reconc_MCMC(
 
 \item{burn_in}{number of initial samples to be discarded.}
 
+\item{return_upper}{Logical. If \code{TRUE} (default), also returns the reconciled samples for the
+upper time series. Default is \code{TRUE}.}
+
 \item{seed}{seed for reproducibility.}
 }
 \value{
 A list containing the reconciled forecasts. The list has the following named elements:
 \itemize{
-\item \code{bottom_reconciled_samples}: a matrix (n_bottom x \code{num_samples}) containing reconciled samples for the bottom time series;
-\item \code{upper_reconciled_samples}: a matrix (n_upper x \code{num_samples}) containing reconciled samples for the upper time series;
-\item \code{reconciled_samples}: a matrix (n x \code{num_samples}) containing the reconciled samples for all time series.
+\item \code{bottom_rec_samples}: a matrix (n_bottom x \code{num_samples}) containing reconciled samples for the bottom time series;
+\item \code{upper_rec_samples}: a matrix (n_upper x \code{num_samples}) containing reconciled samples for the upper time series (only if \code{return_upper = TRUE}).
 }
 }
 \description{
@@ -86,14 +89,14 @@ mcmc <- reconc_MCMC(A, base_fc,
   distr = "poisson",
   num_samples = 30000, seed = 42
 )
-samples_mcmc <- mcmc$reconciled_samples
+samples_mcmc <- rbind(mcmc$upper_rec_samples, mcmc$bottom_rec_samples)
 
 # Compare the reconciled means with those obtained via BUIS
 buis <- reconc_BUIS(A, base_fc,
   in_type = "params",
   distr = "poisson", num_samples = 100000, seed = 42
 )
-samples_buis <- buis$reconciled_samples
+samples_buis <- rbind(buis$upper_rec_samples, buis$bottom_rec_samples)
 
 print(rowMeans(samples_mcmc))
 print(rowMeans(samples_buis))

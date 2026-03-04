@@ -18,7 +18,7 @@ test_that("Monthly, in_type=='params', distr='gaussian'", {
   # Test on bottom
   n_upper <- nrow(A)
   n_bottom <- ncol(A)
-  m <- mean(rowMeans(res.buis$reconciled_samples)[(n_upper + 1):(n_upper + n_bottom)] - as.numeric(res.gauss$bottom_reconciled_mean))
+  m <- mean(rowMeans(res.buis$bottom_rec_samples) - as.numeric(res.gauss$bottom_rec_mean))
   expect_equal(abs(m) < 8e-3, TRUE)
 })
 
@@ -43,7 +43,7 @@ test_that("Weekly, in_type=='params', distr='gaussian'", {
   # Test on bottom
   n_upper <- nrow(A)
   n_bottom <- ncol(A)
-  m <- mean(rowMeans(res.buis$reconciled_samples)[(n_upper + 1):(n_upper + n_bottom)] - as.numeric(res.gauss$bottom_reconciled_mean))
+  m <- mean(rowMeans(res.buis$bottom_rec_samples) - as.numeric(res.gauss$bottom_rec_mean))
   expect_equal(abs(m) < 2e-2, TRUE)
 })
 
@@ -96,7 +96,7 @@ test_that("Monthly, in_type=='samples', distr='continuous'", {
     )
   }
   res.buis <- reconc_BUIS(A, base_forecasts, in_type = "params", distr = "gaussian", num_samples = 100000, seed = 42)
-  m <- mean(rowMeans(res.buis$reconciled_samples) - rowMeans(res.buis_samples$reconciled_samples))
+  m <- mean(rowMeans(res.buis$bottom_rec_samples) - rowMeans(res.buis_samples$bottom_rec_samples))
   expect_equal(abs(m) < 1e-2, TRUE)
 })
 
@@ -113,7 +113,7 @@ test_that("Monthly, in_type=='samples', distr='discrete'", {
     base_forecasts[[i]] <- list(lambda = base_forecasts_in[i, 1])
   }
   res.buis <- reconc_BUIS(A, base_forecasts, in_type = "params", distr = "poisson", num_samples = 100000, seed = 42)
-  m <- mean(rowMeans(res.buis$reconciled_samples) - rowMeans(res.buis_samples$reconciled_samples))
+  m <- mean(rowMeans(res.buis$bottom_rec_samples) - rowMeans(res.buis_samples$bottom_rec_samples))
   expect_equal(abs(m) < 1.5e-2, TRUE)
 })
 
@@ -154,9 +154,9 @@ test_that("Monthly simple, in_type=='params', distr='nbinom'", {
 
   fc_upper_gauss <- list(mean = mm, cov = matrix(vv))
   res.mixCond <- reconc_MixCond(rec_mat$A, fc_bottom, fc_upper_gauss, bottom_in_type = "params", distr = "nbinom")
-  upp_pmf <- PMF_from_samples(as.integer(res.buis_params$upper_reconciled_samples))
+  upp_pmf <- PMF_from_samples(as.integer(res.buis_params$upper_rec_samples))
 
-  expect_equal(res.mixCond$upper_reconciled$pmf[[1]], upp_pmf, tolerance = 0.1)
+  expect_equal(res.mixCond$upper_rec$pmf[[1]], upp_pmf, tolerance = 0.1)
 })
 
 ##############################################################################

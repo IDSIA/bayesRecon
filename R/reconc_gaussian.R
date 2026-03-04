@@ -10,7 +10,7 @@
 #' @param residuals a matrix with the residuals of the base forecasts, with n_upper + n_bottom columns.
 #' The covariance matrix of the base forecasts is computed from the residuals using the Schäfer Strimmer shrinkage estimator.
 #' If base_fc_cov is provided, residuals are ignored.
-#' @param return_uppers logical, whether to return the reconciled parameters for the upper variables (default is FALSE).
+#' @param return_upper logical, whether to return the reconciled parameters for the upper variables (default is FALSE).
 #'
 #' @details
 #' In the vector of the means of the base forecasts the order must be: first the upper,
@@ -18,14 +18,14 @@
 #' the order within the bottoms by the columns of A.
 #' The order of the rows of the covariance matrix of the base forecasts is the same.
 #'
-#' Unless `return_uppers = TRUE`, the function returns only the reconciled parameters of the bottom variables.
+#' Unless `return_upper = TRUE`, the function returns only the reconciled parameters of the bottom variables.
 #'
 #' @return A list containing the reconciled forecasts. The list has the following named elements:
 #'
-#' * `bottom_reconciled_mean`: reconciled mean for the bottom forecasts;
-#' * `bottom_reconciled_covariance`: reconciled covariance for the bottom forecasts;
-#' * `upper_reconciled_mean`: reconciled mean for the upper forecasts (if `return_uppers = TRUE`);
-#' * `upper_reconciled_covariance`: reconciled covariance for the upper forecasts (if `return_uppers = TRUE`).
+#' * `bottom_rec_mean`: reconciled mean for the bottom forecasts;
+#' * `bottom_rec_covariance`: reconciled covariance for the bottom forecasts;
+#' * `upper_rec_mean`: (only if `return_upper = TRUE`) reconciled mean for the upper forecasts;
+#' * `upper_rec_covariance`: (only if `return_upper = TRUE`) reconciled covariance for the upper forecasts.
 #'
 #'
 #' @examples
@@ -54,8 +54,8 @@
 #'   base_fc_cov = base_fc_cov
 #' )
 #'
-#' bottom_mean_rec <- analytic_rec$bottom_reconciled_mean
-#' bottom_cov_rec <- analytic_rec$bottom_reconciled_covariance
+#' bottom_mean_rec <- analytic_rec$bottom_rec_mean
+#' bottom_cov_rec <- analytic_rec$bottom_rec_covariance
 #'
 #' # To obtain reconciled samples for the entire hierarchy, sample from the reconciled 
 #' # bottom distribution and then aggregate using A. 
@@ -107,12 +107,12 @@
 #'                residuals(fit2))
 #'
 #'   # Reconcile (covariance estimated internally via Schafer-Strimmer)
-#'   result <- reconc_gaussian(A, base_fc_mean = base_fc_mean, residuals = res, return_uppers = TRUE)
+#'   result <- reconc_gaussian(A, base_fc_mean = base_fc_mean, residuals = res, return_upper = TRUE)
 #'
-#'   bottom_mean <- result$bottom_reconciled_mean
-#'   bottom_cov <- result$bottom_reconciled_covariance
-#'   upper_mean <- result$upper_reconciled_mean
-#'   upper_cov <- result$upper_reconciled_covariance
+#'   bottom_mean <- result$bottom_rec_mean
+#'   bottom_cov <- result$bottom_rec_covariance
+#'   upper_mean <- result$upper_rec_mean
+#'   upper_cov <- result$upper_rec_covariance
 #'
 #'   # Print reconciled means
 #'   cat("Reconciled bottom means:", round(bottom_mean, 3), "\n")
@@ -150,7 +150,7 @@
 reconc_gaussian <- function(A, base_fc_mean,
                             base_fc_cov = NULL,
                             residuals = NULL,
-                            return_uppers = FALSE) {
+                            return_upper = FALSE) {
   # Check matrix A
   .check_A(A)
   k <- nrow(A) # number of upper TS
@@ -202,13 +202,13 @@ reconc_gaussian <- function(A, base_fc_mean,
   Sigma_b_tilde <- Sigma_b - K %*% t(temp_diff)
 
   out <- list(
-    bottom_reconciled_mean = as.vector(mu_b_tilde),
-    bottom_reconciled_covariance = Sigma_b_tilde
+    bottom_rec_mean = as.vector(mu_b_tilde),
+    bottom_rec_covariance = Sigma_b_tilde
   )
 
-  if (return_uppers) {
-    out$upper_reconciled_mean <- as.vector(A %*% mu_b_tilde)
-    out$upper_reconciled_covariance <- A %*% Sigma_b_tilde %*% t(A)
+  if (return_upper) {
+    out$upper_rec_mean <- as.vector(A %*% mu_b_tilde)
+    out$upper_rec_covariance <- A %*% Sigma_b_tilde %*% t(A)
   }
 
   return(out)

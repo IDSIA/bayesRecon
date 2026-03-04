@@ -9,7 +9,7 @@
   base_fc_mean,
   Psi_post,
   nu_post,
-  return_uppers = FALSE,
+  return_upper = FALSE,
   return_parameters = FALSE,
   suppress_warnings = FALSE
 )
@@ -25,10 +25,10 @@ Student-t distribution.}
 
 \item{nu_post}{Degrees of freedom of the posterior Student-t distribution.}
 
-\item{return_uppers}{Logical. If TRUE, also returns parameters for the upper level reconciled
+\item{return_upper}{Logical. If TRUE, also returns parameters for the upper level reconciled
 distribution. Default is FALSE.}
 
-\item{return_parameters}{Logical. If TRUE, returns internal parameters (C matrix, posterior nu, etc.)
+\item{return_parameters}{Logical. If TRUE, returns internal parameters (posterior nu, posterior Psi, C)
 for debugging or advanced use. Default is FALSE.}
 
 \item{suppress_warnings}{Logical. If TRUE, suppresses warnings about numerical issues. Default is FALSE.}
@@ -36,15 +36,15 @@ for debugging or advanced use. Default is FALSE.}
 \value{
 A list containing:
 \itemize{
-\item \code{bottom_mean}: Reconciled mean vector for bottom level.
-\item \code{bottom_scale_matrix}: Reconciled scale matrix for bottom level.
-\item \code{bottom_df}: Reconciled degrees of freedom for bottom level.
-\item \code{upper_mean}: (optional) Reconciled mean vector for upper level.
-\item \code{upper_scale_matrix}: (optional) Reconciled scale matrix for upper level.
-\item \code{upper_df}: (optional) Reconciled degrees of freedom for upper level.
-\item \code{posterior_nu}: (optional) Posterior degrees of freedom.
-\item \code{posterior_Psi}: (optional) Posterior scale matrix.
-\item \code{C}: (optional) Scaling factor used in reconciliation.
+\item \code{bottom_rec_mean}: Reconciled mean vector for bottom level.
+\item \code{bottom_rec_scale_matrix}: Reconciled scale matrix for bottom level.
+\item \code{bottom_rec_df}: Reconciled degrees of freedom for bottom level.
+\item \code{upper_rec_mean}: (only if \code{return_upper=TRUE}) Reconciled mean vector for upper level.
+\item \code{upper_rec_scale_matrix}: (only if \code{return_upper=TRUE}) Reconciled scale matrix for upper level.
+\item \code{upper_rec_df}: (only if \code{return_upper=TRUE}) Reconciled degrees of freedom for upper level.
+\item \code{posterior_nu}: (only if \code{return_parameters=TRUE}) Posterior degrees of freedom.
+\item \code{posterior_Psi}: (only if \code{return_parameters=TRUE}) Posterior scale matrix.
+\item \code{C}: (only if \code{return_parameters=TRUE}) Scaling factor used in reconciliation.
 }
 }
 \description{

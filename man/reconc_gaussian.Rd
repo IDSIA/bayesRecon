@@ -9,7 +9,7 @@ reconc_gaussian(
   base_fc_mean,
   base_fc_cov = NULL,
   residuals = NULL,
-  return_uppers = FALSE
+  return_upper = FALSE
 )
 }
 \arguments{
@@ -23,15 +23,15 @@ reconc_gaussian(
 The covariance matrix of the base forecasts is computed from the residuals using the Schäfer Strimmer shrinkage estimator.
 If base_fc_cov is provided, residuals are ignored.}
 
-\item{return_uppers}{logical, whether to return the reconciled parameters for the upper variables (default is FALSE).}
+\item{return_upper}{logical, whether to return the reconciled parameters for the upper variables (default is FALSE).}
 }
 \value{
 A list containing the reconciled forecasts. The list has the following named elements:
 \itemize{
-\item \code{bottom_reconciled_mean}: reconciled mean for the bottom forecasts;
-\item \code{bottom_reconciled_covariance}: reconciled covariance for the bottom forecasts;
-\item \code{upper_reconciled_mean}: reconciled mean for the upper forecasts (if \code{return_uppers = TRUE});
-\item \code{upper_reconciled_covariance}: reconciled covariance for the upper forecasts (if \code{return_uppers = TRUE}).
+\item \code{bottom_rec_mean}: reconciled mean for the bottom forecasts;
+\item \code{bottom_rec_covariance}: reconciled covariance for the bottom forecasts;
+\item \code{upper_rec_mean}: (only if \code{return_upper = TRUE}) reconciled mean for the upper forecasts;
+\item \code{upper_rec_covariance}: (only if \code{return_upper = TRUE}) reconciled covariance for the upper forecasts.
 }
 }
 \description{
@@ -43,7 +43,7 @@ then the bottom; the order within the uppers is given by the rows of A,
 the order within the bottoms by the columns of A.
 The order of the rows of the covariance matrix of the base forecasts is the same.
 
-Unless \code{return_uppers = TRUE}, the function returns only the reconciled parameters of the bottom variables.
+Unless \code{return_upper = TRUE}, the function returns only the reconciled parameters of the bottom variables.
 }
 \examples{
 
@@ -71,8 +71,8 @@ analytic_rec <- reconc_gaussian(A,
   base_fc_cov = base_fc_cov
 )
 
-bottom_mean_rec <- analytic_rec$bottom_reconciled_mean
-bottom_cov_rec <- analytic_rec$bottom_reconciled_covariance
+bottom_mean_rec <- analytic_rec$bottom_rec_mean
+bottom_cov_rec <- analytic_rec$bottom_rec_covariance
 
 # To obtain reconciled samples for the entire hierarchy, sample from the reconciled 
 # bottom distribution and then aggregate using A. 
@@ -124,12 +124,12 @@ if (requireNamespace("forecast", quietly = TRUE)) {
                residuals(fit2))
 
   # Reconcile (covariance estimated internally via Schafer-Strimmer)
-  result <- reconc_gaussian(A, base_fc_mean = base_fc_mean, residuals = res, return_uppers = TRUE)
+  result <- reconc_gaussian(A, base_fc_mean = base_fc_mean, residuals = res, return_upper = TRUE)
 
-  bottom_mean <- result$bottom_reconciled_mean
-  bottom_cov <- result$bottom_reconciled_covariance
-  upper_mean <- result$upper_reconciled_mean
-  upper_cov <- result$upper_reconciled_covariance
+  bottom_mean <- result$bottom_rec_mean
+  bottom_cov <- result$bottom_rec_covariance
+  upper_mean <- result$upper_rec_mean
+  upper_cov <- result$upper_rec_covariance
 
   # Print reconciled means
   cat("Reconciled bottom means:", round(bottom_mean, 3), "\n")

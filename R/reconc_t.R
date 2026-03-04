@@ -228,7 +228,7 @@ multi_log_score_optimization <- function(res, prior_mean, trim = 0.1) {
 #' @param y_train mts (or matrix) of historical training data (T x n) used for setting prior parameters.
 #' @param residuals Matrix (T x n) of base forecast residuals.
 #' @param ... Additional arguments for advanced usage: see details.
-#' @param return_uppers Logical; if TRUE, also returns parameters for the upper level reconciled distribution.
+#' @param return_upper Logical; if TRUE, also returns parameters for the upper level reconciled distribution.
 #' @param return_parameters Logical; if TRUE, returns internal parameters like C and posterior nu.
 #'
 #' @details
@@ -279,15 +279,15 @@ multi_log_score_optimization <- function(res, prior_mean, trim = 0.1) {
 #'
 #' @return A list containing:
 #' \itemize{
-#'   \item \code{bottom_mean}: Reconciled bottom-level mean forecasts.
-#'   \item \code{bottom_scale_matrix}: Reconciled bottom-level scale matrix.
-#'   \item \code{bottom_df}: Reconciled degrees of freedom.
+#'   \item \code{bottom_rec_mean}: Reconciled bottom-level mean forecasts.
+#'   \item \code{bottom_rec_scale_matrix}: Reconciled bottom-level scale matrix.
+#'   \item \code{bottom_rec_df}: Reconciled degrees of freedom.
 #' }
-#' If \code{return_uppers} is TRUE, also returns:
+#' If \code{return_upper} is TRUE, also returns:
 #' \itemize{
-#'  \item \code{upper_mean}: Reconciled upper-level mean forecasts.
-#'  \item \code{upper_scale_matrix}: Reconciled upper-level scale matrix.
-#'  \item \code{upper_df}: Reconciled upper-level degrees of freedom.
+#'  \item \code{upper_rec_mean}: Reconciled upper-level mean forecasts.
+#'  \item \code{upper_rec_scale_matrix}: Reconciled upper-level scale matrix.
+#'  \item \code{upper_rec_df}: Reconciled upper-level degrees of freedom.
 #'  }
 #' If \code{return_parameters} is TRUE, also returns:
 #' \itemize{
@@ -334,9 +334,9 @@ multi_log_score_optimization <- function(res, prior_mean, trim = 0.1) {
 #'
 #'   # Sample from the reconciled bottom-level Student-t distribution
 #'   n_samples <- 2000
-#'   L_chol <- t(chol(result$bottom_scale_matrix))
-#'   z <- matrix(rt(ncol(A) * n_samples, df = result$bottom_df), nrow = ncol(A))
-#'   bottom_samples <- result$bottom_mean + L_chol %*% z  # 2 x n_samples
+#'   L_chol <- t(chol(result$bottom_rec_scale_matrix))
+#'   z <- matrix(rt(ncol(A) * n_samples, df = result$bottom_rec_df), nrow = ncol(A))
+#'   bottom_samples <- result$bottom_rec_mean + L_chol %*% z  # 2 x n_samples
 #'
 #'   # Aggregate bottom samples to get upper samples
 #'   upper_samples <- A %*% bottom_samples              
@@ -351,20 +351,20 @@ multi_log_score_optimization <- function(res, prior_mean, trim = 0.1) {
 #'
 #'   # --- 2) 95% prediction intervals via t-distribution quantiles ---
 #'   result2 <- reconc_t(A, base_fc_mean, y_train = y_train,
-#'                       residuals = res, return_uppers = TRUE)
+#'                       residuals = res, return_upper = TRUE)
 #'
 #'   alpha <- 0.05
 #'   # Bottom series intervals
 #'   for (i in seq_len(ncol(A))) {
-#'     s_i <- sqrt(result2$bottom_scale_matrix[i, i])
-#'     lo  <- result2$bottom_mean[i] + s_i * qt(alpha / 2,     df = result2$bottom_df)
-#'     hi  <- result2$bottom_mean[i] + s_i * qt(1 - alpha / 2, df = result2$bottom_df)
+#'     s_i <- sqrt(result2$bottom_rec_scale_matrix[i, i])
+#'     lo  <- result2$bottom_rec_mean[i] + s_i * qt(alpha / 2,     df = result2$bottom_rec_df)
+#'     hi  <- result2$bottom_rec_mean[i] + s_i * qt(1 - alpha / 2, df = result2$bottom_rec_df)
 #'     cat(sprintf("Bottom %d: 95%% PI = [%.3f, %.3f]\n", i, lo, hi))
 #'   }
 #'   # Upper series interval
-#'   s_u <- sqrt(result2$upper_scale_matrix[1, 1])
-#'   lo  <- result2$upper_mean[1] + s_u * qt(alpha / 2,     df = result2$upper_df)
-#'   hi  <- result2$upper_mean[1] + s_u * qt(1 - alpha / 2, df = result2$upper_df)
+#'   s_u <- sqrt(result2$upper_rec_scale_matrix[1, 1])
+#'   lo  <- result2$upper_rec_mean[1] + s_u * qt(alpha / 2,     df = result2$upper_rec_df)
+#'   hi  <- result2$upper_rec_mean[1] + s_u * qt(1 - alpha / 2, df = result2$upper_rec_df)
 #'   cat(sprintf("Upper:    95%% PI = [%.3f, %.3f]\n", lo, hi))
 #' }
 #' }
@@ -375,7 +375,7 @@ reconc_t <- function(A,
                      y_train = NULL,
                      residuals = NULL,
                      ...,
-                     return_uppers = FALSE,
+                     return_upper = FALSE,
                      return_parameters = FALSE) {
   
   add_args <- list(...)
@@ -437,7 +437,7 @@ reconc_t <- function(A,
 
   out <- .core_reconc_t(
     A = A, base_fc_mean = base_fc_mean, Psi_post = Psi_post, nu_post = nu_post,
-    return_uppers = return_uppers, return_parameters = return_parameters, suppress_warnings = FALSE
+    return_upper = return_upper, return_parameters = return_parameters, suppress_warnings = FALSE
   )
 
   return(out)
@@ -454,28 +454,27 @@ reconc_t <- function(A,
 #' @param Psi_post Scale matrix (n_upper + n_bottom x n_upper + n_bottom) of the posterior
 #'   Student-t distribution.
 #' @param nu_post Degrees of freedom of the posterior Student-t distribution.
-#' @param return_uppers Logical. If TRUE, also returns parameters for the upper level reconciled
-#'   distribution. Default is FALSE.
-#' @param return_parameters Logical. If TRUE, returns internal parameters (C matrix, posterior nu, etc.)
+#' @param return_upper Logical, whether to return the reconciled parameters for the upper variables (default is FALSE).
+#' @param return_parameters Logical. If TRUE, returns internal parameters (posterior nu, posterior Psi, C)
 #'   for debugging or advanced use. Default is FALSE.
 #' @param suppress_warnings Logical. If TRUE, suppresses warnings about numerical issues. Default is FALSE.
 #'
 #' @return A list containing:
 #'   \itemize{
-#'     \item `bottom_mean`: Reconciled mean vector for bottom level.
-#'     \item `bottom_scale_matrix`: Reconciled scale matrix for bottom level.
-#'     \item `bottom_df`: Reconciled degrees of freedom for bottom level.
-#'     \item `upper_mean`: (optional) Reconciled mean vector for upper level.
-#'     \item `upper_scale_matrix`: (optional) Reconciled scale matrix for upper level.
-#'     \item `upper_df`: (optional) Reconciled degrees of freedom for upper level.
-#'     \item `posterior_nu`: (optional) Posterior degrees of freedom.
-#'     \item `posterior_Psi`: (optional) Posterior scale matrix.
-#'     \item `C`: (optional) Scaling factor used in reconciliation.
+#'     \item `bottom_rec_mean`: Reconciled mean vector for bottom level.
+#'     \item `bottom_rec_scale_matrix`: Reconciled scale matrix for bottom level.
+#'     \item `bottom_rec_df`: Reconciled degrees of freedom for bottom level.
+#'     \item `upper_rec_mean`: (only if `return_upper=TRUE`) Reconciled mean vector for upper level.
+#'     \item `upper_rec_scale_matrix`: (only if `return_upper=TRUE`) Reconciled scale matrix for upper level.
+#'     \item `upper_rec_df`: (only if `return_upper=TRUE`) Reconciled degrees of freedom for upper level.
+#'     \item `posterior_nu`: (only if `return_parameters=TRUE`) Posterior degrees of freedom.
+#'     \item `posterior_Psi`: (only if `return_parameters=TRUE`) Posterior scale matrix.
+#'     \item `C`: (only if `return_parameters=TRUE`) Scaling factor used in reconciliation.
 #'   }
 #'
 #' @keywords internal
 #' @export
-.core_reconc_t <- function(A, base_fc_mean, Psi_post, nu_post, return_uppers = FALSE,
+.core_reconc_t <- function(A, base_fc_mean, Psi_post, nu_post, return_upper = FALSE,
                            return_parameters = FALSE, suppress_warnings = FALSE) {
   # Indices for Upper and Bottom
   k <- nrow(A)
@@ -531,17 +530,17 @@ reconc_t <- function(A,
 
   # Prepare output
   out <- list(
-    bottom_mean = as.vector(b_tilde),
-    bottom_scale_matrix = Sigma_tilde_B,
-    bottom_df = nu_tilde
+    bottom_rec_mean = as.vector(b_tilde),
+    bottom_rec_scale_matrix = Sigma_tilde_B,
+    bottom_rec_df = nu_tilde
   )
-  if (return_uppers) {
+  if (return_upper) {
     # Compute the parameters of the uppers using closure property
     u_tilde <- A %*% b_tilde
     Sigma_tilde_U <- A %*% Sigma_tilde_B %*% t(A)
-    out$upper_mean <- as.vector(u_tilde)
-    out$upper_scale_matrix <- Sigma_tilde_U
-    out$upper_df <- nu_tilde
+    out$upper_rec_mean <- as.vector(u_tilde)
+    out$upper_rec_scale_matrix <- Sigma_tilde_U
+    out$upper_rec_df <- nu_tilde
   }
   if (return_parameters) {
     out$posterior_nu <- nu_post

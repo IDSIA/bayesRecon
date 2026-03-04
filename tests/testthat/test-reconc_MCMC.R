@@ -12,6 +12,6 @@ test_that("MCMC Monthly, in_type=='params', distr='poisson'", {
 
   res.mcmc <- reconc_MCMC(A, base_fc = base_forecasts, distr = "poisson", num_samples = 100000, seed = 42)
 
-  m <- (rowMeans(res.buis$reconciled_samples) - rowMeans(res.mcmc$reconciled_samples)) / rowMeans(res.buis$reconciled_samples)
+  m <- (rowMeans(res.buis$bottom_rec_samples) - rowMeans(res.mcmc$bottom_rec_samples)) / rowMeans(res.buis$bottom_rec_samples)
   expect_equal(max(abs(m)) < 0.02, TRUE)
 })
