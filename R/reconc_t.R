@@ -38,7 +38,6 @@
       freq <- stats::frequency(y_train)
     }
   }
-  y_train <- stats::ts(y_train, frequency = freq)
 
   if (is.null(freq) || freq == 1) {
     residuals <- res_n
@@ -55,7 +54,8 @@
         )
       }
       # Seasonality test for each time series
-      is_seas = as.logical(apply(y_train, 2, function(col) forecast::nsdiffs(col)))
+      is_seas = as.logical(apply(stats::ts(y_train, frequency = freq), 2, 
+                                 function(col) forecast::nsdiffs(col)))
       
     } else if (criterion == "RSS") {
       # Compute RSS for both methods, for each series
