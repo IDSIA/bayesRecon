@@ -2,26 +2,26 @@
 % Please edit documentation in R/PMF.R
 \name{PMF}
 \alias{PMF}
-\alias{PMF.sample}
-\alias{PMF.get_mean}
-\alias{PMF.get_var}
-\alias{PMF.get_quantile}
-\alias{PMF.summary}
+\alias{PMF_sample}
+\alias{PMF_get_mean}
+\alias{PMF_get_var}
+\alias{PMF_get_quantile}
+\alias{PMF_summary}
 \title{PMF operations and utilities}
 \usage{
-PMF.sample(pmf, N_samples)
-PMF.get_mean(pmf)
-PMF.get_var(pmf)
-PMF.get_quantile(pmf, p)
-PMF.summary(pmf, Ltoll = .TOLL, Rtoll = .RTOLL)
+PMF_sample(pmf, N_samples)
+PMF_get_mean(pmf)
+PMF_get_var(pmf)
+PMF_get_quantile(pmf, p)
+PMF_summary(pmf, Ltoll = .TOLL, Rtoll = .RTOLL)
 
-PMF.get_mean(pmf)
+PMF_get_mean(pmf)
 
-PMF.get_var(pmf)
+PMF_get_var(pmf)
 
-PMF.get_quantile(pmf, p)
+PMF_get_quantile(pmf, p)
 
-PMF.summary(pmf, Ltoll = .TOLL, Rtoll = .RTOLL)
+PMF_summary(pmf, Ltoll = .TOLL, Rtoll = .RTOLL)
 }
 \arguments{
 \item{pmf}{A PMF object (numeric vector where element j+1 is the probability of value j).}
@@ -50,32 +50,32 @@ These functions provide utilities for:
 
 
 \describe{
-\item{\code{PMF.sample(pmf, N_samples)}}{
+\item{\code{PMF_sample(pmf, N_samples)}}{
 Draws random samples from the probability distribution specified by the PMF.
 Uses sampling with replacement from the discrete support values, weighted by
 their probabilities. This is useful for generating synthetic data or for
 Monte Carlo simulations.
 }
 
-\item{\code{PMF.get_mean(pmf)}}{
+\item{\code{PMF_get_mean(pmf)}}{
 Computes the expected value (mean) of the distribution represented by the PMF.
 The mean is calculated as the sum of each value in the support weighted by
 its probability: \eqn{\sum_{x} x \cdot P(X=x)}.
 }
 
-\item{\code{PMF.get_var(pmf)}}{
+\item{\code{PMF_get_var(pmf)}}{
 Computes the variance of the distribution represented by the PMF.
 The variance measures the spread of the distribution and is calculated as
 \eqn{E[X^2] - (E[X])^2}, where \eqn{E[X]} is the mean.
 }
 
-\item{\code{PMF.get_quantile(pmf, p)}}{
+\item{\code{PMF_get_quantile(pmf, p)}}{
 Computes the quantile of the distribution at probability level \code{p}.
 Returns the smallest value \code{x} such that the cumulative probability up to \code{x}
 is greater than or equal to \code{p}. For example, \code{p=0.5} gives the median.
 }
 
-\item{\code{PMF.summary(pmf, Ltoll, Rtoll)}}{
+\item{\code{PMF_summary(pmf, Ltoll, Rtoll)}}{
 Provides a comprehensive summary of the distribution including minimum, maximum,
 quartiles, median, and mean. The minimum and maximum are determined based on
 probability thresholds to handle the potentially infinite tails of discrete distributions.
@@ -93,12 +93,12 @@ pmf_binomial <- apply(matrix(seq(0, n)), MARGIN = 1, FUN = \(x) dbinom(x, size =
 
 # Draw samples from the PMF object
 set.seed(1)
-samples <- PMF.sample(pmf = pmf_binomial, N_samples = 1e4)
+samples <- PMF_sample(pmf = pmf_binomial, N_samples = 1e4)
 
 # Compute statistics
-PMF.get_mean(pmf_binomial) # Mean: should be close to n*p = 6
-PMF.get_var(pmf_binomial) # Variance: should be close to n*p*(1-p) = 2.4
-PMF.get_quantile(pmf_binomial, 0.5) # Median
-PMF.summary(pmf_binomial) # Full summary
+PMF_get_mean(pmf_binomial) # Mean: should be close to n*p = 6
+PMF_get_var(pmf_binomial) # Variance: should be close to n*p*(1-p) = 2.4
+PMF_get_quantile(pmf_binomial, 0.5) # Median
+PMF_summary(pmf_binomial) # Full summary
 
 }

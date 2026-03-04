@@ -5,12 +5,12 @@
 #' Closed form computation of the reconciled forecasts in case of Gaussian base forecasts.
 #'
 #' @param A aggregation matrix (n_upper x n_bottom).
-#' @param base_forecasts.mu a vector containing the means of the base forecasts.
-#' @param base_forecasts.Sigma a matrix containing the covariance matrix of the base forecasts.
+#' @param base_fc_mean a vector containing the means of the base forecasts.
+#' @param base_fc_cov a matrix containing the covariance matrix of the base forecasts.
 #' @param residuals a matrix with the residuals of the base forecasts, with n_upper + n_bottom columns.
 #' The covariance matrix of the base forecasts is computed from the residuals using the Schäfer Strimmer shrinkage estimator.
-#' If base_forecasts.Sigma is provided, residuals are ignored.
-#' @param return_uppers logical, whether to return the reconciled parameters for the upper variables (default is FALSE).
+#' If base_fc_cov is provided, residuals are ignored.
+#' @param return_upper logical, whether to return the reconciled parameters for the upper variables (default is FALSE).
 #'
 #' @details
 #' In the vector of the means of the base forecasts the order must be: first the upper,
@@ -18,14 +18,14 @@
 #' the order within the bottoms by the columns of A.
 #' The order of the rows of the covariance matrix of the base forecasts is the same.
 #'
-#' Unless `return_uppers = TRUE`, the function returns only the reconciled parameters of the bottom variables.
+#' Unless `return_upper = TRUE`, the function returns only the reconciled parameters of the bottom variables.
 #'
 #' @return A list containing the reconciled forecasts. The list has the following named elements:
 #'
-#' * `bottom_reconciled_mean`: reconciled mean for the bottom forecasts;
-#' * `bottom_reconciled_covariance`: reconciled covariance for the bottom forecasts;
-#' * `upper_reconciled_mean`: reconciled mean for the upper forecasts (if `return_uppers = TRUE`);
-#' * `upper_reconciled_covariance`: reconciled covariance for the upper forecasts (if `return_uppers = TRUE`).
+#' * `bottom_rec_mean`: reconciled mean for the bottom forecasts;
+#' * `bottom_rec_covariance`: reconciled covariance for the bottom forecasts;
+#' * `upper_rec_mean`: (only if `return_upper = TRUE`) reconciled mean for the upper forecasts;
+#' * `upper_rec_covariance`: (only if `return_upper = TRUE`) reconciled covariance for the upper forecasts.
 #'
 #'
 #' @examples
@@ -41,31 +41,31 @@
 #' mu1 <- 2
 #' mu2 <- 4
 #' muY <- 9
-#' mus <- c(muY, mu1, mu2)  # vector of means
+#' base_fc_mean <- c(muY, mu1, mu2)  # vector of means
 #'
 #' sigma1 <- 2
 #' sigma2 <- 2
 #' sigmaY <- 3
 #' sigmas <- c(sigmaY, sigma1, sigma2)
-#' Sigma <- diag(sigmas^2)  # covariance matrix
+#' base_fc_cov <- diag(sigmas^2)  # covariance matrix
 #' 
 #' analytic_rec <- reconc_gaussian(A,
-#'   base_forecasts.mu = mus,
-#'   base_forecasts.Sigma = Sigma
+#'   base_fc_mean = base_fc_mean,
+#'   base_fc_cov = base_fc_cov
 #' )
 #'
-#' bottom_mu_reconc <- analytic_rec$bottom_reconciled_mean
-#' bottom_Sigma_reconc <- analytic_rec$bottom_reconciled_covariance
+#' bottom_mean_rec <- analytic_rec$bottom_rec_mean
+#' bottom_cov_rec <- analytic_rec$bottom_rec_covariance
 #'
 #' # To obtain reconciled samples for the entire hierarchy, sample from the reconciled 
 #' # bottom distribution and then aggregate using A. 
 #' 
 #' # Sample from the reconciled bottom-level Gaussian distribution
 #' # First, compute the Cholesky decomposition of the reconciled covariance matrix:
-#' chol_decomp <- chol(bottom_Sigma_reconc)
+#' chol_decomp <- chol(bottom_cov_rec)
 #' # Then, sample from the standard normal distribution and apply the transformation:
 #' Z <- matrix(stats::rnorm(n = 2000), nrow = 2) 
-#' B <- t(chol_decomp) %*% Z + matrix(rep(bottom_mu_reconc, 1000), nrow = 2) 
+#' B <- t(chol_decomp) %*% Z + matrix(rep(bottom_mean_rec, 1000), nrow = 2) 
 #'
 #' # Aggregate bottom samples to get upper samples, then stack
 #' U <- A %*% B
@@ -99,35 +99,35 @@
 #'   fc1 <- forecast::forecast(fit1, h = 1)$mean
 #'   fc2 <- forecast::forecast(fit2, h = 1)$mean
 #'   fc_upper <- forecast::forecast(fit_upper, h = 1)$mean
-#'   point_fc <- c(fc_upper, fc1, fc2)
+#'   base_fc_mean <- c(fc_upper, fc1, fc2)
 #'
-#'   # Residuals matrix (T x n, columns in same order as point_fc)
+#'   # Residuals matrix (T x n, columns in same order as base_fc_mean)
 #'   res <- cbind(residuals(fit_upper),
 #'                residuals(fit1),
 #'                residuals(fit2))
 #'
 #'   # Reconcile (covariance estimated internally via Schafer-Strimmer)
-#'   result <- reconc_gaussian(A, base_forecasts.mu = point_fc, residuals = res, return_uppers = TRUE)
+#'   result <- reconc_gaussian(A, base_fc_mean = base_fc_mean, residuals = res, return_upper = TRUE)
 #'
-#'   bottom_mu <- result$bottom_reconciled_mean
-#'   bottom_Sigma <- result$bottom_reconciled_covariance
-#'   upper_mu <- result$upper_reconciled_mean
-#'   upper_Sigma <- result$upper_reconciled_covariance
+#'   bottom_mean <- result$bottom_rec_mean
+#'   bottom_cov <- result$bottom_rec_covariance
+#'   upper_mean <- result$upper_rec_mean
+#'   upper_cov <- result$upper_rec_covariance
 #'
 #'   # Print reconciled means
-#'   cat("Reconciled bottom means:", round(bottom_mu, 3), "\n")
-#'   cat("Reconciled upper mean:", round(A %*% bottom_mu, 3), "\n")
+#'   cat("Reconciled bottom means:", round(bottom_mean, 3), "\n")
+#'   cat("Reconciled upper mean:", round(upper_mean, 3), "\n")
 #' 
 #'   # Print 95% predictions intervals
 #'   cat("Reconciled bottom 95% prediction intervals:\n")
-#'   for (i in 1:length(bottom_mu)) {
-#'     lower <- bottom_mu[i] - 1.96 * sqrt(bottom_Sigma[i, i])
-#'     upper <- bottom_mu[i] + 1.96 * sqrt(bottom_Sigma[i, i])
+#'   for (i in 1:length(bottom_mean)) {
+#'     lower <- bottom_mean[i] - 1.96 * sqrt(bottom_cov[i, i])
+#'     upper <- bottom_mean[i] + 1.96 * sqrt(bottom_cov[i, i])
 #'     cat(paste0("Bottom ", i, ": [", round(lower, 3), ", ", round(upper, 3), "]\n"))
 #'   }
 #'   cat("Reconciled upper 95% prediction interval:\n")
-#'   lower <- upper_mu - 1.96 * sqrt(upper_Sigma[1, 1])
-#'   upper <- upper_mu + 1.96 * sqrt(upper_Sigma[1, 1])
+#'   lower <- upper_mean - 1.96 * sqrt(upper_cov[1, 1])
+#'   upper <- upper_mean + 1.96 * sqrt(upper_cov[1, 1])
 #'   cat(paste0("Upper: [", round(lower, 3), ", ", round(upper, 3), "]\n"))
 #' 
 #' }
@@ -147,45 +147,45 @@
 #' @seealso [reconc_BUIS()]
 #'
 #' @export
-reconc_gaussian <- function(A, base_forecasts.mu,
-                            base_forecasts.Sigma = NULL,
+reconc_gaussian <- function(A, base_fc_mean,
+                            base_fc_cov = NULL,
                             residuals = NULL,
-                            return_uppers = FALSE) {
+                            return_upper = FALSE) {
   # Check matrix A
   .check_A(A)
   k <- nrow(A) # number of upper TS
   m <- ncol(A) # number of bottom TS
-  n <- length(base_forecasts.mu) # total number of TS
+  n <- length(base_fc_mean) # total number of TS
   if (!(k + m == n)) {
     stop("Input error: the shape of A is not correct")
   }
 
-  # If residuals are not provided, base_forecasts.Sigma must be provided
+  # If residuals are not provided, base_fc_cov must be provided
   if (is.null(residuals)) {
-    if (is.null(base_forecasts.Sigma)) {
-      stop("Input error: either residuals or base_forecasts.Sigma must be provided")
+    if (is.null(base_fc_cov)) {
+      stop("Input error: either residuals or base_fc_cov must be provided")
     }
-    if (!(nrow(base_forecasts.Sigma) == n)) {
-      stop("Input error: nrow(base_forecasts.Sigma) != length(base_forecasts.mu)")
+    if (!(nrow(base_fc_cov) == n)) {
+      stop("Input error: nrow(base_fc_cov) != length(base_fc_mean)")
     }
-    .check_cov(base_forecasts.Sigma, "Sigma", pd_check = FALSE, symm_check = TRUE)
+    .check_cov(base_fc_cov, "base_fc_cov", pd_check = FALSE, symm_check = TRUE)
   } else {
-    if (!is.null(base_forecasts.Sigma)) {
-      warning("Input warning: both residuals and base_forecasts.Sigma are provided, ignoring residuals")
-      .check_cov(base_forecasts.Sigma, "Sigma", pd_check = FALSE, symm_check = TRUE)
+    if (!is.null(base_fc_cov)) {
+      warning("Input warning: both residuals and base_fc_cov are provided, ignoring residuals")
+      .check_cov(base_fc_cov, "base_fc_cov", pd_check = FALSE, symm_check = TRUE)
     } else if (ncol(residuals) != n) {
-      stop("Input error: ncol(residuals) != length(base_forecasts.mu)")
+      stop("Input error: ncol(residuals) != length(base_fc_mean)")
     } else {
       # Compute the covariance matrix of the base forecasts from the residuals
-      base_forecasts.Sigma <- schaferStrimmer_cov(residuals)$shrink_cov
+      base_fc_cov <- schaferStrimmer_cov(residuals)$shrink_cov
     }
   }
 
-  Sigma_u <- base_forecasts.Sigma[1:k, 1:k]
-  Sigma_b <- base_forecasts.Sigma[(k + 1):n, (k + 1):n]
-  Sigma_ub <- base_forecasts.Sigma[1:k, (k + 1):n, drop = FALSE]
-  mu_u <- base_forecasts.mu[1:k]
-  mu_b <- base_forecasts.mu[(k + 1):n]
+  Sigma_u <- base_fc_cov[1:k, 1:k]
+  Sigma_b <- base_fc_cov[(k + 1):n, (k + 1):n]
+  Sigma_ub <- base_fc_cov[1:k, (k + 1):n, drop = FALSE]
+  mu_u <- base_fc_mean[1:k]
+  mu_b <- base_fc_mean[(k + 1):n]
 
   # Formulation from:
   # Zambon, L., et al. "Properties of the reconciled distributions for
@@ -202,13 +202,13 @@ reconc_gaussian <- function(A, base_forecasts.mu,
   Sigma_b_tilde <- Sigma_b - K %*% t(temp_diff)
 
   out <- list(
-    bottom_reconciled_mean = as.vector(mu_b_tilde),
-    bottom_reconciled_covariance = Sigma_b_tilde
+    bottom_rec_mean = as.vector(mu_b_tilde),
+    bottom_rec_covariance = Sigma_b_tilde
   )
 
-  if (return_uppers) {
-    out$upper_reconciled_mean <- as.vector(A %*% mu_b_tilde)
-    out$upper_reconciled_covariance <- A %*% Sigma_b_tilde %*% t(A)
+  if (return_upper) {
+    out$upper_rec_mean <- as.vector(A %*% mu_b_tilde)
+    out$upper_rec_covariance <- A %*% Sigma_b_tilde %*% t(A)
   }
 
   return(out)

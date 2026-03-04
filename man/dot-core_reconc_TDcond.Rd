@@ -6,20 +6,21 @@
 \usage{
 .core_reconc_TDcond(
   A,
-  mu_u,
-  Sigma_u,
+  mean_upper,
+  cov_upper,
   L_pmf,
   num_samples,
   return_type,
-  suppress_warnings
+  suppress_warnings,
+  return_upper = TRUE
 )
 }
 \arguments{
 \item{A}{Matrix (n_upper x n_bottom) defining the hierarchy where upper = A \%*\% bottom.}
 
-\item{mu_u}{Vector of mean forecasts for upper level.}
+\item{mean_upper}{Vector of mean forecasts for upper level.}
 
-\item{Sigma_u}{Covariance matrix of upper level forecasts.}
+\item{cov_upper}{Covariance matrix of upper level forecasts.}
 
 \item{L_pmf}{List of PMF objects representing the bottom level base forecasts.}
 
@@ -32,8 +33,8 @@
 \value{
 A list containing:
 \itemize{
-\item \code{bottom_reconciled}: List with reconciled bottom forecasts (pmf and/or samples).
-\item \code{upper_reconciled}: List with reconciled upper forecasts (pmf and/or samples).
+\item \code{bottom_rec}: List with reconciled bottom forecasts (pmf and/or samples).
+\item \code{upper_rec}:  (only if \code{return_upper = TRUE}) List with reconciled upper forecasts (pmf and/or samples).
 }
 }
 \description{

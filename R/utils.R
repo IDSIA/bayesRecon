@@ -168,8 +168,8 @@
 }
 
 # Check input for BUIS (and for MH)
-# base_forecasts, in_type, and distr must be list
-.check_input_BUIS <- function(A, base_forecasts, in_type, distr) {
+# base_fc, in_type, and distr must be list
+.check_input_BUIS <- function(A, base_fc, in_type, distr) {
   .check_A(A)
 
   n_tot_A <- ncol(A) + nrow(A)
@@ -194,15 +194,15 @@
   if (!(n_tot_A == length(distr))) {
     stop("Input error: ncol(A)+nrow(A) != length(distr)")
   }
-  if (!is.list(base_forecasts)) {
-    stop("Input error: base_forecasts must be a list")
+  if (!is.list(base_fc)) {
+    stop("Input error: base_fc must be a list")
   }
-  if (!(n_tot_A == length(base_forecasts))) {
-    stop("Input error: ncol(A)+nrow(A) != length(base_forecasts)")
+  if (!(n_tot_A == length(base_fc))) {
+    stop("Input error: ncol(A)+nrow(A) != length(base_fc)")
   }
   for (i in 1:n_tot_A) {
     if (in_type[[i]] == "params") {
-      .check_distr_params(distr[[i]], base_forecasts[[i]])
+      .check_distr_params(distr[[i]], base_fc[[i]])
     } else if (in_type[[i]] == "samples") {
       if (!(distr[[i]] %in% .DISTR_TYPES)) {
         stop(paste(
@@ -211,7 +211,7 @@
         ))
       }
       if (distr[[i]] == "discrete") {
-        .check_discrete_samples(base_forecasts[[i]])
+        .check_discrete_samples(base_fc[[i]])
       }
       # TODO: check sample size?
     } else {
@@ -221,7 +221,7 @@
 }
 
 # Check input for TDcond
-.check_input_TD <- function(A, fc_bottom, fc_upper,
+.check_input_TD <- function(A, base_fc_bottom, base_fc_upper,
                             bottom_in_type, distr,
                             return_type) {
   .check_A(A)
@@ -235,19 +235,19 @@
   if (!(return_type %in% c("pmf", "samples", "all"))) {
     stop("Input error: return_type must be either 'pmf', 'samples', or 'all'")
   }
-  if (length(fc_bottom) != n_b) {
-    stop("Input error: length of fc_bottom does not match with A")
+  if (length(base_fc_bottom) != n_b) {
+    stop("Input error: length of base_fc_bottom does not match with A")
   }
-  # If Sigma is a number, transform into a matrix
-  if (length(fc_upper$Sigma) == 1) {
-    fc_upper$Sigma <- as.matrix(fc_upper$Sigma)
+  # If cov is a number, transform into a matrix
+  if (length(base_fc_upper$cov) == 1) {
+    base_fc_upper$cov <- as.matrix(base_fc_upper$cov)
   }
-  # Check the dimensions of mu and Sigma
-  if (length(fc_upper$mu) != n_u | any(dim(fc_upper$Sigma) != c(n_u, n_u))) {
+  # Check the dimensions of mean and cov
+  if (length(base_fc_upper$mean) != n_u | any(dim(base_fc_upper$cov) != c(n_u, n_u))) {
     stop("Input error: the dimensions of the upper parameters do not match with A")
   }
-  # Check that Sigma is a covariance matrix (symmetric positive semi-definite)
-  .check_cov(fc_upper$Sigma, "Upper covariance matrix", symm_check = TRUE)
+  # Check that cov is a covariance matrix (symmetric positive semi-definite)
+  .check_cov(base_fc_upper$cov, "Upper covariance matrix", symm_check = TRUE)
 
   # If bottom_in_type is not "params" but distr is specified, throw a warning
   if (bottom_in_type %in% c("pmf", "samples") & !is.null(distr)) {
@@ -266,23 +266,23 @@
       ))
     }
     for (i in 1:n_b) {
-      .check_distr_params(distr, fc_bottom[[i]])
+      .check_distr_params(distr, base_fc_bottom[[i]])
     }
   }
 }
 
-.check_input_t <- function(A, point_fc, y_train, residuals, ...) {
+.check_input_t <- function(A, base_fc_mean, y_train, residuals, ...) {
   .check_A(A)
 
   n_b <- ncol(A) # number of bottom TS
   n_u <- nrow(A) # number of upper TS
 
-  if (!is.vector(point_fc)) {
-    stop("Input error: point_fc must be a vector")
+  if (!is.vector(base_fc_mean)) {
+    stop("Input error: base_fc_mean must be a vector")
   }
-  n <- length(point_fc)
+  n <- length(base_fc_mean)
   if (n_u + n_b != n) {
-    stop("Input error: the length of point_fc must be equal to nrow(A) + ncol(A)")
+    stop("Input error: the length of base_fc_mean must be equal to nrow(A) + ncol(A)")
   }
   
   add_args <- list(...)
@@ -303,7 +303,7 @@
       } else if (!is.numeric(nu_post) | length(nu_post) != 1 | nu_post <= n-1) {
         stop("Input error: nu in posterior must be a number greater than n. of series - 1")
       } else if (!is.matrix(Psi_post) | any(dim(Psi_post) != c(n, n))) {
-        stop("Input error: Psi in posterior must be a matrix with dimensions compatible with point_fc")
+        stop("Input error: Psi in posterior must be a matrix with dimensions compatible with base_fc_mean")
       }
       # If posterior is provided, then y_train, residuals, and prior are ignored:
       # if they are provided, throw a warning
@@ -330,7 +330,7 @@
       stop("Input error: residuals must be a matrix")
     }
     if (ncol(residuals) != n) {
-      stop("Input error: number of columns of residuals must be equal to length of point_fc")
+      stop("Input error: number of columns of residuals must be equal to length of base_fc_mean")
     }
 
     L <- nrow(residuals) # number of residual samples (i.e., training length)
@@ -350,7 +350,7 @@
         } else if (!is.numeric(nu_prior) | length(nu_prior) != 1 | nu_prior <= n-1) {
           stop("Input error: nu in prior must be a number greater than n. of series - 1")
         } else if (!is.matrix(Psi_prior) | any(dim(Psi_prior) != c(n, n))) {
-          stop("Input error: Psi in prior must be a matrix with dimensions compatible with point_fc")
+          stop("Input error: Psi in prior must be a matrix with dimensions compatible with base_fc_mean")
         }
         # If prior is provided, then y_train is ignored: if it is provided, throw a warning
         if (!is.null(y_train)) {
@@ -375,7 +375,7 @@
       }
       # this works also if y_train is a mts; TODO: allow for other types, e.g. data.frame
       if (ncol(y_train) != n) {
-        stop("Input error: number of columns of y_train must be equal to length of point_fc")
+        stop("Input error: number of columns of y_train must be equal to length of base_fc_mean")
       }
       if (nrow(y_train) != L) {
         warning("Numbers of rows of y_train and of residuals are different!")
@@ -499,9 +499,9 @@
 .MVN_sample <- function(n_samples, mu, Sigma) {
   n <- length(mu)
   if (any(dim(Sigma) != c(n, n))) {
-    stop("Dimension of mu and Sigma are not compatible!")
+    stop("Dimensions of mean and covariance matrix are not compatible!")
   }
-  .check_cov(Sigma, "Sigma", pd_check = FALSE, symm_check = FALSE)
+  .check_cov(Sigma, "Covariance matrix", pd_check = FALSE, symm_check = FALSE)
 
   Z <- matrix(stats::rnorm(n * n_samples), ncol = n)
 

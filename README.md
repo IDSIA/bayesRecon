@@ -120,7 +120,7 @@ buis <- reconc_BUIS(
   seed = 42
 )
 
-samples_buis <- buis$reconciled_samples
+samples_buis <- rbind(buis$upper_rec_samples, buis$bottom_rec_samples)
 ```
 
 Since there is a positive incoherence in the forecasts
@@ -128,7 +128,7 @@ Since there is a positive incoherence in the forecasts
 reconciled forecast increases. We show below this behavior for $S_1$.
 
 ``` r
-reconciled_forecast_S1 <- buis$bottom_reconciled_samples[1, ]
+reconciled_forecast_S1 <- buis$bottom_rec_samples[1, ]
 range_forecats <- range(reconciled_forecast_S1)
 hist(
   reconciled_forecast_S1,
@@ -163,8 +163,8 @@ reconciled samples of $S_2$.
 ``` r
 AA <-
   xyTable(
-    buis$bottom_reconciled_samples[1, ],
-    buis$bottom_reconciled_samples[2, ]
+    buis$bottom_rec_samples[1, ],
+    buis$bottom_rec_samples[2, ]
   )
 plot(
   AA$x,
@@ -174,8 +174,8 @@ plot(
   col = rgb(0, 0, 1, 0.4),
   xlab = "S_1",
   ylab = "S_2",
-  xlim = range(buis$bottom_reconciled_samples[1, ]),
-  ylim = range(buis$bottom_reconciled_samples[2, ])
+  xlim = range(buis$bottom_rec_samples[1, ]),
+  ylim = range(buis$bottom_rec_samples[2, ])
 )
 ```
 
@@ -193,7 +193,7 @@ mcmc <- reconc_MCMC(
   seed = 42
 )
 
-samples_mcmc <- mcmc$reconciled_samples
+samples_mcmc <- rbind(mcmc$upper_rec_samples, mcmc$bottom_rec_samples)
 ```
 
 ### Example 2: Gaussian base forecasts
@@ -232,7 +232,7 @@ buis <- reconc_BUIS(
   num_samples = 100000,
   seed = 42
 )
-samples_buis <- buis$reconciled_samples
+samples_buis <- rbind(buis$upper_rec_samples, buis$bottom_rec_samples)
 buis_means <- rowMeans(samples_buis)
 ```
 
@@ -242,10 +242,10 @@ Gaussian and can be computed in closed form:
 ``` r
 Sigma <- diag(sigmas^2) # transform into covariance matrix
 analytic_rec <- reconc_gaussian(A,
-  base_forecasts.mu = mus,
-  base_forecasts.Sigma = Sigma
+  base_fc_mean = mus,
+  base_fc_cov = Sigma
 )
-analytic_means_bottom <- analytic_rec$bottom_reconciled_mean
+analytic_means_bottom <- analytic_rec$bottom_rec_mean
 analytic_means_upper <- A %*% analytic_means_bottom
 analytic_means <- rbind(analytic_means_upper, analytic_means_bottom)
 #> Warning in rbind(analytic_means_upper, analytic_means_bottom): number of

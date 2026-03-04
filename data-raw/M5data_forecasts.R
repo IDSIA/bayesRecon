@@ -144,7 +144,7 @@ if (file.exists(str_base_fc)) {
     samples <- if (round_up) ceiling(fc.model$scenarios[1, ]) else round(fc.model$scenarios[1, ])
     samples[samples < 0] <- 0 # set negative to zero
     samples <- as.integer(samples)
-    pmf <- PMF.from_samples(samples) # empirical pmf
+    pmf <- PMF_from_samples(samples) # empirical pmf
 
     M5_CA1_basefc$bottom[[item.id]] <- list(
       pmf = pmf,

@@ -87,37 +87,37 @@ mu_b <- c()
 sd_b <- c()
 for (fc_b in base_fc_bottom) {
   pmf <- fc_b$pmf
-  mu_b <- c(mu_b, PMF.get_mean(pmf))
-  sd_b <- c(sd_b, PMF.get_var(pmf)**0.5)
+  mu_b <- c(mu_b, PMF_get_mean(pmf))
+  sd_b <- c(sd_b, PMF_get_var(pmf)**0.5)
 }
 Sigma_b <- diag(sd_b**2)
 
 # Mean and covariance matrix of the base forecasts
-base_forecasts.mu <- c(mu_u, mu_b)
-base_forecasts.Sigma <- matrix(0, nrow = n, ncol = n)
-base_forecasts.Sigma[1:n_u, 1:n_u] <- Sigma_u
-base_forecasts.Sigma[(n_u + 1):n, (n_u + 1):n] <- Sigma_b
+base_fc_mean <- c(mu_u, mu_b)
+base_fc_cov <- matrix(0, nrow = n, ncol = n)
+base_fc_cov[1:n_u, 1:n_u] <- Sigma_u
+base_fc_cov[(n_u + 1):n, (n_u + 1):n] <- Sigma_b
 ```
 
 We reconcile using the function `reconc_gaussian()`, which takes as input: 
 
 * the summing matrix `A`;
-* the means of the  base forecast,  `base_forecasts.mu`; 
-* the covariance of the base forecast,  `base_forecasts.Sigma`. 
+* the means of the  base forecast,  `base_fc_mean`; 
+* the covariance of the base forecast,  `base_fc_cov`. 
 
 The function returns the reconciled mean and covariance for the bottom time series. 
 
 ```{r GaussianReconciliation}    
 # Gaussian reconciliation
 start <- Sys.time()
-gauss <- reconc_gaussian(A, base_forecasts.mu, base_forecasts.Sigma)
+gauss <- reconc_gaussian(A, base_fc_mean, base_fc_cov)
 stop <- Sys.time()
 
 rec_fc$Gauss <- list(
-  mu_b = gauss$bottom_reconciled_mean,
-  Sigma_b = gauss$bottom_reconciled_covariance,
-  mu_u = A %*% gauss$bottom_reconciled_mean,
-  Sigma_u = A %*% gauss$bottom_reconciled_covariance %*% t(A)
+  mu_b = gauss$bottom_rec_mean,
+  Sigma_b = gauss$bottom_rec_covariance,
+  mu_u = A %*% gauss$bottom_rec_mean,
+  Sigma_u = A %*% gauss$bottom_rec_covariance %*% t(A)
 )
 
 Gauss_time <- as.double(round(difftime(stop, start, units = "secs"), 2))
@@ -133,7 +133,7 @@ The algorithm is implemented in the function `reconc_MixCond()`. The function ta
 
 * the aggregation matrix `A`;
 * the probability mass functions of the bottom base forecasts, stored in the list `fc_bottom_4rec`;
-* the parameters of the multivariate Gaussian distribution for the upper variables, `fc_upper_4rec`;
+* the parameters of the multivariate Gaussian distribution for the upper variables, `fc_upper_4rec` (a list with `mean` and `cov` entries);
 * additional function parameters; among those note that `num_samples` specifies the number of samples used in the internal importance sampling (IS) algorithm. 
 
 The function returns the reconciled forecasts in the form of probability mass functions for both the upper and bottom time series. The function parameter `return_type` can be changed to `samples` or `all` to obtain the IS samples. 
@@ -143,7 +143,7 @@ seed <- 1
 N_samples_IS <- 5e4
 
 # Base forecasts
-fc_upper_4rec <- list(mu = mu_u, Sigma = Sigma_u)
+fc_upper_4rec <- list(mean = mu_u, cov = Sigma_u)
 fc_bottom_4rec <- lapply(base_fc_bottom, "[[", "pmf") # list of PMFs
 
 # MixCond reconciliation
@@ -155,8 +155,8 @@ mix_cond <- reconc_MixCond(A, fc_bottom_4rec, fc_upper_4rec,
 stop <- Sys.time()
 
 rec_fc$Mixed_cond <- list(
-  bottom = mix_cond$bottom_reconciled$pmf,
-  upper  = mix_cond$upper_reconciled$pmf,
+  bottom = mix_cond$bottom_rec$pmf,
+  upper  = mix_cond$upper_rec$pmf,
   ESS    = mix_cond$ESS
 )
 
@@ -189,8 +189,8 @@ We will see that this warning does not impact the performances of TD-cond.
 
 ```{r print computational time TD cond}
 rec_fc$TD_cond <- list(
-  bottom = td$bottom_reconciled$pmf,
-  upper  = td$upper_reconciled$pmf
+  bottom = td$bottom_rec$pmf,
+  upper  = td$upper_rec$pmf
 )
 
 TDCond_time <- as.double(round(difftime(stop, start, units = "secs"), 2))
@@ -244,11 +244,11 @@ The implementation of these functions is available in the source code of the vig
 ```{r metricFunctions,include=FALSE}
 # Functions for computing the scores of a PMF
 AE_pmf <- function(pmf, actual) {
-  return(abs(PMF.get_quantile(pmf, p = 0.5) - actual))
+  return(abs(PMF_get_quantile(pmf, p = 0.5) - actual))
 }
 MIS_pmf <- function(pmf, actual, alpha) {
-  u <- PMF.get_quantile(pmf, p = 1 - (alpha / 2))
-  l <- PMF.get_quantile(pmf, p = alpha / 2)
+  u <- PMF_get_quantile(pmf, p = 1 - (alpha / 2))
+  l <- PMF_get_quantile(pmf, p = alpha / 2)
   return(u - l + (2 / alpha) * (l - actual) * (actual < l) +
     (2 / alpha) * (actual - u) * (actual > u))
 }

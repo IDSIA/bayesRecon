@@ -7,11 +7,12 @@
 .core_reconc_MixCond(
   A,
   B,
-  mu_u,
-  Sigma_u,
+  mean_upper,
+  cov_upper,
   num_samples,
   return_type,
-  suppress_warnings
+  suppress_warnings,
+  return_upper = TRUE
 )
 }
 \arguments{
@@ -19,9 +20,9 @@
 
 \item{B}{Matrix (n_samples x n_bottom) of bottom base forecast samples to be reconciled.}
 
-\item{mu_u}{Vector of upper level means.}
+\item{mean_upper}{Vector of upper level means.}
 
-\item{Sigma_u}{Covariance matrix of upper level.}
+\item{cov_upper}{Covariance matrix of upper level.}
 
 \item{num_samples}{Number of samples to draw/resample from.}
 
@@ -32,8 +33,8 @@
 \value{
 A list containing:
 \itemize{
-\item \code{bottom_reconciled}: List with reconciled bottom forecasts (pmf and/or samples).
-\item \code{upper_reconciled}: List with reconciled upper forecasts (pmf and/or samples).
+\item \code{bottom_rec}: List with reconciled bottom forecasts (pmf and/or samples).
+\item \code{upper_rec}: (only if \code{return_upper = TRUE}) List with reconciled upper forecasts (pmf and/or samples).
 \item \code{ESS}: Effective Sample Size resulting from importance sampling reweighting.
 }
 }

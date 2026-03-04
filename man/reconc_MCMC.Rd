@@ -6,19 +6,20 @@
 \usage{
 reconc_MCMC(
   A,
-  base_forecasts,
+  base_fc,
   distr,
   num_samples = 10000,
   tuning_int = 100,
   init_scale = 1,
   burn_in = 1000,
+  return_upper = TRUE,
   seed = NULL
 )
 }
 \arguments{
 \item{A}{aggregation matrix (n_upper x n_bottom).}
 
-\item{base_forecasts}{list of the parameters of the base forecast distributions, see details.}
+\item{base_fc}{list of the parameters of the base forecast distributions, see details.}
 
 \item{distr}{a string describing the type of predictive distribution.}
 
@@ -30,14 +31,16 @@ reconc_MCMC(
 
 \item{burn_in}{number of initial samples to be discarded.}
 
+\item{return_upper}{Logical. If \code{TRUE} (default), also returns the reconciled samples for the
+upper time series. Default is \code{TRUE}.}
+
 \item{seed}{seed for reproducibility.}
 }
 \value{
 A list containing the reconciled forecasts. The list has the following named elements:
 \itemize{
-\item \code{bottom_reconciled_samples}: a matrix (n_bottom x \code{num_samples}) containing reconciled samples for the bottom time series;
-\item \code{upper_reconciled_samples}: a matrix (n_upper x \code{num_samples}) containing reconciled samples for the upper time series;
-\item \code{reconciled_samples}: a matrix (n x \code{num_samples}) containing the reconciled samples for all time series.
+\item \code{bottom_rec_samples}: a matrix (n_bottom x \code{num_samples}) containing reconciled samples for the bottom time series;
+\item \code{upper_rec_samples}: a matrix (n_upper x \code{num_samples}) containing reconciled samples for the upper time series (only if \code{return_upper = TRUE}).
 }
 }
 \description{
@@ -51,7 +54,7 @@ The function only works with Poisson or Negative Binomial base forecasts.
 The function \code{\link[=reconc_BUIS]{reconc_BUIS()}} is generally faster on most hierarchies.
 }
 \details{
-The parameter \code{base_forecast} is a list containing n = n_upper + n_bottom elements.
+The parameter \code{base_fc} is a list containing n = n_upper + n_bottom elements.
 Each element is a list containing the estimated:
 \itemize{
 \item mean and sd for the Gaussian base forecast, see \link[stats]{Normal}, if \code{distr}='gaussian';
@@ -76,24 +79,24 @@ lambda2 <- 4
 lambdaY <- 9
 lambdas <- c(lambdaY, lambda1, lambda2)
 
-base_forecasts <- list()
+base_fc <- list()
 for (i in 1:length(lambdas)) {
-  base_forecasts[[i]] <- list(lambda = lambdas[i])
+  base_fc[[i]] <- list(lambda = lambdas[i])
 }
 
 # Sample from the reconciled forecast distribution using MCMC
-mcmc <- reconc_MCMC(A, base_forecasts,
+mcmc <- reconc_MCMC(A, base_fc,
   distr = "poisson",
   num_samples = 30000, seed = 42
 )
-samples_mcmc <- mcmc$reconciled_samples
+samples_mcmc <- rbind(mcmc$upper_rec_samples, mcmc$bottom_rec_samples)
 
 # Compare the reconciled means with those obtained via BUIS
-buis <- reconc_BUIS(A, base_forecasts,
+buis <- reconc_BUIS(A, base_fc,
   in_type = "params",
   distr = "poisson", num_samples = 100000, seed = 42
 )
-samples_buis <- buis$reconciled_samples
+samples_buis <- rbind(buis$upper_rec_samples, buis$bottom_rec_samples)
 
 print(rowMeans(samples_mcmc))
 print(rowMeans(samples_buis))

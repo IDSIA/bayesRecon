@@ -6,18 +6,18 @@
 \usage{
 reconc_t(
   A,
-  point_fc,
+  base_fc_mean,
   y_train = NULL,
   residuals = NULL,
   ...,
-  return_uppers = FALSE,
+  return_upper = FALSE,
   return_parameters = FALSE
 )
 }
 \arguments{
 \item{A}{Matrix (n_upp x n_bott) defining the hierarchy (u = Ab).}
 
-\item{point_fc}{Vector of base forecasts (length n = n_upp + n_bott).}
+\item{base_fc_mean}{Vector of base forecasts (length n = n_upp + n_bott).}
 
 \item{y_train}{mts (or matrix) of historical training data (T x n) used for setting prior parameters.}
 
@@ -25,22 +25,22 @@ reconc_t(
 
 \item{...}{Additional arguments for advanced usage: see details.}
 
-\item{return_uppers}{Logical; if TRUE, also returns parameters for the upper level reconciled distribution.}
+\item{return_upper}{Logical; if TRUE, also returns parameters for the upper level reconciled distribution.}
 
 \item{return_parameters}{Logical; if TRUE, returns internal parameters like C and posterior nu.}
 }
 \value{
 A list containing:
 \itemize{
-\item \code{bottom_mean}: Reconciled bottom-level mean forecasts.
-\item \code{bottom_scale_matrix}: Reconciled bottom-level scale matrix.
-\item \code{bottom_df}: Reconciled degrees of freedom.
+\item \code{bottom_rec_mean}: Reconciled bottom-level mean forecasts.
+\item \code{bottom_rec_scale_matrix}: Reconciled bottom-level scale matrix.
+\item \code{bottom_rec_df}: Reconciled degrees of freedom.
 }
-If \code{return_uppers} is TRUE, also returns:
+If \code{return_upper} is TRUE, also returns:
 \itemize{
-\item \code{upper_mean}: Reconciled upper-level mean forecasts.
-\item \code{upper_scale_matrix}: Reconciled upper-level scale matrix.
-\item \code{upper_df}: Reconciled upper-level degrees of freedom.
+\item \code{upper_rec_mean}: Reconciled upper-level mean forecasts.
+\item \code{upper_rec_scale_matrix}: Reconciled upper-level scale matrix.
+\item \code{upper_rec_df}: Reconciled upper-level degrees of freedom.
 }
 If \code{return_parameters} is TRUE, also returns:
 \itemize{
@@ -94,9 +94,9 @@ which must be installed).
 The reconciliation yields a distribution:
 \deqn{\tilde{\mathbf{b}} \sim t(\hat{\mathbf{b}}_{tilde}, \tilde{\Sigma}_B, \tilde{\nu})}
 where the reconciled mean is:
-\deqn{\hat{\mathbf{b}}_{tilde} = \hat{\mathbf{b}} + (\Psi'_{UB}^\top - \Psi'_B A^\top) Q^{-1} (A\hat{\mathbf{b}} - \hat{\mathbf{u}})}
+\deqn{\hat{\mathbf{b}}_{tilde} = \hat{\mathbf{b}} + ((\Psi'_{UB})^\top - \Psi'_B A^\top) Q^{-1} (A\hat{\mathbf{b}} - \hat{\mathbf{u}})}
 and the scale matrix is:
-\deqn{\tilde{\Sigma}_B = C [\Psi'_B - (\Psi'_{UB}^\top - \Psi'_B A^\top) Q^{-1} (\Psi'_{UB}^\top - \Psi'_B A^\top)^\top]}
+\deqn{\tilde{\Sigma}_B = C [\Psi'_B - ((\Psi'_{UB})^\top - \Psi'_B A^\top) Q^{-1} ((\Psi'_{UB})^\top - \Psi'_B A^\top)^\top]}
 with scalar \deqn{C = \frac{1 + (A\hat{\mathbf{b}} - \hat{\mathbf{u}})^\top Q^{-1} (A\hat{\mathbf{b}} - \hat{\mathbf{u}})}{\tilde{\nu}}.}
 }
 \examples{
@@ -125,20 +125,20 @@ if (requireNamespace("forecast", quietly = TRUE)) {
   fc_upper <- as.numeric(forecast::forecast(fit_upper, h = 1)$mean)
   fc1 <- as.numeric(forecast::forecast(fit1, h = 1)$mean)
   fc2 <- as.numeric(forecast::forecast(fit2, h = 1)$mean)
-  point_fc <- c(fc_upper, fc1, fc2)
+  base_fc_mean <- c(fc_upper, fc1, fc2)
 
-  # Residuals and training data (n_obs x n matrices, columns in same order as point_fc)
+  # Residuals and training data (n_obs x n matrices, columns in same order as base_fc_mean)
   res <- cbind(residuals(fit_upper), residuals(fit1), residuals(fit2))
   y_train <- cbind(y_upper, y1, y2)
 
   # --- 1) Generate joint reconciled samples ---
-  result <- reconc_t(A, point_fc, y_train = y_train, residuals = res)
+  result <- reconc_t(A, base_fc_mean, y_train = y_train, residuals = res)
 
   # Sample from the reconciled bottom-level Student-t distribution
   n_samples <- 2000
-  L_chol <- t(chol(result$bottom_scale_matrix))
-  z <- matrix(rt(ncol(A) * n_samples, df = result$bottom_df), nrow = ncol(A))
-  bottom_samples <- result$bottom_mean + L_chol \%*\% z  # 2 x n_samples
+  L_chol <- t(chol(result$bottom_rec_scale_matrix))
+  z <- matrix(rt(ncol(A) * n_samples, df = result$bottom_rec_df), nrow = ncol(A))
+  bottom_samples <- result$bottom_rec_mean + L_chol \%*\% z  # 2 x n_samples
 
   # Aggregate bottom samples to get upper samples
   upper_samples <- A \%*\% bottom_samples              
@@ -152,21 +152,21 @@ if (requireNamespace("forecast", quietly = TRUE)) {
   print(round(apply(joint_samples, 1, sd), 3))
 
   # --- 2) 95\% prediction intervals via t-distribution quantiles ---
-  result2 <- reconc_t(A, point_fc, y_train = y_train,
-                      residuals = res, return_uppers = TRUE)
+  result2 <- reconc_t(A, base_fc_mean, y_train = y_train,
+                      residuals = res, return_upper = TRUE)
 
   alpha <- 0.05
   # Bottom series intervals
   for (i in seq_len(ncol(A))) {
-    s_i <- sqrt(result2$bottom_scale_matrix[i, i])
-    lo  <- result2$bottom_mean[i] + s_i * qt(alpha / 2,     df = result2$bottom_df)
-    hi  <- result2$bottom_mean[i] + s_i * qt(1 - alpha / 2, df = result2$bottom_df)
+    s_i <- sqrt(result2$bottom_rec_scale_matrix[i, i])
+    lo  <- result2$bottom_rec_mean[i] + s_i * qt(alpha / 2,     df = result2$bottom_rec_df)
+    hi  <- result2$bottom_rec_mean[i] + s_i * qt(1 - alpha / 2, df = result2$bottom_rec_df)
     cat(sprintf("Bottom \%d: 95\%\% PI = [\%.3f, \%.3f]\n", i, lo, hi))
   }
   # Upper series interval
-  s_u <- sqrt(result2$upper_scale_matrix[1, 1])
-  lo  <- result2$upper_mean[1] + s_u * qt(alpha / 2,     df = result2$upper_df)
-  hi  <- result2$upper_mean[1] + s_u * qt(1 - alpha / 2, df = result2$upper_df)
+  s_u <- sqrt(result2$upper_rec_scale_matrix[1, 1])
+  lo  <- result2$upper_rec_mean[1] + s_u * qt(alpha / 2,     df = result2$upper_rec_df)
+  hi  <- result2$upper_rec_mean[1] + s_u * qt(1 - alpha / 2, df = result2$upper_rec_df)
   cat(sprintf("Upper:    95\%\% PI = [\%.3f, \%.3f]\n", lo, hi))
 }
 }

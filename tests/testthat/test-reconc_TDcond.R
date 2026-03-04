@@ -25,8 +25,8 @@ test_that("reconc_TDcond simple example", {
   # create the lists for reconciliation
   ## upper
   fc_upper <- list(
-    mu = means[1:10],
-    Sigma = diag(vars[1:10])
+    mean = means[1:10],
+    cov = diag(vars[1:10])
   )
 
   ## bottom
@@ -57,36 +57,36 @@ test_that("reconc_TDcond simple example", {
   )
 
   # Check if all return_type return identical results
-  expect_identical(res.TDcond$bottom_reconciled$pmf, res.TDcond3$bottom_reconciled$pmf)
-  expect_identical(res.TDcond2$bottom_reconciled$samples, res.TDcond3$bottom_reconciled$samples)
+  expect_identical(res.TDcond$bottom_rec$pmf, res.TDcond3$bottom_rec$pmf)
+  expect_identical(res.TDcond2$bottom_rec$samples, res.TDcond3$bottom_rec$samples)
 
   # Compute the reconciliation analytically (everything Gaussian)
   ## Save bottom forecast parameters
   fc_bott_gauss <- list(
-    mu = means[11:22],
-    Sigma = diag(vars[11:22])
+    mean = means[11:22],
+    cov = diag(vars[11:22])
   )
 
   # Compute the reconciled precision
-  inv_B <- diag(1 / diag(fc_bott_gauss$Sigma))
-  inv_U <- diag(1 / diag(fc_upper$Sigma))
+  inv_B <- diag(1 / diag(fc_bott_gauss$cov))
+  inv_U <- diag(1 / diag(fc_upper$cov))
   At_inv_U_A <- crossprod(A, inv_U) %*% A
   # Here we use the reduced A with only the lowest level
   Au <- A[.lowest_lev(A), ]
-  inv_A_B_At <- solve(Au %*% tcrossprod(fc_bott_gauss$Sigma, Au))
+  inv_A_B_At <- solve(Au %*% tcrossprod(fc_bott_gauss$cov, Au))
 
   # formulas for the reconciled precision, covariance and mean
   bott_reconc_Prec <- inv_B + At_inv_U_A - crossprod(Au, inv_A_B_At) %*% Au
   bott_reconc_cov <- solve(bott_reconc_Prec)
-  bott_reconc_mean <- fc_bott_gauss$mu + tcrossprod(bott_reconc_cov, A) %*% inv_U %*% (fc_upper$mu - A %*% fc_bott_gauss$mu)
+  bott_reconc_mean <- fc_bott_gauss$mean + tcrossprod(bott_reconc_cov, A) %*% inv_U %*% (fc_upper$mean - A %*% fc_bott_gauss$mean)
 
   # compute the difference between empirical and analytical
-  m_diff <- unlist(lapply(res.TDcond$bottom_reconciled$pmf, PMF.get_mean)) - bott_reconc_mean
+  m_diff <- unlist(lapply(res.TDcond$bottom_rec$pmf, PMF_get_mean)) - bott_reconc_mean
 
   expect_true(all(abs(m_diff / bott_reconc_mean) < 8e-3))
 
 
   # The variances are different
-  # unlist(lapply(res.TDcond$pmf$bottom,PMF.get_var))
+  # unlist(lapply(res.TDcond$pmf$bottom,PMF_get_var))
   # diag(bott_reconc_cov)
 })

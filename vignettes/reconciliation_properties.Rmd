@@ -115,7 +115,7 @@ for (j in 1:N) {
   buis <- reconc_BUIS(A, base_fc_j, "params", "nbinom",
     num_samples = N_samples, seed = 42
   )
-  samples_y <- buis$reconciled_samples
+  samples_y <- rbind(buis$upper_rec_samples, buis$bottom_rec_samples)
 
   # Save mean, median, and lower and upper quantiles:
   rec_means[j, ] <- rowMeans(samples_y)
@@ -234,7 +234,7 @@ for (i in 1:n) {
 buis <- reconc_BUIS(A, base_fc_j, "params", "nbinom",
   num_samples = N_samples, seed = 42
 )
-samples_y <- buis$reconciled_samples
+samples_y <- rbind(buis$upper_rec_samples, buis$bottom_rec_samples)
 
 # The reconciled mean is lower than both the base and bottom-up means:
 means <- c(
@@ -258,7 +258,7 @@ for (i in 1:n) {
 buis <- reconc_BUIS(A, base_fc_j, "params", "nbinom",
   num_samples = N_samples, seed = 42
 )
-samples_y <- buis$reconciled_samples
+samples_y <- rbind(buis$upper_rec_samples, buis$bottom_rec_samples)
 
 # The reconciled mean is between the base and the bottom-up mean:
 means <- c(
@@ -286,7 +286,7 @@ for (i in 1:n) {
 }
 # Reconcile
 buis <- reconc_BUIS(A, base_fc_j, "params", "nbinom", num_samples = N_samples, seed = 42)
-samples_y <- buis$reconciled_samples
+samples_y <- rbind(buis$upper_rec_samples, buis$bottom_rec_samples)
 
 # Compute the variance of the base and reconciled bottom forecasts
 base_bottom_var <- mapply(

@@ -35,7 +35,7 @@
 }
 
 .emp_pmf <- function(l, density_samples) {
-  empirical_pmf <- PMF.from_samples(density_samples)
+  empirical_pmf <- PMF_from_samples(density_samples)
   w <- sapply(l, function(i) empirical_pmf[i + 1])
   return(w)
 }
@@ -72,15 +72,15 @@
 #'
 #' @details
 #'
-#' The parameter `base_forecast` is a list containing n = n_upper + n_bottom elements.
+#' The parameter `base_fc` is a list containing n = n_upper + n_bottom elements.
 #' The first n_upper elements of the list are the upper base forecasts, in the order given by the rows of A.
 #' The elements from n_upper+1 until the end of the list are the bottom base forecasts, in the order given by the columns of A.
 #'
 #' The i-th element depends on the values of `in_type[[i]]` and `distr[[i]]`.
 #'
-#' If `in_type[[i]]`='samples', then `base_forecast[[i]]` is a vector containing samples from the base forecast distribution.
+#' If `in_type[[i]]`='samples', then `base_fc[[i]]` is a vector containing samples from the base forecast distribution.
 #'
-#' If `in_type[[i]]`='params', then `base_forecast[[i]]` is a list containing the estimated:
+#' If `in_type[[i]]`='params', then `base_fc[[i]]` is a list containing the estimated:
 #'
 #' * mean and sd for the Gaussian base forecast if `distr[[i]]`='gaussian', see \link[stats]{Normal};
 #' * lambda for the Poisson base forecast if `distr[[i]]`='poisson', see \link[stats]{Poisson};
@@ -98,7 +98,7 @@
 #' Please check the base forecasts in case of warnings.
 #'
 #' @param A aggregation matrix (n_upper x n_bottom).
-#' @param base_forecasts A list containing the base_forecasts, see details.
+#' @param base_fc A list containing the base_forecasts, see details.
 #' @param in_type A string or a list of length n_upper + n_bottom. If it is a list the i-th element is a string with two possible values:
 #'
 #' * 'samples' if the i-th base forecasts are in the form of samples;
@@ -120,13 +120,13 @@
 #'
 #' @param suppress_warnings Logical. If \code{TRUE}, no warnings about effective sample size
 #'        are triggered. If \code{FALSE}, warnings are generated. Default is \code{FALSE}. See Details.
+#' @param return_upper Logical, whether to return the reconciled parameters for the upper variables (default is TRUE).
 #' @param seed Seed for reproducibility.
 #'
 #' @return A list containing the reconciled forecasts. The list has the following named elements:
 #'
-#' * `bottom_reconciled_samples`: a matrix (n_bottom x `num_samples`) containing the reconciled samples for the bottom time series;
-#' * `upper_reconciled_samples`: a matrix (n_upper x `num_samples`) containing the reconciled samples for the upper time series;
-#' * `reconciled_samples`: a matrix (n x `num_samples`) containing the reconciled samples for all time series.
+#' * `bottom_rec_samples`: a matrix (n_bottom x `num_samples`) containing the reconciled samples for the bottom time series;
+#' * `upper_rec_samples`: (only if `return_upper = TRUE`) a matrix (n_upper x `num_samples`) containing the reconciled samples for the upper time series.
 #'
 #' @examples
 #'
@@ -151,30 +151,30 @@
 #' sigmaY <- 3
 #' sigmas <- c(sigmaY, sigma1, sigma2)
 #'
-#' base_forecasts <- list()
+#' base_fc <- list()
 #' for (i in 1:length(mus)) {
-#'   base_forecasts[[i]] <- list(mean = mus[[i]], sd = sigmas[[i]])
+#'   base_fc[[i]] <- list(mean = mus[[i]], sd = sigmas[[i]])
 #' }
 #'
 #'
 #' # Sample from the reconciled forecast distribution using the BUIS algorithm
-#' buis <- reconc_BUIS(A, base_forecasts,
+#' buis <- reconc_BUIS(A, base_fc,
 #'   in_type = "params",
 #'   distr = "gaussian", num_samples = 100000, seed = 42
 #' )
 #'
-#' samples_buis <- buis$reconciled_samples
+#' samples_buis <- rbind(buis$upper_rec_samples, buis$bottom_rec_samples)
 #'
 #' # In the Gaussian case, the reconciled distribution is still Gaussian and can be
 #' # computed in closed form
 #' Sigma <- diag(sigmas^2) # transform into covariance matrix
 #' analytic_rec <- reconc_gaussian(A,
-#'   base_forecasts.mu = mus,
-#'   base_forecasts.Sigma = Sigma
+#'   base_fc_mean = mus,
+#'   base_fc_cov = Sigma
 #' )
 #'
 #' # Compare the reconciled means obtained analytically and via BUIS
-#' print(c(S %*% analytic_rec$bottom_reconciled_mean))
+#' print(c(S %*% analytic_rec$bottom_rec_mean))
 #' print(rowMeans(samples_buis))
 #'
 #'
@@ -186,17 +186,17 @@
 #' lambdaY <- 9
 #' lambdas <- c(lambdaY, lambda1, lambda2)
 #'
-#' base_forecasts <- list()
+#' base_fc <- list()
 #' for (i in 1:length(lambdas)) {
-#'   base_forecasts[[i]] <- list(lambda = lambdas[i])
+#'   base_fc[[i]] <- list(lambda = lambdas[i])
 #' }
 #'
 #' # Sample from the reconciled forecast distribution using the BUIS algorithm
-#' buis <- reconc_BUIS(A, base_forecasts,
+#' buis <- reconc_BUIS(A, base_fc,
 #'   in_type = "params",
 #'   distr = "poisson", num_samples = 100000, seed = 42
 #' )
-#' samples_buis <- buis$reconciled_samples
+#' samples_buis <- rbind(buis$upper_rec_samples, buis$bottom_rec_samples)
 #'
 #' # Print the reconciled means
 #' print(rowMeans(samples_buis))
@@ -213,16 +213,17 @@
 #'
 #' @export
 reconc_BUIS <- function(A,
-                        base_forecasts,
+                        base_fc,
                         in_type,
                         distr,
                         num_samples = 2e4,
                         suppress_warnings = FALSE,
+                        return_upper = TRUE,
                         seed = NULL) {
   if (!is.null(seed)) set.seed(seed)
   n_upper <- nrow(A)
   n_bottom <- ncol(A)
-  n_tot <- length(base_forecasts)
+  n_tot <- length(base_fc)
 
   # Transform distr and in_type into lists
   if (!is.list(distr)) {
@@ -233,75 +234,76 @@ reconc_BUIS <- function(A,
   }
 
   # Ensure that data inputs are valid
-  .check_input_BUIS(A, base_forecasts, in_type, distr)
+  .check_input_BUIS(A, base_fc, in_type, distr)
 
   # Split bottoms, uppers
-  # the first nrow(A) elements of base_forecasts are upper
-  # the second ncol(A) elements of base_forecasts are lower
+  # the first nrow(A) elements of base_fc are upper
+  # the second ncol(A) elements of base_fc are lower
 
-  split_hierarchy.res <- list(
+  split_hierarchy_res <- list(
     A = A,
-    upper = base_forecasts[1:nrow(A)],
-    bottom = base_forecasts[(nrow(A) + 1):n_tot],
+    upper = base_fc[1:nrow(A)],
+    bottom = base_fc[(nrow(A) + 1):n_tot],
     upper_idxs = 1:nrow(A),
     bottom_idxs = (nrow(A) + 1):n_tot
   )
-  upper_base_forecasts <- split_hierarchy.res$upper
-  bottom_base_forecasts <- split_hierarchy.res$bottom
+  upper_base_fc <- split_hierarchy_res$upper
+  bottom_base_fc <- split_hierarchy_res$bottom
 
   # Check on continuous/discrete in relationship to the hierarchy
-  .check_hierfamily_rel(split_hierarchy.res, distr)
+  .check_hierfamily_rel(split_hierarchy_res, distr)
 
   # H, G
-  is.hier <- .check_hierarchical(A)
+  is_hier <- .check_hierarchical(A)
   # If A is hierarchical we do not solve the integer linear programming problem
-  if (is.hier) {
+  if (is_hier) {
     H <- A
     G <- NULL
-    upper_base_forecasts_H <- upper_base_forecasts
-    upper_base_forecasts_G <- NULL
-    in_typeH <- in_type[split_hierarchy.res$upper_idxs]
-    distr_H <- distr[split_hierarchy.res$upper_idxs]
+    upper_base_fc_H <- upper_base_fc
+    upper_base_fc_G <- NULL
+    in_typeH <- in_type[split_hierarchy_res$upper_idxs]
+    distr_H <- distr[split_hierarchy_res$upper_idxs]
     in_typeG <- NULL
     distr_G <- NULL
   } else {
-    get_HG.res <- .get_HG(A, upper_base_forecasts, distr[split_hierarchy.res$upper_idxs], in_type[split_hierarchy.res$upper_idxs])
-    H <- get_HG.res$H
-    upper_base_forecasts_H <- get_HG.res$Hv
-    G <- get_HG.res$G
-    upper_base_forecasts_G <- get_HG.res$Gv
-    in_typeH <- get_HG.res$Hin_type
-    distr_H <- get_HG.res$Hdistr
-    in_typeG <- get_HG.res$Gin_type
-    distr_G <- get_HG.res$Gdistr
+    get_HG_res <- .get_HG(A, upper_base_fc, distr[split_hierarchy_res$upper_idxs], in_type[split_hierarchy_res$upper_idxs])
+    H <- get_HG_res$H
+    upper_base_fc_H <- get_HG_res$Hv
+    G <- get_HG_res$G
+    upper_base_fc_G <- get_HG_res$Gv
+    in_typeH <- get_HG_res$Hin_type
+    distr_H <- get_HG_res$Hdistr
+    in_typeG <- get_HG_res$Gin_type
+    distr_G <- get_HG_res$Gdistr
   }
 
   # Reconciliation using BUIS
 
   # 1. Bottom samples
   B <- list()
-  in_type_bottom <- in_type[split_hierarchy.res$bottom_idxs]
+  in_type_bottom <- in_type[split_hierarchy_res$bottom_idxs]
   for (bi in 1:n_bottom) {
     if (in_type_bottom[[bi]] == "samples") {
-      B[[bi]] <- unlist(bottom_base_forecasts[[bi]])
+      B[[bi]] <- unlist(bottom_base_fc[[bi]])
     } else if (in_type_bottom[[bi]] == "params") {
       B[[bi]] <- .distr_sample(
-        bottom_base_forecasts[[bi]],
-        distr[split_hierarchy.res$bottom_idxs][[bi]],
+        bottom_base_fc[[bi]],
+        distr[split_hierarchy_res$bottom_idxs][[bi]],
         num_samples
       )
     }
   }
   B <- do.call("cbind", B) # B is a matrix (num_samples x n_bottom)
 
-  B <- .core_reconc_BUIS(
+  out <- .core_reconc_BUIS(
     A = A, H = H, G = G, B = B,
-    upper_base_forecasts_H = upper_base_forecasts_H,
+    upper_base_fc_H = upper_base_fc_H,
     in_typeH = in_typeH, distr_H = distr_H,
-    upper_base_forecasts_G = upper_base_forecasts_G,
+    upper_base_fc_G = upper_base_fc_G,
     in_typeG = in_typeG, distr_G = distr_G,
     .comp_w = .compute_weights,
-    suppress_warnings = suppress_warnings
+    suppress_warnings = suppress_warnings,
+    return_upper = return_upper
   )
 
   # # Bottom-Up IS on the hierarchical part
@@ -311,13 +313,13 @@ reconc_BUIS <- function(A,
   #   weights = .compute_weights(
   #     b = (B %*% c),
   #     # (num_samples x 1)
-  #     u = upper_base_forecasts_H[[hi]],
+  #     u = upper_base_fc_H[[hi]],
   #     in_type_ = in_typeH[[hi]],
   #     distr_ = distr_H[[hi]]
   #   )
-  #   check_weights.res = .check_weights(weights)
-  #   if (check_weights.res$warning & !suppress_warnings) {
-  #     warning_msg = check_weights.res$warning_msg
+  #   check_weights_res = .check_weights(weights)
+  #   if (check_weights_res$warning & !suppress_warnings) {
+  #     warning_msg = check_weights_res$warning_msg
   #     # add information to the warning message
   #     upper_fromA_i = which(lapply(seq_len(nrow(A)), function(i) sum(abs(A[i,] - c))) == 0)
   #     for (wmsg in warning_msg) {
@@ -325,7 +327,7 @@ reconc_BUIS <- function(A,
   #       warning(wmsg)
   #     }
   #   }
-  #   if(check_weights.res$warning & (1 %in% check_weights.res$warning_code)){
+  #   if(check_weights_res$warning & (1 %in% check_weights_res$warning_code)){
   #     next
   #   }
   #   B[, b_mask] = .resample(B[, b_mask], weights)
@@ -338,14 +340,14 @@ reconc_BUIS <- function(A,
   #     c = G[gi, ]
   #     weights = weights * .compute_weights(
   #       b = (B %*% c),
-  #       u = upper_base_forecasts_G[[gi]],
+  #       u = upper_base_fc_G[[gi]],
   #       in_type_ = in_typeG[[gi]],
   #       distr_ = distr_G[[gi]]
   #     )
   #   }
-  #   check_weights.res = .check_weights(weights)
-  #   if (check_weights.res$warning & !suppress_warnings) {
-  #     warning_msg = check_weights.res$warning_msg
+  #   check_weights_res = .check_weights(weights)
+  #   if (check_weights_res$warning & !suppress_warnings) {
+  #     warning_msg = check_weights_res$warning_msg
   #     # add information to the warning message
   #     upper_fromA_i = c()
   #     for (gi in 1:nrow(G)) {
@@ -358,21 +360,12 @@ reconc_BUIS <- function(A,
   #       warning(wmsg)
   #     }
   #   }
-  #   if(!(check_weights.res$warning & (1 %in% check_weights.res$warning_code))){
+  #   if(!(check_weights_res$warning & (1 %in% check_weights_res$warning_code))){
   #     B = .resample(B, weights)
   #   }
 
   # }
 
-  B <- t(B)
-  U <- A %*% B
-  Y_reconc <- rbind(U, B)
-
-  out <- list(
-    bottom_reconciled_samples = B,
-    upper_reconciled_samples = U,
-    reconciled_samples = Y_reconc
-  )
   return(out)
 }
 
@@ -386,10 +379,10 @@ reconc_BUIS <- function(A,
 #' @param H Matrix defining hierarchical constraints.
 #' @param G Matrix defining general linear constraints.
 #' @param B Matrix of bottom level base forecast samples.
-#' @param upper_base_forecasts_H List of upper base forecasts for hierarchical constraints.
+#' @param upper_base_fc_H List of upper base forecasts for hierarchical constraints.
 #' @param in_typeH Character string specifying input type for H forecasts ('pmf', 'samples', or 'params').
 #' @param distr_H Character string specifying distribution type for H forecasts ('poisson' or 'nbinom').
-#' @param upper_base_forecasts_G List of upper base forecasts for general constraints.
+#' @param upper_base_fc_G List of upper base forecasts for general constraints.
 #' @param in_typeG Character string specifying input type for G forecasts ('pmf', 'samples', or 'params').
 #' @param distr_G Character string specifying distribution type for G forecasts ('poisson' or 'nbinom').
 #' @param .comp_w Function to compute weights for importance sampling. Default is `.compute_weights`.
@@ -397,9 +390,9 @@ reconc_BUIS <- function(A,
 #'
 #' @return A list containing:
 #'   \itemize{
-#'     \item `bottom_reconciled`: List with reconciled bottom forecasts (pmf and/or samples).
-#'     \item `upper_reconciled_H`: List with reconciled upper forecasts for H constraints.
-#'     \item `upper_reconciled_G`: List with reconciled upper forecasts for G constraints.
+#'     \item `bottom_rec`: List with reconciled bottom forecasts (pmf and/or samples).
+#'     \item `upper_rec_H`: List with reconciled upper forecasts for H constraints.
+#'     \item `upper_rec_G`: List with reconciled upper forecasts for G constraints.
 #'   }
 #'
 #' @keywords internal
@@ -407,14 +400,15 @@ reconc_BUIS <- function(A,
 .core_reconc_BUIS <- function(A,
                               H, G,
                               B,
-                              upper_base_forecasts_H,
+                              upper_base_fc_H,
                               in_typeH,
                               distr_H,
-                              upper_base_forecasts_G,
+                              upper_base_fc_G,
                               in_typeG,
                               distr_G,
                               .comp_w = .compute_weights,
-                              suppress_warnings = FALSE) {
+                              suppress_warnings = FALSE,
+                              return_upper = TRUE) {
   # Hierarchical part
   for (hi in 1:nrow(H)) {
     c <- H[hi, ]
@@ -422,13 +416,13 @@ reconc_BUIS <- function(A,
     weights <- .comp_w(
       b = (B %*% c),
       # (num_samples x 1)
-      u = upper_base_forecasts_H[[hi]],
+      u = upper_base_fc_H[[hi]],
       in_type_ = in_typeH[[hi]],
       distr_ = distr_H[[hi]]
     )
-    check_weights.res <- .check_weights(weights)
-    if (check_weights.res$warning & !suppress_warnings) {
-      warning_msg <- check_weights.res$warning_msg
+    check_weights_res <- .check_weights(weights)
+    if (check_weights_res$warning & !suppress_warnings) {
+      warning_msg <- check_weights_res$warning_msg
       # add information to the warning message
       upper_fromA_i <- which(lapply(seq_len(nrow(A)), function(i) sum(abs(A[i, ] - c))) == 0)
       for (wmsg in warning_msg) {
@@ -436,7 +430,7 @@ reconc_BUIS <- function(A,
         warning(wmsg)
       }
     }
-    if (check_weights.res$warning & (1 %in% check_weights.res$warning_code)) {
+    if (check_weights_res$warning & (1 %in% check_weights_res$warning_code)) {
       next
     }
     B[, b_mask] <- .resample(B[, b_mask], weights)
@@ -450,14 +444,14 @@ reconc_BUIS <- function(A,
       c <- G[gi, ]
       weights <- weights * .comp_w(
         b = (B %*% c),
-        u = upper_base_forecasts_G[[gi]],
+        u = upper_base_fc_G[[gi]],
         in_type_ = in_typeG[[gi]],
         distr_ = distr_G[[gi]]
       )
     }
-    check_weights.res <- .check_weights(weights)
-    if (check_weights.res$warning & !suppress_warnings) {
-      warning_msg <- check_weights.res$warning_msg
+    check_weights_res <- .check_weights(weights)
+    if (check_weights_res$warning & !suppress_warnings) {
+      warning_msg <- check_weights_res$warning_msg
       # add information to the warning message
       upper_fromA_i <- c()
       for (gi in 1:nrow(G)) {
@@ -472,9 +466,15 @@ reconc_BUIS <- function(A,
         warning(wmsg)
       }
     }
-    if (!(check_weights.res$warning & (1 %in% check_weights.res$warning_code))) {
+    if (!(check_weights_res$warning & (1 %in% check_weights_res$warning_code))) {
       B <- .resample(B, weights)
     }
   }
-  return(B)
+  B <- t(B)
+  U <- A %*% B
+  out <- list(bottom_rec_samples = B)
+  if (return_upper) {
+    out$upper_rec_samples <- U
+  }
+  return(out)
 }

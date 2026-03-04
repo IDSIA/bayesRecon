@@ -7,24 +7,26 @@
 \usage{
 reconc_MixCond(
   A,
-  fc_bottom,
-  fc_upper,
+  base_fc_bottom,
+  base_fc_upper,
   bottom_in_type = "pmf",
   distr = NULL,
   num_samples = 20000,
   return_type = "pmf",
+  return_upper = TRUE,
   suppress_warnings = FALSE,
   seed = NULL
 )
 
 reconc_TDcond(
   A,
-  fc_bottom,
-  fc_upper,
+  base_fc_bottom,
+  base_fc_upper,
   bottom_in_type = "pmf",
   distr = NULL,
   num_samples = 20000,
   return_type = "pmf",
+  return_upper = TRUE,
   suppress_warnings = FALSE,
   seed = NULL
 )
@@ -32,9 +34,9 @@ reconc_TDcond(
 \arguments{
 \item{A}{aggregation matrix (n_upper x n_bottom).}
 
-\item{fc_bottom}{A list containing the bottom base forecasts, see details.}
+\item{base_fc_bottom}{A list containing the bottom base forecasts, see details.}
 
-\item{fc_upper}{A list containing the upper base forecasts, see details.}
+\item{base_fc_upper}{A list containing the upper base forecasts, see details.}
 
 \item{bottom_in_type}{A string with three possible values:
 \itemize{
@@ -59,6 +61,8 @@ A string with three possible values:
 \item 'all' returns a list with both pmf objects and samples.
 }}
 
+\item{return_upper}{Logical, whether to return the reconciled parameters for the upper variables (default is TRUE).}
+
 \item{suppress_warnings}{Logical. If \code{TRUE}, no warnings about samples
 are triggered. If \code{FALSE}, warnings are generated. Default is \code{FALSE}. See Details.}
 
@@ -67,17 +71,17 @@ are triggered. If \code{FALSE}, warnings are generated. Default is \code{FALSE}.
 \value{
 A list containing the reconciled forecasts. The list has the following named elements:
 \itemize{
-\item \code{bottom_reconciled}: a list containing the pmf, the samples (matrix n_bottom x \code{num_samples}) or both,
+\item \code{bottom_rec}: a list containing the pmf, the samples (matrix n_bottom x \code{num_samples}) or both,
 depending on the value of \code{return_type};
-\item \code{upper_reconciled}: a list containing the pmf, the samples (matrix n_upper x \code{num_samples}) or both,
-depending on the value of \code{return_type}.
+\item \code{upper_rec}: a list containing the pmf, the samples (matrix n_upper x \code{num_samples}) or both,
+depending on the value of \code{return_type} (only if \code{return_upper = TRUE}).
 }
 
 A list containing the reconciled forecasts. The list has the following named elements:
 \itemize{
-\item \code{bottom_reconciled}: a list containing the pmf, the samples (matrix n_bottom x \code{num_samples}) or both,
+\item \code{bottom_rec}: a list containing the pmf, the samples (matrix n_bottom x \code{num_samples}) or both,
 depending on the value of \code{return_type};
-\item \code{upper_reconciled}: a list containing the pmf, the samples (matrix n_upper x \code{num_samples}) or both,
+\item \code{upper_rec}:  (only if \code{return_upper = TRUE}) a list containing the pmf, the samples (matrix n_upper x \code{num_samples}) or both,
 depending on the value of \code{return_type}.
 }
 }
@@ -95,7 +99,7 @@ using only the hierarchical constraints between the upper variables; then,
 the bottom distributions are updated via a probabilistic top-down procedure.
 }
 \details{
-The base bottom forecasts \code{fc_bottom} must be a list of length n_bottom, where each element is either
+The base bottom forecasts \code{base_fc_bottom} must be a list of length n_bottom, where each element is either
 \itemize{
 \item a PMF object (see details below), if \code{bottom_in_type='pmf'};
 \item a vector of samples, if \code{bottom_in_type='samples'};
@@ -107,10 +111,10 @@ see \link[stats]{NegBinomial}.
 }
 }
 
-The base upper forecasts \code{fc_upper} must be a list containing the parameters of
+The base upper forecasts \code{base_fc_upper} must be a list containing the parameters of
 the multivariate Gaussian distribution of the upper forecasts.
-The list must contain only the named elements \code{mu} (vector of length n_upper)
-and \code{Sigma} (n_upper x n_upper matrix).
+The list must contain only the named elements \code{mean} (vector of length n_upper)
+and \code{cov} (n_upper x n_upper matrix).
 
 The order of the upper and bottom base forecasts must match the order of (respectively) the rows and the columns of A.
 
@@ -128,7 +132,7 @@ Warnings are triggered from the Importance Sampling step if:
 Note that warnings are an indication that the base forecasts might have issues.
 Please check the base forecasts in case of warnings.
 
-The base bottom forecasts \code{fc_bottom} must be a list of length n_bottom, where each element is either
+The base bottom forecasts \code{base_fc_bottom} must be a list of length n_bottom, where each element is either
 \itemize{
 \item a PMF object (see details below), if \code{bottom_in_type='pmf'};
 \item a vector of samples, if \code{bottom_in_type='samples'};
@@ -140,10 +144,10 @@ see \link[stats]{NegBinomial}.
 }
 }
 
-The base upper forecasts \code{fc_upper} must be a list containing the parameters of
+The base upper forecasts \code{base_fc_upper} must be a list containing the parameters of
 the multivariate Gaussian distribution of the upper forecasts.
-The list must contain only the named elements \code{mu} (vector of length n_upper)
-and \code{Sigma} (n_upper x n_upper matrix).
+The list must contain only the named elements \code{mean} (vector of length n_upper)
+and \code{cov} (n_upper x n_upper matrix).
 
 The order of the upper and bottom base forecasts must match the order of (respectively) the rows and the columns of A.
 
@@ -164,26 +168,28 @@ A <- matrix(c(1, 1), nrow = 1)
 # The bottom forecasts are Poisson with lambda=15
 lambda <- 15
 n_tot <- 60
-fc_bottom <- list()
-fc_bottom[[1]] <- apply(matrix(seq(0, n_tot)), MARGIN = 1, FUN = \(x) dpois(x, lambda = lambda))
-fc_bottom[[2]] <- apply(matrix(seq(0, n_tot)), MARGIN = 1, FUN = \(x) dpois(x, lambda = lambda))
+base_fc_bottom <- list()
+base_fc_bottom[[1]] <- apply(matrix(seq(0, n_tot)), MARGIN = 1, 
+                             FUN = \(x) dpois(x, lambda = lambda))
+base_fc_bottom[[2]] <- apply(matrix(seq(0, n_tot)), MARGIN = 1, 
+                             FUN = \(x) dpois(x, lambda = lambda))
 
 # The upper forecast is a Normal with mean 40 and std 5
-fc_upper <- list(mu = 40, Sigma = matrix(5^2))
+base_fc_upper <- list(mean = 40, cov = matrix(5^2))
 
 # We can reconcile with reconc_MixCond
-res.mixCond <- reconc_MixCond(A, fc_bottom, fc_upper)
+res.mixCond <- reconc_MixCond(A, base_fc_bottom, base_fc_upper)
 
 # Note that the bottom distributions are slightly shifted to the right
-PMF.summary(res.mixCond$bottom_reconciled$pmf[[1]])
-PMF.summary(fc_bottom[[1]])
+PMF_summary(res.mixCond$bottom_rec$pmf[[1]])
+PMF_summary(base_fc_bottom[[1]])
 
-PMF.summary(res.mixCond$bottom_reconciled$pmf[[2]])
-PMF.summary(fc_bottom[[2]])
+PMF_summary(res.mixCond$bottom_rec$pmf[[2]])
+PMF_summary(base_fc_bottom[[2]])
 
 # The upper distribution is slightly shifted to the left
-PMF.summary(res.mixCond$upper_reconciled$pmf[[1]])
-PMF.get_var(res.mixCond$upper_reconciled$pmf[[1]])
+PMF_summary(res.mixCond$upper_rec$pmf[[1]])
+PMF_get_var(res.mixCond$upper_rec$pmf[[1]])
 
 
 library(bayesRecon)
@@ -193,26 +199,28 @@ A <- matrix(c(1, 1), nrow = 1)
 # The bottom forecasts are Poisson with lambda=15
 lambda <- 15
 n_tot <- 60
-fc_bottom <- list()
-fc_bottom[[1]] <- apply(matrix(seq(0, n_tot)), MARGIN = 1, FUN = \(x) dpois(x, lambda = lambda))
-fc_bottom[[2]] <- apply(matrix(seq(0, n_tot)), MARGIN = 1, FUN = \(x) dpois(x, lambda = lambda))
+base_fc_bottom <- list()
+base_fc_bottom[[1]] <- apply(matrix(seq(0, n_tot)), MARGIN = 1, 
+                             FUN = \(x) dpois(x, lambda = lambda))
+base_fc_bottom[[2]] <- apply(matrix(seq(0, n_tot)), MARGIN = 1, 
+                             FUN = \(x) dpois(x, lambda = lambda))
 
 # The upper forecast is a Normal with mean 40 and std 5
-fc_upper <- list(mu = 40, Sigma = matrix(c(5^2)))
+base_fc_upper <- list(mean = 40, cov = matrix(c(5^2)))
 
 # We can reconcile with reconc_TDcond
-res.TDcond <- reconc_TDcond(A, fc_bottom, fc_upper)
+res.TDcond <- reconc_TDcond(A, base_fc_bottom, base_fc_upper)
 
 # Note that the bottom distributions are shifted to the right
-PMF.summary(res.TDcond$bottom_reconciled$pmf[[1]])
-PMF.summary(fc_bottom[[1]])
+PMF_summary(res.TDcond$bottom_rec$pmf[[1]])
+PMF_summary(base_fc_bottom[[1]])
 
-PMF.summary(res.TDcond$bottom_reconciled$pmf[[2]])
-PMF.summary(fc_bottom[[2]])
+PMF_summary(res.TDcond$bottom_rec$pmf[[2]])
+PMF_summary(base_fc_bottom[[2]])
 
 # The upper distribution remains similar
-PMF.summary(res.TDcond$upper_reconciled$pmf[[1]])
-PMF.get_var(res.TDcond$upper_reconciled$pmf[[1]])
+PMF_summary(res.TDcond$upper_rec$pmf[[1]])
+PMF_get_var(res.TDcond$upper_rec$pmf[[1]])
 
 ## Example 2: reconciliation with unbalanced hierarchy
 # We consider the example in Fig. 9 of Zambon et al. (2024).
@@ -230,23 +238,24 @@ n_bottom <- ncol(A)
 # The bottom forecasts are Poisson with lambda=15
 lambda <- 15
 n_tot <- 60
-fc_bottom <- list()
+base_fc_bottom <- list()
 for (i in seq(n_bottom)) {
-  fc_bottom[[i]] <- apply(matrix(seq(0, n_tot)), MARGIN = 1, FUN = \(x) dpois(x, lambda = lambda))
+  base_fc_bottom[[i]] <- apply(matrix(seq(0, n_tot)), MARGIN = 1, 
+                               FUN = \(x) dpois(x, lambda = lambda))
 }
 
 # The upper forecasts are a multivariate Gaussian
-mu <- c(75, 30, 30)
-Sigma <- matrix(c(
+mean <- c(75, 30, 30)
+cov <- matrix(c(
   5^2, 5, 5,
   5, 10, 0,
   5, 0, 10
 ), nrow = 3, byrow = TRUE)
 
-fc_upper <- list(mu = mu, Sigma = Sigma)
+base_fc_upper <- list(mean = mean, cov = cov)
 \dontrun{
 # If we reconcile with reconc_TDcond it won't work
-res.TDcond <- reconc_TDcond(A, fc_bottom, fc_upper)
+res.TDcond <- reconc_TDcond(A, base_fc_bottom, base_fc_upper)
 }
 
 # We can balance the hierarchy with by duplicating the node b5
@@ -258,14 +267,14 @@ res.TDcond <- reconc_TDcond(A, fc_bottom, fc_upper)
 # Gaussian with the mean and variance of u4 given by the parameters in b5.
 mean_b5 <- lambda
 var_b5 <- lambda
-mu <- c(75, 30, 30, mean_b5)
-Sigma <- matrix(c(
+mean <- c(75, 30, 30, mean_b5)
+cov <- matrix(c(
   5^2, 5, 5, 5,
   5, 10, 0, 0,
   5, 0, 10, 0,
   5, 0, 0, var_b5
 ), nrow = 4, byrow = TRUE)
-fc_upper <- list(mu = mu, Sigma = Sigma)
+base_fc_upper <- list(mean = mean, cov = cov)
 
 # We also need to update the aggregation matrix
 A <- matrix(c(
@@ -276,11 +285,11 @@ A <- matrix(c(
 ), nrow = 4, byrow = TRUE)
 
 # We can now reconcile with TDcond
-res.TDcond <- reconc_TDcond(A, fc_bottom, fc_upper)
+res.TDcond <- reconc_TDcond(A, base_fc_bottom, base_fc_upper)
 
 # Note that the reconciled distribution of b5 and u4 are identical,
 # keep this in mind when using the results of your reconciliation!
-max(abs(res.TDcond$bottom_reconciled$pmf[[5]] - res.TDcond$upper_reconciled$pmf[[4]]))
+max(abs(res.TDcond$bottom_rec$pmf[[5]] - res.TDcond$upper_rec$pmf[[4]]))
 
 }
 \references{
