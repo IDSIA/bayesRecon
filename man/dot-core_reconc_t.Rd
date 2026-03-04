@@ -25,8 +25,7 @@ Student-t distribution.}
 
 \item{nu_post}{Degrees of freedom of the posterior Student-t distribution.}
 
-\item{return_upper}{Logical. If TRUE, also returns parameters for the upper level reconciled
-distribution. Default is FALSE.}
+\item{return_upper}{Logical, whether to return the reconciled parameters for the upper variables (default is FALSE).}
 
 \item{return_parameters}{Logical. If TRUE, returns internal parameters (posterior nu, posterior Psi, C)
 for debugging or advanced use. Default is FALSE.}

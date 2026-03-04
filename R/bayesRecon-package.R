@@ -7,7 +7,7 @@
 #' The package implements reconciliation via conditioning for probabilistic forecasts
 #' of hierarchical time series. The main functions are:
 #'
-#' * [reconc_gaussian()]: reconciliation via conditioning of multivariate Gaussian
+#' * [reconc_gaussian()]: reconciliation via conditioning, assumes multivariate Gaussian
 #'    base forecasts; this is done analytically;
 #' * [reconc_BUIS()]: reconciliation via conditioning of any probabilistic forecast
 #'    via importance sampling; this is the recommended option for non-Gaussian base forecasts;
@@ -17,8 +17,8 @@
 #'    the upper forecasts are multivariate Gaussian and the bottom forecasts are discrete distributions;
 #' * [reconc_TDcond()]: reconciliation via top-down conditioning of mixed hierarchies, where
 #'    the upper forecasts are multivariate Gaussian and the bottom forecasts are discrete distributions;
-#' * [reconc_t()]: reconciliation via conditioning with uncertain covariance of 
-#'    multivariate Student-t base forecasts; this is done analytically.
+#' * [reconc_t()]: reconciliation via conditioning with uncertain covariance matrix; 
+#'    the reconciled forecasts are multivariate Student-t; this is done analytically.
 #'
 #' @section Utility functions:
 #'

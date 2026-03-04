@@ -44,8 +44,7 @@ the number of samples of the base forecasts.}
 \item{suppress_warnings}{Logical. If \code{TRUE}, no warnings about effective sample size
 are triggered. If \code{FALSE}, warnings are generated. Default is \code{FALSE}. See Details.}
 
-\item{return_upper}{Logical. If \code{TRUE} (default), also returns the reconciled samples for the
-upper time series. Default is \code{TRUE}.}
+\item{return_upper}{Logical, whether to return the reconciled parameters for the upper variables (default is TRUE).}
 
 \item{seed}{Seed for reproducibility.}
 }

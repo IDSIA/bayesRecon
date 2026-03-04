@@ -33,7 +33,9 @@ The main functions are:
   the bottom forecasts are discrete distributions;
 - `reconc_TDcond`: reconciliation via top-down conditioning of mixed
   hierarchies, where the upper forecasts are multivariate Gaussian and
-  the bottom forecasts are discrete distributions.
+  the bottom forecasts are discrete distributions;
+- `reconc_t`: reconciliation via conditioning with uncertain covariance
+  of multivariate Student-t base forecasts; this is done analytically.
 
 ## Getting started 
 

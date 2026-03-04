@@ -22,7 +22,7 @@ To learn more about \code{bayesRecon}, start with the vignettes: \code{browseVig
 The package implements reconciliation via conditioning for probabilistic forecasts
 of hierarchical time series. The main functions are:
 \itemize{
-\item \code{\link[=reconc_gaussian]{reconc_gaussian()}}: reconciliation via conditioning of multivariate Gaussian
+\item \code{\link[=reconc_gaussian]{reconc_gaussian()}}: reconciliation via conditioning, assumes multivariate Gaussian
 base forecasts; this is done analytically;
 \item \code{\link[=reconc_BUIS]{reconc_BUIS()}}: reconciliation via conditioning of any probabilistic forecast
 via importance sampling; this is the recommended option for non-Gaussian base forecasts;
@@ -32,8 +32,8 @@ forecasts via Markov Chain Monte Carlo;
 the upper forecasts are multivariate Gaussian and the bottom forecasts are discrete distributions;
 \item \code{\link[=reconc_TDcond]{reconc_TDcond()}}: reconciliation via top-down conditioning of mixed hierarchies, where
 the upper forecasts are multivariate Gaussian and the bottom forecasts are discrete distributions;
-\item \code{\link[=reconc_t]{reconc_t()}}: reconciliation via conditioning with uncertain covariance of
-multivariate Student-t base forecasts; this is done analytically.
+\item \code{\link[=reconc_t]{reconc_t()}}: reconciliation via conditioning with uncertain covariance matrix;
+the reconciled forecasts are multivariate Student-t; this is done analytically.
 }
 }
 
