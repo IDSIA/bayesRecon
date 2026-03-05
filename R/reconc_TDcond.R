@@ -105,8 +105,10 @@
 #' See also [PMF] for functions that handle PMF objects.
 #'
 #' If some of the reconciled upper samples lie outside the support of the bottom-up distribution,
-#' those samples are discarded and a warning is triggered.
-#' The warning reports the percentage of samples kept.
+#' those samples are discarded and the remaining ones are resampled with replacement, so that
+#' the number of output samples is equal to `num_samples`.
+#' In this case, a warning is issued if `suppress_warnings=FALSE`.
+#' If the fraction of discarded samples is above 50%, the function returns an error.
 #'
 #' @param A aggregation matrix (n_upper x n_bottom).
 #' @param base_fc_bottom A list containing the bottom base forecasts, see details.
@@ -134,8 +136,9 @@
 #' 
 #' @param return_upper Logical, whether to return the reconciled parameters for the upper variables (default is TRUE).
 #'
-#' @param suppress_warnings Logical. If \code{TRUE}, no warnings about samples
-#'        are triggered. If \code{FALSE}, warnings are generated. Default is \code{FALSE}. See Details.
+#' @param suppress_warnings Logical, whether to suppress warnings about samples outside support (default TRUE).
+#' See details.
+#' 
 #' @param seed Seed for reproducibility.
 #'
 #' @return A list containing the reconciled forecasts. The list has the following named elements:
@@ -259,7 +262,7 @@ reconc_TDcond <- function(A, base_fc_bottom, base_fc_upper,
                           bottom_in_type = "pmf", distr = NULL,
                           num_samples = 2e4, return_type = "pmf",
                           return_upper = TRUE,
-                          suppress_warnings = FALSE, seed = NULL) {
+                          suppress_warnings = TRUE, seed = NULL) {
   if (!is.null(seed)) set.seed(seed)
 
   # Check inputs
@@ -284,8 +287,9 @@ reconc_TDcond <- function(A, base_fc_bottom, base_fc_upper,
 
   out <- .core_reconc_TDcond(
     A, mean_upper, cov_upper, L_pmf, num_samples,
-    return_type, suppress_warnings,
-    return_upper = return_upper
+    return_type = return_type, 
+    return_upper = return_upper,
+    suppress_warnings = suppress_warnings
   )
 
   return(out)
@@ -304,7 +308,8 @@ reconc_TDcond <- function(A, base_fc_bottom, base_fc_upper,
 #' @param L_pmf List of PMF objects representing the bottom level base forecasts.
 #' @param num_samples Number of samples to draw from the reconciled distribution.
 #' @param return_type Character string specifying return format: 'pmf', 'samples', or 'all'.
-#' @param suppress_warnings Logical. If TRUE, suppresses warnings about samples outside support. Default is FALSE.
+#' @param return_upper Logical, whether to return reconciled upper forecasts (default TRUE).
+#' @param suppress_warnings Logical, whether to suppress warnings about samples outside support (default TRUE).
 #'
 #' @return A list containing:
 #'   \itemize{
@@ -326,8 +331,8 @@ reconc_TDcond <- function(A, base_fc_bottom, base_fc_upper,
 #' @keywords internal
 #' @export
 .core_reconc_TDcond <- function(A, mean_upper, cov_upper, L_pmf, num_samples,
-                                return_type, suppress_warnings,
-                                return_upper = TRUE) {
+                                return_type, return_upper = TRUE,
+                                suppress_warnings = TRUE) {
   # Find the "lowest upper"
   n_u <- nrow(A)
   n_b <- ncol(A)
@@ -380,20 +385,32 @@ reconc_TDcond <- function(A, base_fc_bottom, base_fc_upper,
   # Check that each multiv. sample of U is contained in the supp of the bottom-up distr
   samp_ok <- mapply(PMF_check_support, U_js, L_pmf_js)
   samp_ok <- rowSums(samp_ok) == n_u_low
-  # Only keep the "good" upper samples, and throw a warning if some samples are discarded:
-  U_js <- lapply(U_js, "[", samp_ok)
-  num_samples_ok <- sum(samp_ok)
-  if (num_samples_ok != num_samples & !suppress_warnings) {
-    # We round down to the nearest decimal
-    warning(paste0(
-      "Only ", floor(sum(samp_ok) / num_samples * 1000) / 10, "% of the upper samples ",
-      "are in the support of the bottom-up distribution; ",
-      "the others are discarded."
-    ))
+
+  # Check if the fraction of samples that are in the support of the bottom-up distribution 
+  # is above the threshold; if not, stop 
+  if (mean(samp_ok) < .MIN_FRACTION_SAMPLES_OK) {
+    stop("The fraction of reconciled upper samples that lie in the support of the bottom-up 
+          distribution is below the minimum threshold. 
+          Consider increasing the variance of the base forecasts.")
+  }
+
+  # Resample the upper samples that are in the support of the bottom-up distribution, if necessary.
+  # The number of output samples is equal to the number of input samples, but some of the output samples 
+  # are duplicates of the "good" input samples.
+  if (sum(samp_ok) < num_samples) {
+    res_idxs <- sample(which(samp_ok), size = num_samples, replace = TRUE)
+    U_js <- lapply(U_js, "[", res_idxs) 
+    if (!suppress_warnings) {
+      warning(paste0(
+        "Only ", floor(sum(samp_ok) / num_samples * 1000) / 10, "% of the upper samples ",
+        "are in the support of the bottom-up distribution; ",
+        "the others are discarded and the remaining ones are resampled with replacement."
+      ))
+    }
   }
 
   # Get bottom samples via the prob top-down
-  B <- matrix(nrow = n_b, ncol = num_samples_ok)
+  B <- matrix(nrow = n_b, ncol = num_samples)
   for (j in 1:n_u_low) {
     mask_j <- as.logical(A[lowest_rows[j], ]) # mask for the position of the bottom referring to lowest upper j
     B[mask_j, ] <- .TD_sampling(U_js[[j]], L_pmf_js[[j]])

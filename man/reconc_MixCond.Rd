@@ -27,7 +27,7 @@ reconc_TDcond(
   num_samples = 20000,
   return_type = "pmf",
   return_upper = TRUE,
-  suppress_warnings = FALSE,
+  suppress_warnings = TRUE,
   seed = NULL
 )
 }
@@ -63,8 +63,8 @@ A string with three possible values:
 
 \item{return_upper}{Logical, whether to return the reconciled parameters for the upper variables (default is TRUE).}
 
-\item{suppress_warnings}{Logical. If \code{TRUE}, no warnings about samples
-are triggered. If \code{FALSE}, warnings are generated. Default is \code{FALSE}. See Details.}
+\item{suppress_warnings}{Logical, whether to suppress warnings about samples outside support (default TRUE).
+See details.}
 
 \item{seed}{Seed for reproducibility.}
 }
@@ -156,8 +156,10 @@ Each element corresponds to the probability of the integers from 0 to the last v
 See also \link{PMF} for functions that handle PMF objects.
 
 If some of the reconciled upper samples lie outside the support of the bottom-up distribution,
-those samples are discarded and a warning is triggered.
-The warning reports the percentage of samples kept.
+those samples are discarded and the remaining ones are resampled with replacement, so that
+the number of output samples is equal to \code{num_samples}.
+In this case, a warning is issued if \code{suppress_warnings=FALSE}.
+If the fraction of discarded samples is above 50\%, the function stops.
 }
 \examples{
 

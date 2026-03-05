@@ -11,8 +11,8 @@
   L_pmf,
   num_samples,
   return_type,
-  suppress_warnings,
-  return_upper = TRUE
+  return_upper = TRUE,
+  suppress_warnings = TRUE
 )
 }
 \arguments{
@@ -28,7 +28,9 @@
 
 \item{return_type}{Character string specifying return format: 'pmf', 'samples', or 'all'.}
 
-\item{suppress_warnings}{Logical. If TRUE, suppresses warnings about samples outside support. Default is FALSE.}
+\item{return_upper}{Logical, whether to return reconciled upper forecasts (default TRUE).}
+
+\item{suppress_warnings}{Logical, whether to suppress warnings about samples outside support (default TRUE).}
 }
 \value{
 A list containing:

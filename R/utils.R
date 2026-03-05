@@ -16,8 +16,13 @@
 ################################################################################
 # OTHER PARAMETERS
 
-.NEGBIN_TOLL <- 1e-6 # used when fitting a Negative Binomial distribution
-.L_SHRINK_RECONC_T <- 1e-4  # used for shrinking the empirical covariance matrix in reconc_t
+.NEGBIN_TOLL <- 1e-6 
+# used when fitting a Negative Binomial distribution
+.L_SHRINK_RECONC_T <- 1e-4  
+# used for shrinking the empirical covariance matrix in reconc_t
+.MIN_FRACTION_SAMPLES_OK <- 0.5  
+# used in reconc_TDcond: if the fraction of reconciled upper samples that lie 
+#in the support of the bottom-up distribution is less than this threshold, the function stops
 
 ################################################################################
 # CHECK INPUT
