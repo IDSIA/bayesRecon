@@ -151,8 +151,10 @@ reconc_MixCond <- function(A, base_fc_bottom, base_fc_upper,
 
   out <- .core_reconc_MixCond(
     A, B, mean_upper, cov_upper, num_samples,
-    return_type, suppress_warnings,
-    return_upper = return_upper
+    return_type = return_type, 
+    return_ESS = FALSE,
+    return_upper = return_upper,
+    suppress_warnings = suppress_warnings
   )
 
   return(out)
@@ -171,19 +173,22 @@ reconc_MixCond <- function(A, base_fc_bottom, base_fc_upper,
 #' @param cov_upper Covariance matrix of upper level.
 #' @param num_samples Number of samples to draw/resample from.
 #' @param return_type Character string specifying return format: 'pmf', 'samples', or 'all'.
-#' @param suppress_warnings Logical. If TRUE, suppresses warnings about sample quality. Default is FALSE.
+#' @param return_ESS Logical, whether to return the Effective Sample Size (ESS) from importance sampling weights (default TRUE).
+#' @param return_upper Logical, whether to return the reconciled parameters for the upper variables (default TRUE).
+#' @param suppress_warnings Logical. If TRUE, suppresses warnings about sample quality (default FALSE).
 
 #' @return A list containing:
 #'   \itemize{
 #'     \item `bottom_rec`: List with reconciled bottom forecasts (pmf and/or samples).
 #'     \item `upper_rec`: (only if `return_upper = TRUE`) List with reconciled upper forecasts (pmf and/or samples).
-#'     \item `ESS`: Effective Sample Size resulting from importance sampling reweighting.
+#'     \item `ESS`: Effective Sample Size resulting from importance sampling reweighting (only if `return_ESS = TRUE`).
 #'   }
 #'
 #' @keywords internal
 #' @export
-.core_reconc_MixCond <- function(A, B, mean_upper, cov_upper, num_samples, return_type, suppress_warnings,
-                                 return_upper = TRUE) {
+.core_reconc_MixCond <- function(A, B, mean_upper, cov_upper, num_samples, return_type, 
+                                 return_ESS = TRUE, return_upper = TRUE,
+                                 suppress_warnings = FALSE) {
   # Get dimensions
   n_u <- nrow(A)
   n_b <- ncol(A)
@@ -202,13 +207,11 @@ reconc_MixCond <- function(A, base_fc_bottom, base_fc_upper,
     B <- .resample(B, weights, num_samples)
   }
 
-  ESS <- sum(weights)**2 / sum(weights**2)
-
   B <- t(B)
   U <- A %*% B
 
   # Prepare output: include the marginal pmfs and/or the samples (depending on "return" inputs)
-  out <- list(bottom_rec = list(), upper_rec = list(), ESS = ESS)
+  out <- list(bottom_rec = list(), upper_rec = list())
   if (return_type %in% c("pmf", "all")) {
     bottom_pmf <- lapply(1:n_b, function(i) PMF_from_samples(B[i, ]))
     out$bottom_rec$pmf <- bottom_pmf
@@ -222,6 +225,10 @@ reconc_MixCond <- function(A, base_fc_bottom, base_fc_upper,
     if (return_upper) {
       out$upper_rec$samples <- U
     }
+  }
+  
+  if (return_ESS) {
+    out$ESS <- sum(weights)**2 / sum(weights**2)
   }
 
   return(out)
