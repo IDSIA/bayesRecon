@@ -40,8 +40,8 @@ The reconciliation functions are:
 
 ## News
 
-:boom: \[2026-03-05\] Version 1.0 of the package. Major update on the
-API of the package, added `reconc_t` that implements the method t-Rec.
+:boom: \[2026-03-05\] bayesRecon v1.0: major update to the API, added
+`reconc_t`.
 
 :boom: \[2024-05-29\] Added `reconc_MixCond` and `reconc_TDcond` and the
 vignette “Reconciliation of M5 hierarchy with mixed-type forecasts”.
