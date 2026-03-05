@@ -299,15 +299,19 @@ here](https://arxiv.org/abs/2506.19554)
 ## Contributors
 
 <!-- prettier-ignore-start -->
+
 <!-- markdownlint-disable -->
+
 <table>
+
 <tbody>
+
 <tr>
 
 <td align="center" valign="top" width="11.42%">
 
 <a href="https://sites.google.com/view/darioazzimonti/home">
-<img src="https://github.com/dazzimonti.png" width="80px;" alt="Dario Azzimonti" style="border-radius:50%;border:1px solid #646464;"/><br />
+<img src="https://github.com/dazzimonti.png" width="100px;" alt="Dario Azzimonti" style="border-radius:50%;border:1px solid #646464;"/><br />
 <sub><b>Dario Azzimonti</b></sub></a><br />
 <sub>(Maintainer)</sub><br />
 <a href="mailto:dario.azzimonti@gmail.com?subject=[bayesRecon package]">Email</a>
@@ -316,7 +320,7 @@ here](https://arxiv.org/abs/2506.19554)
 <td align="center" valign="top" width="11.42%">
 
 <a href="#">
-<img src="https://github.com/LorenzoZambon.png" width="80px;" alt="Lorenzo Zambon" style="border-radius:50%;border:1px solid #646464;"/><br />
+<img src="https://github.com/LorenzoZambon.png" width="100px;" alt="Lorenzo Zambon" style="border-radius:50%;border:1px solid #646464;"/><br />
 <sub><b>Lorenzo Zambon</b></sub></a><br /> <sub> </sub><br />
 <a href="mailto:lorenzo.zambon@idsia.ch?subject=[bayesRecon package]">Email</a>
 </td>
@@ -324,7 +328,7 @@ here](https://arxiv.org/abs/2506.19554)
 <td align="center" valign="top" width="11.42%">
 
 <a href="#">
-<img src="https://github.com/StefanoDamato.png" width="80px;" alt="Stefano Damato" style="border-radius:50%;border:1px solid #646464;"/><br />
+<img src="https://github.com/StefanoDamato.png" width="100px;" alt="Stefano Damato" style="border-radius:50%;border:1px solid #646464;"/><br />
 <sub><b>Stefano Damato</b></sub></a><br /> <sub> </sub><br />
 <a href="mailto:stefano.damato@idsia.ch?subject=[bayesRecon package]">Email</a>
 </td>
@@ -332,7 +336,7 @@ here](https://arxiv.org/abs/2506.19554)
 <td align="center" valign="top" width="11.42%">
 
 <a href="#">
-<img src="https://github.com/nicorbtt.png" width="80px;" alt="Nicolò Rubattu" style="border-radius:50%;border:1px solid #646464;"/><br />
+<img src="https://github.com/nicorbtt.png" width="100px;" alt="Nicolò Rubattu" style="border-radius:50%;border:1px solid #646464;"/><br />
 <sub><b>Nicolò Rubattu</b></sub></a><br /> <sub> </sub><br />
 <a href="mailto:nico.rubattu@gmail.com?subject=[bayesRecon package]">Email</a>
 </td>
@@ -340,14 +344,19 @@ here](https://arxiv.org/abs/2506.19554)
 <td align="center" valign="top" width="11.42%">
 
 <a href="https://sites.google.com/site/awerbhjkl678214/home">
-<img src="https://github.com/gcorani.png" width="80px;" alt="Giorgio Corani" style="border-radius:50%;border:1px solid #646464;"/><br />
+<img src="https://github.com/gcorani.png" width="100px;" alt="Giorgio Corani" style="border-radius:50%;border:1px solid #646464;"/><br />
 <sub><b>Giorgio Corani</b></sub></a><br /> <sub> </sub><br />
 <a href="mailto:giorgio.corani@idsia.ch?subject=[bayesRecon package]">Email</a>
 </td>
+
 </tr>
+
 </tbody>
+
 </table>
+
 <!-- markdownlint-restore -->
+
 <!-- prettier-ignore-end -->
 
 ## Getting help
