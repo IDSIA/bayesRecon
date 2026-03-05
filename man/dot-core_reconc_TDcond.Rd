@@ -11,8 +11,9 @@
   L_pmf,
   num_samples,
   return_type,
-  suppress_warnings,
-  return_upper = TRUE
+  return_upper = TRUE,
+  suppress_warnings = TRUE,
+  min_fraction_samples_ok = .MIN_FRACTION_SAMPLES_OK
 )
 }
 \arguments{
@@ -28,7 +29,13 @@
 
 \item{return_type}{Character string specifying return format: 'pmf', 'samples', or 'all'.}
 
-\item{suppress_warnings}{Logical. If TRUE, suppresses warnings about samples outside support. Default is FALSE.}
+\item{return_upper}{Logical, whether to return reconciled upper forecasts (default TRUE).}
+
+\item{suppress_warnings}{Logical, whether to suppress warnings about samples outside support (default TRUE).}
+
+\item{min_fraction_samples_ok}{Numeric between 0 and 1, minimum fraction of reconciled
+upper samples that must lie in the support of the bottom-up distribution (default 0.5).
+If the fraction is below this threshold, the function returns an error.}
 }
 \value{
 A list containing:

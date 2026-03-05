@@ -19,7 +19,7 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 The package `bayesRecon` implements several methods for probabilistic
 reconciliation of hierarchical time series forecasts.
 
-The main functions are:
+The reconciliation functions are:
 
 - `reconc_gaussian`: reconciliation via conditioning of multivariate
   Gaussian base forecasts; this is done analytically;

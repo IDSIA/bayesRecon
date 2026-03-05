@@ -69,82 +69,7 @@
   return(b_new)
 }
 
-#' @rdname reconc_MixCond
-#' @title Probabilistic forecast reconciliation of mixed hierarchies via conditioning
-#'
-#' @description
-#'
-#' `reconc_MixCond()` uses importance sampling to draw samples from the reconciled
-#' forecast distribution, obtained via conditioning, in the case of a mixed hierarchy.
-#'
-#' `reconc_TDcond()` uses the top-down conditioning algorithm to draw samples from the
-#' reconciled forecast distribution. Reconciliation is performed in two steps:
-#' first, the upper base forecasts are reconciled via conditioning,
-#' using only the hierarchical constraints between the upper variables; then,
-#' the bottom distributions are updated via a probabilistic top-down procedure.
-#'
-#' @details
-#'
-#' The base bottom forecasts `base_fc_bottom` must be a list of length n_bottom, where each element is either
-#' * a PMF object (see details below), if `bottom_in_type='pmf'`;
-#' * a vector of samples, if `bottom_in_type='samples'`;
-#' * a list of parameters, if `bottom_in_type='params'`:
-#'    * lambda for the Poisson base forecast if `distr`='poisson', see \link[stats]{Poisson};
-#'    * size and prob (or mu) for the negative binomial base forecast if `distr`='nbinom',
-#'      see \link[stats]{NegBinomial}.
-#'
-#' The base upper forecasts `base_fc_upper` must be a list containing the parameters of
-#' the multivariate Gaussian distribution of the upper forecasts.
-#' The list must contain only the named elements `mean` (vector of length n_upper)
-#' and `cov` (n_upper x n_upper matrix).
-#'
-#' The order of the upper and bottom base forecasts must match the order of (respectively) the rows and the columns of A.
-#'
-#' A PMF object is a numerical vector containing the probability mass function of a discrete distribution.
-#' Each element corresponds to the probability of the integers from 0 to the last value of the support.
-#' See also [PMF] for functions that handle PMF objects.
-#'
-#' If some of the reconciled upper samples lie outside the support of the bottom-up distribution,
-#' those samples are discarded and a warning is triggered.
-#' The warning reports the percentage of samples kept.
-#'
-#' @param A aggregation matrix (n_upper x n_bottom).
-#' @param base_fc_bottom A list containing the bottom base forecasts, see details.
-#' @param base_fc_upper A list containing the upper base forecasts, see details.
-#' @param bottom_in_type A string with three possible values:
-#'
-#' * 'pmf' if the bottom base forecasts are in the form of pmf, see details;
-#' * 'samples' if the bottom base forecasts are in the form of samples;
-#' * 'params'  if the bottom base forecasts are in the form of estimated parameters.
-#'
-#' @param distr A string describing the type of bottom base forecasts ('poisson' or 'nbinom').
-#'
-#' This is only used if `bottom_in_type=='params'`.
-#'
-#' @param num_samples Number of samples drawn from the reconciled distribution.
-#'        This is ignored if `bottom_in_type='samples'`; in this case, the number of
-#'        reconciled samples is equal to the number of samples of the base forecasts.
-#'
-#' @param return_type The return type of the reconciled distributions.
-#'        A string with three possible values:
-#'
-#' * 'pmf' returns a list containing the reconciled marginal pmf objects;
-#' * 'samples' returns a list containing the reconciled multivariate samples;
-#' * 'all' returns a list with both pmf objects and samples.
-#' 
-#' @param return_upper Logical, whether to return the reconciled parameters for the upper variables (default is TRUE).
-#'
-#' @param suppress_warnings Logical. If \code{TRUE}, no warnings about samples
-#'        are triggered. If \code{FALSE}, warnings are generated. Default is \code{FALSE}. See Details.
-#' @param seed Seed for reproducibility.
-#'
-#' @return A list containing the reconciled forecasts. The list has the following named elements:
-#'
-#' * `bottom_rec`: a list containing the pmf, the samples (matrix n_bottom x `num_samples`) or both,
-#'    depending on the value of `return_type`;
-#' * `upper_rec`:  (only if `return_upper = TRUE`) a list containing the pmf, the samples (matrix n_upper x `num_samples`) or both,
-#'    depending on the value of `return_type`.
-#'
+#' @rdname reconc_mixed
 #' @examples
 #'
 #' library(bayesRecon)
@@ -155,15 +80,15 @@
 #' lambda <- 15
 #' n_tot <- 60
 #' base_fc_bottom <- list()
-#' base_fc_bottom[[1]] <- apply(matrix(seq(0, n_tot)), MARGIN = 1, 
+#' base_fc_bottom[[1]] <- apply(matrix(seq(0, n_tot)), MARGIN = 1,
 #'                              FUN = \(x) dpois(x, lambda = lambda))
-#' base_fc_bottom[[2]] <- apply(matrix(seq(0, n_tot)), MARGIN = 1, 
+#' base_fc_bottom[[2]] <- apply(matrix(seq(0, n_tot)), MARGIN = 1,
 #'                              FUN = \(x) dpois(x, lambda = lambda))
 #'
 #' # The upper forecast is a Normal with mean 40 and std 5
 #' base_fc_upper <- list(mean = 40, cov = matrix(c(5^2)))
 #'
-#' # We can reconcile with reconc_TDcond
+#' # Reconcile with reconc_TDcond
 #' res.TDcond <- reconc_TDcond(A, base_fc_bottom, base_fc_upper)
 #'
 #' # Note that the bottom distributions are shifted to the right
@@ -195,7 +120,7 @@
 #' n_tot <- 60
 #' base_fc_bottom <- list()
 #' for (i in seq(n_bottom)) {
-#'   base_fc_bottom[[i]] <- apply(matrix(seq(0, n_tot)), MARGIN = 1, 
+#'   base_fc_bottom[[i]] <- apply(matrix(seq(0, n_tot)), MARGIN = 1,
 #'                                FUN = \(x) dpois(x, lambda = lambda))
 #' }
 #'
@@ -209,12 +134,11 @@
 #'
 #' base_fc_upper <- list(mean = mean, cov = cov)
 #' \dontrun{
-#' # If we reconcile with reconc_TDcond it won't work
+#' # If we reconcile with reconc_TDcond it won't work (unbalanced hierarchy)
 #' res.TDcond <- reconc_TDcond(A, base_fc_bottom, base_fc_upper)
 #' }
 #'
-#' # We can balance the hierarchy with by duplicating the node b5
-#' # In practice this means:
+#' # We can balance the hierarchy by duplicating the node b5:
 #' # i) consider the time series observations for b5 as the upper u4,
 #' # ii) fit the multivariate ts model for u1, u2, u3, u4.
 #'
@@ -246,20 +170,12 @@
 #' # keep this in mind when using the results of your reconciliation!
 #' max(abs(res.TDcond$bottom_rec$pmf[[5]] - res.TDcond$upper_rec$pmf[[4]]))
 #'
-#' @references
-#' Zambon, L., Azzimonti, D., Rubattu, N., Corani, G. (2024).
-#' *Probabilistic reconciliation of mixed-type hierarchical time series*.
-#' Proceedings of the Fortieth Conference on Uncertainty in Artificial Intelligence,
-#' PMLR 244:4078-4095. <https://proceedings.mlr.press/v244/zambon24a.html>.
-#'
-#' @seealso [reconc_MixCond()], [reconc_BUIS()]
-#'
 #' @export
 reconc_TDcond <- function(A, base_fc_bottom, base_fc_upper,
                           bottom_in_type = "pmf", distr = NULL,
                           num_samples = 2e4, return_type = "pmf",
                           return_upper = TRUE,
-                          suppress_warnings = FALSE, seed = NULL) {
+                          suppress_warnings = TRUE, seed = NULL) {
   if (!is.null(seed)) set.seed(seed)
 
   # Check inputs
@@ -284,8 +200,9 @@ reconc_TDcond <- function(A, base_fc_bottom, base_fc_upper,
 
   out <- .core_reconc_TDcond(
     A, mean_upper, cov_upper, L_pmf, num_samples,
-    return_type, suppress_warnings,
-    return_upper = return_upper
+    return_type = return_type, 
+    return_upper = return_upper,
+    suppress_warnings = suppress_warnings
   )
 
   return(out)
@@ -304,7 +221,11 @@ reconc_TDcond <- function(A, base_fc_bottom, base_fc_upper,
 #' @param L_pmf List of PMF objects representing the bottom level base forecasts.
 #' @param num_samples Number of samples to draw from the reconciled distribution.
 #' @param return_type Character string specifying return format: 'pmf', 'samples', or 'all'.
-#' @param suppress_warnings Logical. If TRUE, suppresses warnings about samples outside support. Default is FALSE.
+#' @param return_upper Logical, whether to return reconciled upper forecasts (default TRUE).
+#' @param suppress_warnings Logical, whether to suppress warnings about samples outside support (default TRUE).
+#' @param min_fraction_samples_ok Numeric between 0 and 1, minimum fraction of reconciled 
+#' upper samples that must lie in the support of the bottom-up distribution (default 0.5). 
+#' If the fraction is below this threshold, the function returns an error.
 #'
 #' @return A list containing:
 #'   \itemize{
@@ -326,8 +247,9 @@ reconc_TDcond <- function(A, base_fc_bottom, base_fc_upper,
 #' @keywords internal
 #' @export
 .core_reconc_TDcond <- function(A, mean_upper, cov_upper, L_pmf, num_samples,
-                                return_type, suppress_warnings,
-                                return_upper = TRUE) {
+                                return_type, return_upper = TRUE,
+                                suppress_warnings = TRUE,
+                                min_fraction_samples_ok = .MIN_FRACTION_SAMPLES_OK) {
   # Find the "lowest upper"
   n_u <- nrow(A)
   n_b <- ncol(A)
@@ -380,20 +302,35 @@ reconc_TDcond <- function(A, base_fc_bottom, base_fc_upper,
   # Check that each multiv. sample of U is contained in the supp of the bottom-up distr
   samp_ok <- mapply(PMF_check_support, U_js, L_pmf_js)
   samp_ok <- rowSums(samp_ok) == n_u_low
-  # Only keep the "good" upper samples, and throw a warning if some samples are discarded:
-  U_js <- lapply(U_js, "[", samp_ok)
-  num_samples_ok <- sum(samp_ok)
-  if (num_samples_ok != num_samples & !suppress_warnings) {
-    # We round down to the nearest decimal
-    warning(paste0(
-      "Only ", floor(sum(samp_ok) / num_samples * 1000) / 10, "% of the upper samples ",
-      "are in the support of the bottom-up distribution; ",
-      "the others are discarded."
-    ))
+
+  # Check if the fraction of samples that are in the support of the bottom-up distribution 
+  # is above the threshold; if not, stop 
+  if (mean(samp_ok) < min_fraction_samples_ok) {
+    stop(paste0("The fraction of reconciled upper samples that lie in the support 
+                 of the bottom-up distribution is",
+                 round(mean(samp_ok * 100), 1), 
+                "which is below the minimum threshold (",
+                 round(min_fraction_samples_ok * 100, 1),  "). ",
+                "Consider increasing the variance of the base forecasts."))
+  }
+
+  # Resample the upper samples that are in the support of the bottom-up distribution, if necessary.
+  # The number of output samples is equal to the number of input samples, but some of the output samples 
+  # are duplicates of the "good" input samples.
+  if (sum(samp_ok) < num_samples) {
+    res_idxs <- sample(which(samp_ok), size = num_samples, replace = TRUE)
+    U_js <- lapply(U_js, "[", res_idxs) 
+    if (!suppress_warnings) {
+      warning(paste0(
+        "Only ", floor(sum(samp_ok) / num_samples * 1000) / 10, "% of the upper samples ",
+        "are in the support of the bottom-up distribution; ",
+        "the others are discarded and the remaining ones are resampled with replacement."
+      ))
+    }
   }
 
   # Get bottom samples via the prob top-down
-  B <- matrix(nrow = n_b, ncol = num_samples_ok)
+  B <- matrix(nrow = n_b, ncol = num_samples)
   for (j in 1:n_u_low) {
     mask_j <- as.logical(A[lowest_rows[j], ]) # mask for the position of the bottom referring to lowest upper j
     B[mask_j, ] <- .TD_sampling(U_js[[j]], L_pmf_js[[j]])
