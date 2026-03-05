@@ -1,23 +1,28 @@
 Package: bayesRecon
 Type: Package
-Date: 2025-07-21
+Date: 2026-03-06
 Title: Probabilistic Reconciliation via Conditioning
-Version: 0.3.3
+Version: 1.0.0
 Authors@R: c(person(given = "Dario",
              family = "Azzimonti",
              role = c("aut","cre"),
              email = "dario.azzimonti@gmail.com",
              comment = c(ORCID = "0000-0001-5080-3061")),
+       person(given = "Lorenzo",
+             family = "Zambon",
+             role = c("aut"),
+             email = "lorenzo.zambon@idsia.ch",
+             comment = c(ORCID = "0000-0002-8939-993X")),
+       person(given = "Stefano",
+             family = "Damato",
+             role = c("aut"),
+             email = "stefano.damato@idsia.ch",
+             comment = c(ORCID = "0009-0001-0225-3736")),
       person(given = "Nicolò",
              family = "Rubattu",
              role = c("aut"),
              email = "nicolo.rubattu@idsia.ch",
              comment = c(ORCID = "0000-0002-2703-1005")),
-      person(given = "Lorenzo",
-             family = "Zambon",
-             role = c("aut"),
-             email = "lorenzo.zambon@idsia.ch",
-             comment = c(ORCID = "0000-0002-8939-993X")),
       person(given = "Giorgio",
              family = "Corani",
              role = c("aut"),
@@ -31,18 +36,21 @@ Description: Provides methods for probabilistic reconciliation of hierarchical f
              <doi:10.1016/j.ijforecast.2023.04.003>, 
              Bottom-Up Importance Sampling (Zambon et al., 2024) 
              <doi:10.1007/s11222-023-10343-y>,
-             methods for the reconciliation of mixed hierarchies (Mix-Cond and TD-cond)
-             (Zambon et al., 2024) <https://proceedings.mlr.press/v244/zambon24a.html>. 
+             methods for the reconciliation of mixed hierarchies (Mix-Cond and TD-cond) (Zambon et al., 2024) 
+             <https://proceedings.mlr.press/v244/zambon24a.html>,
+             analytical reconciliation with Bayesian treatment of the covariance matrix (Carrara et al., 2025)
+             <doi: 10.48550/arXiv.2506.19554>.
 License: LGPL (>= 3)
 Depends: R (>= 4.1.0)
 Imports:
     stats,
     utils,
-    lpSolve (>= 5.6.18)
+    lpSolve (>= 5.6.18),
+    nloptr
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown=TRUE)
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 Suggests: 
     knitr,
     rmarkdown,

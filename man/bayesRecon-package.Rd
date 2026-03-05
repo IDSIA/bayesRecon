@@ -6,7 +6,9 @@
 \alias{bayesRecon-package}
 \title{bayesRecon: Probabilistic Reconciliation via Conditioning}
 \description{
-Provides methods for probabilistic reconciliation of hierarchical forecasts of time series. The available methods include analytical Gaussian reconciliation (Corani et al., 2021) \doi{10.1007/978-3-030-67664-3_13}, MCMC reconciliation of count time series (Corani et al., 2024) \doi{10.1016/j.ijforecast.2023.04.003}, Bottom-Up Importance Sampling (Zambon et al., 2024) \doi{10.1007/s11222-023-10343-y}, methods for the reconciliation of mixed hierarchies (Mix-Cond and TD-cond) (Zambon et al., 2024) \url{https://proceedings.mlr.press/v244/zambon24a.html}.
+\if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
+
+Provides methods for probabilistic reconciliation of hierarchical forecasts of time series. The available methods include analytical Gaussian reconciliation (Corani et al., 2021) \doi{10.1007/978-3-030-67664-3_13}, MCMC reconciliation of count time series (Corani et al., 2024) \doi{10.1016/j.ijforecast.2023.04.003}, Bottom-Up Importance Sampling (Zambon et al., 2024) \doi{10.1007/s11222-023-10343-y}, methods for the reconciliation of mixed hierarchies (Mix-Cond and TD-cond) (Zambon et al., 2024) \url{https://proceedings.mlr.press/v244/zambon24a.html}, analytical reconciliation with Bayesian treatment of the covariance matrix (Carrara et al., 2025) \doi{ 10.48550/arXiv.2506.19554}.
 }
 \section{Learn more}{
 
@@ -14,13 +16,13 @@ Provides methods for probabilistic reconciliation of hierarchical forecasts of t
 To learn more about \code{bayesRecon}, start with the vignettes: \code{browseVignettes(package = "bayesRecon")}
 }
 
-\section{Main functions}{
+\section{Reconciliation functions}{
 
 
 The package implements reconciliation via conditioning for probabilistic forecasts
 of hierarchical time series. The main functions are:
 \itemize{
-\item \code{\link[=reconc_gaussian]{reconc_gaussian()}}: reconciliation via conditioning of multivariate Gaussian
+\item \code{\link[=reconc_gaussian]{reconc_gaussian()}}: reconciliation via conditioning, assumes multivariate Gaussian
 base forecasts; this is done analytically;
 \item \code{\link[=reconc_BUIS]{reconc_BUIS()}}: reconciliation via conditioning of any probabilistic forecast
 via importance sampling; this is the recommended option for non-Gaussian base forecasts;
@@ -29,7 +31,9 @@ forecasts via Markov Chain Monte Carlo;
 \item \code{\link[=reconc_MixCond]{reconc_MixCond()}}: reconciliation via conditioning of mixed hierarchies, where
 the upper forecasts are multivariate Gaussian and the bottom forecasts are discrete distributions;
 \item \code{\link[=reconc_TDcond]{reconc_TDcond()}}: reconciliation via top-down conditioning of mixed hierarchies, where
-the upper forecasts are multivariate Gaussian and the bottom forecasts are discrete distributions.
+the upper forecasts are multivariate Gaussian and the bottom forecasts are discrete distributions;
+\item \code{\link[=reconc_t]{reconc_t()}}: reconciliation via conditioning with uncertain covariance matrix;
+the reconciled forecasts are multivariate Student-t; this is done analytically.
 }
 }
 
@@ -40,8 +44,9 @@ the upper forecasts are multivariate Gaussian and the bottom forecasts are discr
 \item \code{\link[=get_reconc_matrices]{get_reconc_matrices()}}: aggregation and summing matrices for a temporal hierarchy
 of time series from user-selected list of aggregation levels;
 \item \code{\link[=schaferStrimmer_cov]{schaferStrimmer_cov()}}: computes the Schäfer-Strimmer shrinkage estimator for the covariance matrix;
-\item \code{\link[=PMF.get_mean]{PMF.get_mean()}}, \code{\link[=PMF.get_var]{PMF.get_var()}}, \code{\link[=PMF.get_quantile]{PMF.get_quantile()}}, \code{\link[=PMF.summary]{PMF.summary()}}, \code{\link[=PMF.sample]{PMF.sample()}}:
-functions for handling PMF objects.
+\item \code{\link[=multi_log_score_optimization]{multi_log_score_optimization()}}: estimates the optimal degrees of freedom for \code{\link[=reconc_t]{reconc_t()}}
+by maximizing the leave-one-out (LOO) multivariate log density;
+\item \link{PMF}: functions for handling PMF objects (sampling, computing statistics like mean, variance, quantiles, and summaries).
 }
 }
 
@@ -70,6 +75,10 @@ Zambon, L., Azzimonti, D., Rubattu, N., Corani, G. (2024).
 \emph{Probabilistic reconciliation of mixed-type hierarchical time series}.
 Proceedings of the Fortieth Conference on Uncertainty in Artificial Intelligence,
 PMLR 244:4078-4095. \url{https://proceedings.mlr.press/v244/zambon24a.html}.
+
+Carrara, C., Corani, G., Azzimonti, D., & Zambon, L. (2025).
+\emph{Modeling the uncertainty on the covariance matrix for probabilistic forecast reconciliation}.
+arXiv preprint arXiv:2506.19554. \url{https://arxiv.org/abs/2506.19554}.
 }
 \seealso{
 Useful links:
@@ -85,8 +94,9 @@ Useful links:
 
 Authors:
 \itemize{
-  \item Nicolò Rubattu \email{nicolo.rubattu@idsia.ch} (\href{https://orcid.org/0000-0002-2703-1005}{ORCID})
   \item Lorenzo Zambon \email{lorenzo.zambon@idsia.ch} (\href{https://orcid.org/0000-0002-8939-993X}{ORCID})
+  \item Stefano Damato \email{stefano.damato@idsia.ch} (\href{https://orcid.org/0009-0001-0225-3736}{ORCID})
+  \item Nicolò Rubattu \email{nicolo.rubattu@idsia.ch} (\href{https://orcid.org/0000-0002-2703-1005}{ORCID})
   \item Giorgio Corani \email{giorgio.corani@idsia.ch} (\href{https://orcid.org/0000-0002-1541-8384}{ORCID})
 }
 

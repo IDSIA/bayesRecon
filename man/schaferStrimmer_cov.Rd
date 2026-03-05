@@ -33,16 +33,17 @@ nSamples <- 200
 pTrue <- 2
 
 # True moments
-trueSigma <- matrix(c(3,2,2,2), nrow=2)
-chol_trueSigma <- chol(trueSigma)
-trueMean <- c(0,0) 
+true_cov <- matrix(c(3, 2, 2, 2), nrow = 2)
+chol_true_cov <- chol(true_cov)
+true_mean <- c(0, 0)
 
 # Generate samples
 set.seed(42)
-x <- replicate(nSamples, trueMean) +  
-     t(chol_trueSigma)\%*\%matrix(stats::rnorm(pTrue*nSamples), 
-                                nrow = pTrue, ncol = nSamples)
-x <- t(x) 
+x <- replicate(nSamples, true_mean) +
+  t(chol_true_cov) \%*\% matrix(stats::rnorm(pTrue * nSamples),
+    nrow = pTrue, ncol = nSamples
+  )
+x <- t(x)
 res_shrinkage <- schaferStrimmer_cov(x)
 res_shrinkage$lambda_star # should be 0.01287923
 

@@ -6,18 +6,19 @@
 \usage{
 reconc_BUIS(
   A,
-  base_forecasts,
+  base_fc,
   in_type,
   distr,
   num_samples = 20000,
   suppress_warnings = FALSE,
+  return_upper = TRUE,
   seed = NULL
 )
 }
 \arguments{
 \item{A}{aggregation matrix (n_upper x n_bottom).}
 
-\item{base_forecasts}{A list containing the base_forecasts, see details.}
+\item{base_fc}{A list containing the base_forecasts, see details.}
 
 \item{in_type}{A string or a list of length n_upper + n_bottom. If it is a list the i-th element is a string with two possible values:
 \itemize{
@@ -43,14 +44,15 @@ the number of samples of the base forecasts.}
 \item{suppress_warnings}{Logical. If \code{TRUE}, no warnings about effective sample size
 are triggered. If \code{FALSE}, warnings are generated. Default is \code{FALSE}. See Details.}
 
+\item{return_upper}{Logical, whether to return the reconciled parameters for the upper variables (default is TRUE).}
+
 \item{seed}{Seed for reproducibility.}
 }
 \value{
 A list containing the reconciled forecasts. The list has the following named elements:
 \itemize{
-\item \code{bottom_reconciled_samples}: a matrix (n_bottom x \code{num_samples}) containing the reconciled samples for the bottom time series;
-\item \code{upper_reconciled_samples}: a matrix (n_upper x \code{num_samples}) containing the reconciled samples for the upper time series;
-\item \code{reconciled_samples}: a matrix (n x \code{num_samples}) containing the reconciled samples for all time series.
+\item \code{bottom_rec_samples}: a matrix (n_bottom x \code{num_samples}) containing the reconciled samples for the bottom time series;
+\item \code{upper_rec_samples}: (only if \code{return_upper = TRUE}) a matrix (n_upper x \code{num_samples}) containing the reconciled samples for the upper time series.
 }
 }
 \description{
@@ -58,15 +60,15 @@ Uses the Bottom-Up Importance Sampling algorithm to draw samples from the reconc
 forecast distribution, obtained via conditioning.
 }
 \details{
-The parameter \code{base_forecast} is a list containing n = n_upper + n_bottom elements.
+The parameter \code{base_fc} is a list containing n = n_upper + n_bottom elements.
 The first n_upper elements of the list are the upper base forecasts, in the order given by the rows of A.
 The elements from n_upper+1 until the end of the list are the bottom base forecasts, in the order given by the columns of A.
 
 The i-th element depends on the values of \code{in_type[[i]]} and \code{distr[[i]]}.
 
-If \code{in_type[[i]]}='samples', then \code{base_forecast[[i]]} is a vector containing samples from the base forecast distribution.
+If \code{in_type[[i]]}='samples', then \code{base_fc[[i]]} is a vector containing samples from the base forecast distribution.
 
-If \code{in_type[[i]]}='params', then \code{base_forecast[[i]]} is a list containing the estimated:
+If \code{in_type[[i]]}='params', then \code{base_fc[[i]]} is a list containing the estimated:
 \itemize{
 \item mean and sd for the Gaussian base forecast if \code{distr[[i]]}='gaussian', see \link[stats]{Normal};
 \item lambda for the Poisson base forecast if \code{distr[[i]]}='poisson', see \link[stats]{Poisson};
@@ -90,66 +92,72 @@ Please check the base forecasts in case of warnings.
 library(bayesRecon)
 
 # Create a minimal hierarchy with 2 bottom and 1 upper variable
-rec_mat <- get_reconc_matrices(agg_levels=c(1,2), h=2)
+rec_mat <- get_reconc_matrices(agg_levels = c(1, 2), h = 2)
 A <- rec_mat$A
 S <- rec_mat$S
 
 
-#1) Gaussian base forecasts
+# 1) Gaussian base forecasts
 
-#Set the parameters of the Gaussian base forecast distributions
+# Set the parameters of the Gaussian base forecast distributions
 mu1 <- 2
 mu2 <- 4
 muY <- 9
-mus <- c(muY,mu1,mu2)
+mus <- c(muY, mu1, mu2)
 
 sigma1 <- 2
 sigma2 <- 2
 sigmaY <- 3
-sigmas <- c(sigmaY,sigma1,sigma2)
+sigmas <- c(sigmaY, sigma1, sigma2)
 
-base_forecasts = list()
+base_fc <- list()
 for (i in 1:length(mus)) {
-base_forecasts[[i]] = list(mean = mus[[i]], sd = sigmas[[i]])
+  base_fc[[i]] <- list(mean = mus[[i]], sd = sigmas[[i]])
 }
 
 
-#Sample from the reconciled forecast distribution using the BUIS algorithm
-buis <- reconc_BUIS(A, base_forecasts, in_type="params",
-                 distr="gaussian", num_samples=100000, seed=42)
+# Sample from the reconciled forecast distribution using the BUIS algorithm
+buis <- reconc_BUIS(A, base_fc,
+  in_type = "params",
+  distr = "gaussian", num_samples = 100000, seed = 42
+)
 
-samples_buis <- buis$reconciled_samples
+samples_buis <- rbind(buis$upper_rec_samples, buis$bottom_rec_samples)
 
-#In the Gaussian case, the reconciled distribution is still Gaussian and can be
-#computed in closed form
-Sigma <- diag(sigmas^2)  #transform into covariance matrix
-analytic_rec <- reconc_gaussian(A, base_forecasts.mu = mus,
-                                base_forecasts.Sigma = Sigma)
+# In the Gaussian case, the reconciled distribution is still Gaussian and can be
+# computed in closed form
+Sigma <- diag(sigmas^2) # transform into covariance matrix
+analytic_rec <- reconc_gaussian(A,
+  base_fc_mean = mus,
+  base_fc_cov = Sigma
+)
 
-#Compare the reconciled means obtained analytically and via BUIS
-print(c(S \%*\% analytic_rec$bottom_reconciled_mean))
+# Compare the reconciled means obtained analytically and via BUIS
+print(c(S \%*\% analytic_rec$bottom_rec_mean))
 print(rowMeans(samples_buis))
 
 
-#2) Poisson base forecasts
+# 2) Poisson base forecasts
 
-#Set the parameters of the Poisson base forecast distributions
+# Set the parameters of the Poisson base forecast distributions
 lambda1 <- 2
 lambda2 <- 4
 lambdaY <- 9
-lambdas <- c(lambdaY,lambda1,lambda2)
+lambdas <- c(lambdaY, lambda1, lambda2)
 
-base_forecasts <- list()
+base_fc <- list()
 for (i in 1:length(lambdas)) {
- base_forecasts[[i]] = list(lambda = lambdas[i])
+  base_fc[[i]] <- list(lambda = lambdas[i])
 }
 
-#Sample from the reconciled forecast distribution using the BUIS algorithm
-buis <- reconc_BUIS(A, base_forecasts, in_type="params",
-                          distr="poisson", num_samples=100000, seed=42)
-samples_buis <- buis$reconciled_samples
+# Sample from the reconciled forecast distribution using the BUIS algorithm
+buis <- reconc_BUIS(A, base_fc,
+  in_type = "params",
+  distr = "poisson", num_samples = 100000, seed = 42
+)
+samples_buis <- rbind(buis$upper_rec_samples, buis$bottom_rec_samples)
 
-#Print the reconciled means
+# Print the reconciled means
 print(rowMeans(samples_buis))
 
 }
