@@ -1,6 +1,6 @@
 # bayesRecon 1.0.0
 
-* Major update to the API for the reconciliation functions: the inputs and outputs are standardized. 
+* Major update to the API for the reconciliation functions that breaks older code. The inputs and outputs are now standardized. 
 
 * Added the function `reconc_t` which implements the t-Rec method for a Bayesian treatment of the covariance of the residuals. 
 
