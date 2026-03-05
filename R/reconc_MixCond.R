@@ -98,10 +98,10 @@
 #'
 #' @seealso [reconc_BUIS()], [reconc_gaussian()], [PMF]
 #'
-#' @name reconc_mixed
+#' @name Mixed_reconciliation
 NULL
 
-#' @rdname reconc_mixed
+#' @rdname Mixed_reconciliation
 #' @examples
 #'
 #' library(bayesRecon)

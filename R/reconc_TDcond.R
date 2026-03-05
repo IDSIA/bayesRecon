@@ -69,7 +69,7 @@
   return(b_new)
 }
 
-#' @rdname reconc_mixed
+#' @rdname Mixed_reconciliation
 #' @examples
 #'
 #' library(bayesRecon)
