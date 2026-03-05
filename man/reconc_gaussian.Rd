@@ -163,5 +163,5 @@ International Journal of Forecasting (in press).
 \doi{10.1016/j.ijforecast.2023.12.004}.
 }
 \seealso{
-\code{\link[=reconc_BUIS]{reconc_BUIS()}}
+\code{\link[=reconc_t]{reconc_t()}}, \code{\link[=reconc_BUIS]{reconc_BUIS()}}
 }

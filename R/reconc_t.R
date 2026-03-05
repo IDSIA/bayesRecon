@@ -368,6 +368,9 @@ multi_log_score_optimization <- function(res, prior_mean, trim = 0.1) {
 #'   cat(sprintf("Upper:    95%% PI = [%.3f, %.3f]\n", lo, hi))
 #' }
 #' }
+#' 
+#' @seealso 
+#' [reconc_gaussian()]
 #'
 #' @export
 reconc_t <- function(A,

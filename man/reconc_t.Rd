@@ -177,3 +177,6 @@ Carrara, C., Corani, G., Azzimonti, D., & Zambon, L. (2025). Modeling the uncert
 matrix for probabilistic forecast reconciliation. arXiv preprint arXiv:2506.19554.
 \url{https://arxiv.org/abs/2506.19554}
 }
+\seealso{
+\code{\link[=reconc_gaussian]{reconc_gaussian()}}
+}

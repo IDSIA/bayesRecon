@@ -4,6 +4,8 @@
 
 * Added the function `reconc_t` which implements the t-Rec method for a Bayesian treatment of the covariance of the residuals. 
 
+* The function `reconc_gaussian` now takes as input the residuals and computes the covariance matrix internally.
+
 * Added the dataset `swiss_tourism` that contains time series of monthly overnight stay data in each Canton in Switzerland.
 
 * Added logo to the package
