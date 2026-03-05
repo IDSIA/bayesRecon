@@ -1,3 +1,18 @@
+# bayesRecon 1.0.0
+
+* Major update to the API for the reconciliation functions: the inputs and outputs are standardized. 
+
+* Added the function `reconc_t` which implements the t-Rec method for a Bayesian treatment of the covariance of the residuals. 
+
+* Added the dataset `swiss_tourism` that contains time series of monthly overnight stay data in each Canton in Switzerland.
+
+* Added logo to the package
+
+* Major internal change to all `reconc_*` functions: the main algorithm is now developed in the functions `.core_reconc_*`, they are exported but do not appear in the main documentation.
+
+* Minor bug fixes in all functions.
+
+
 # bayesRecon 0.3.3
 
 * Minor bug fixes.

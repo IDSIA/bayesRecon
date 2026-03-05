@@ -19,7 +19,7 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 The package `bayesRecon` implements several methods for probabilistic
 reconciliation of hierarchical time series forecasts.
 
-The main functions are:
+The reconciliation functions are:
 
 - `reconc_gaussian`: reconciliation via conditioning of multivariate
   Gaussian base forecasts; this is done analytically;
@@ -33,9 +33,15 @@ The main functions are:
   the bottom forecasts are discrete distributions;
 - `reconc_TDcond`: reconciliation via top-down conditioning of mixed
   hierarchies, where the upper forecasts are multivariate Gaussian and
-  the bottom forecasts are discrete distributions.
+  the bottom forecasts are discrete distributions;
+- `reconc_t`: reconciliation via conditioning with uncertain covariance
+  matrix; the reconciled forecasts are multivariate Student-t; this is
+  done analytically.
 
 ## News
+
+:boom: \[2026-03-05\] Version 1.0 of the package. Major update on the
+API of the package, added `reconc_t` that implements the method t-Rec.
 
 :boom: \[2024-05-29\] Added `reconc_MixCond` and `reconc_TDcond` and the
 vignette “Reconciliation of M5 hierarchy with mixed-type forecasts”.
@@ -73,7 +79,7 @@ bottom variables are the two 6-monthly forecasts and the upper variable
 is the yearly forecast. We denote the variables for the two semesters
 and the year by $S_1, S_2, Y$ respectively.
 
-<img src="./man/figures/minimal_hierarchy.png" width="50%" style="display: block; margin: auto;" />
+<img src="./man/figures/minimal_hierarchy.png" alt="" width="50%" style="display: block; margin: auto;" />
 
 The hierarchy is described by the *aggregation matrix* A, which can be
 obtained using the function `get_reconc_matrices`.
@@ -120,7 +126,7 @@ buis <- reconc_BUIS(
   seed = 42
 )
 
-samples_buis <- buis$reconciled_samples
+samples_buis <- rbind(buis$upper_rec_samples, buis$bottom_rec_samples)
 ```
 
 Since there is a positive incoherence in the forecasts
@@ -128,7 +134,7 @@ Since there is a positive incoherence in the forecasts
 reconciled forecast increases. We show below this behavior for $S_1$.
 
 ``` r
-reconciled_forecast_S1 <- buis$bottom_reconciled_samples[1, ]
+reconciled_forecast_S1 <- buis$bottom_rec_samples[1, ]
 range_forecats <- range(reconciled_forecast_S1)
 hist(
   reconciled_forecast_S1,
@@ -147,7 +153,7 @@ points(
 )
 ```
 
-<img src="man/figures/README-unnamed-chunk-6-1.png" width="80%" style="display: block; margin: auto;" />
+<img src="man/figures/README-unnamed-chunk-6-1.png" alt="" width="80%" style="display: block; margin: auto;" />
 
 The blue circles represent the probability mass function of a Poisson
 with parameter $\lambda_{S_1}$ plotted on top of the histogram of the
@@ -163,8 +169,8 @@ reconciled samples of $S_2$.
 ``` r
 AA <-
   xyTable(
-    buis$bottom_reconciled_samples[1, ],
-    buis$bottom_reconciled_samples[2, ]
+    buis$bottom_rec_samples[1, ],
+    buis$bottom_rec_samples[2, ]
   )
 plot(
   AA$x,
@@ -174,12 +180,12 @@ plot(
   col = rgb(0, 0, 1, 0.4),
   xlab = "S_1",
   ylab = "S_2",
-  xlim = range(buis$bottom_reconciled_samples[1, ]),
-  ylim = range(buis$bottom_reconciled_samples[2, ])
+  xlim = range(buis$bottom_rec_samples[1, ]),
+  ylim = range(buis$bottom_rec_samples[2, ])
 )
 ```
 
-<img src="man/figures/README-unnamed-chunk-7-1.png" width="80%" style="display: block; margin: auto;" />
+<img src="man/figures/README-unnamed-chunk-7-1.png" alt="" width="80%" style="display: block; margin: auto;" />
 
 We also provide a function for sampling using Markov Chain Monte Carlo
 (Corani et al., 2023).
@@ -193,7 +199,7 @@ mcmc <- reconc_MCMC(
   seed = 42
 )
 
-samples_mcmc <- mcmc$reconciled_samples
+samples_mcmc <- rbind(mcmc$upper_rec_samples, mcmc$bottom_rec_samples)
 ```
 
 ### Example 2: Gaussian base forecasts
@@ -232,7 +238,7 @@ buis <- reconc_BUIS(
   num_samples = 100000,
   seed = 42
 )
-samples_buis <- buis$reconciled_samples
+samples_buis <- rbind(buis$upper_rec_samples, buis$bottom_rec_samples)
 buis_means <- rowMeans(samples_buis)
 ```
 
@@ -242,10 +248,10 @@ Gaussian and can be computed in closed form:
 ``` r
 Sigma <- diag(sigmas^2) # transform into covariance matrix
 analytic_rec <- reconc_gaussian(A,
-  base_forecasts.mu = mus,
-  base_forecasts.Sigma = Sigma
+  base_fc_mean = mus,
+  base_fc_cov = Sigma
 )
-analytic_means_bottom <- analytic_rec$bottom_reconciled_mean
+analytic_means_bottom <- analytic_rec$bottom_rec_mean
 analytic_means_upper <- A %*% analytic_means_bottom
 analytic_means <- rbind(analytic_means_upper, analytic_means_bottom)
 #> Warning in rbind(analytic_means_upper, analytic_means_bottom): number of
@@ -285,6 +291,11 @@ Proceedings of the Fortieth Conference on Uncertainty in Artificial
 Intelligence, in Proceedings of Machine Learning Research 244:4078-4095.
 [Available here](https://proceedings.mlr.press/v244/zambon24a.html).
 
+Carrara, C., Corani, G., Azzimonti, D., Zambon, L. (2025). *Modeling the
+uncertainty on the covariance matrix for probabilistic forecast
+reconciliation*. arXiv preprint arXiv:2506.19554. [Available
+here](https://arxiv.org/abs/2506.19554)
+
 ## Contributors
 
 <!-- prettier-ignore-start -->
@@ -297,37 +308,45 @@ Intelligence, in Proceedings of Machine Learning Research 244:4078-4095.
 
 <tr>
 
-<td align="center" valign="top" width="14.28%">
+<td align="center" valign="top" width="11.42%">
 
 <a href="https://sites.google.com/view/darioazzimonti/home">
-<img src="https://github.com/dazzimonti.png" width="100px;" alt="Dario Azzimonti" style="border-radius:50%;border:1px solid #646464;"/><br />
+<img src="https://github.com/dazzimonti.png" width="80px;" alt="Dario Azzimonti" style="border-radius:50%;border:1px solid #646464;"/><br />
 <sub><b>Dario Azzimonti</b></sub></a><br />
 <sub>(Maintainer)</sub><br />
-<a href="mailto:dario.azzimonti@gmail.com?subject=bayesRecon package!">dario.azzimonti@gmail.com</a>
+<a href="mailto:dario.azzimonti@gmail.com?subject=[bayesRecon package]">Email</a>
 </td>
 
-<td align="center" valign="top" width="14.28%">
+<td align="center" valign="top" width="11.42%">
 
 <a href="#">
-<img src="https://github.com/nicorbtt.png" width="100px;" alt="Nicolò Rubattu" style="border-radius:50%;border:1px solid #646464;"/><br />
-<sub><b>Nicolò Rubattu</b></sub></a><br />
-<a href="mailto:nicolo.rubattu@idsia.ch?subject=bayesRecon package!">nicolo.rubattu@idsia.ch</a>
+<img src="https://github.com/LorenzoZambon.png" width="80px;" alt="Lorenzo Zambon" style="border-radius:50%;border:1px solid #646464;"/><br />
+<sub><b>Lorenzo Zambon</b></sub></a><br /> <sub> </sub><br />
+<a href="mailto:lorenzo.zambon@idsia.ch?subject=[bayesRecon package]">Email</a>
 </td>
 
-<td align="center" valign="top" width="14.28%">
+<td align="center" valign="top" width="11.42%">
 
 <a href="#">
-<img src="https://github.com/LorenzoZambon.png" width="100px;" alt="Lorenzo Zambon" style="border-radius:50%;border:1px solid #646464;"/><br />
-<sub><b>Lorenzo Zambon</b></sub></a><br />
-<a href="mailto:lorenzo.zambon@idsia.ch?subject=bayesRecon package!">lorenzo.zambon@idsia.ch</a>
+<img src="https://github.com/StefanoDamato.png" width="80px;" alt="Stefano Damato" style="border-radius:50%;border:1px solid #646464;"/><br />
+<sub><b>Stefano Damato</b></sub></a><br /> <sub> </sub><br />
+<a href="mailto:stefano.damato@idsia.ch?subject=[bayesRecon package]">Email</a>
 </td>
 
-<td align="center" valign="top" width="14.28%">
+<td align="center" valign="top" width="11.42%">
+
+<a href="#">
+<img src="https://github.com/nicorbtt.png" width="80px;" alt="Nicolò Rubattu" style="border-radius:50%;border:1px solid #646464;"/><br />
+<sub><b>Nicolò Rubattu</b></sub></a><br /> <sub> </sub><br />
+<a href="mailto:nico.rubattu@gmail.com?subject=[bayesRecon package]">Email</a>
+</td>
+
+<td align="center" valign="top" width="11.42%">
 
 <a href="https://sites.google.com/site/awerbhjkl678214/home">
-<img src="https://github.com/gcorani.png" width="100px;" alt="Giorgio Corani" style="border-radius:50%;border:1px solid #646464;"/><br />
-<sub><b>Giorgio Corani</b></sub></a><br />
-<a href="mailto:giorgio.corani@idsia.ch">giorgio.corani@idsia.ch</a>
+<img src="https://github.com/gcorani.png" width="80px;" alt="Giorgio Corani" style="border-radius:50%;border:1px solid #646464;"/><br />
+<sub><b>Giorgio Corani</b></sub></a><br /> <sub> </sub><br />
+<a href="mailto:giorgio.corani@idsia.ch?subject=[bayesRecon package]">Email</a>
 </td>
 
 </tr>
