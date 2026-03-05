@@ -144,7 +144,7 @@
 #' International Journal of Forecasting (in press).
 #' \doi{10.1016/j.ijforecast.2023.12.004}.
 #'
-#' @seealso [reconc_BUIS()]
+#' @seealso [reconc_t()], [reconc_BUIS()]
 #'
 #' @export
 reconc_gaussian <- function(A, base_fc_mean,
