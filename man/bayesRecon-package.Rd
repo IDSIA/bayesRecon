@@ -16,7 +16,7 @@ Provides methods for probabilistic reconciliation of hierarchical forecasts of t
 To learn more about \code{bayesRecon}, start with the vignettes: \code{browseVignettes(package = "bayesRecon")}
 }
 
-\section{Main functions}{
+\section{Reconciliation functions}{
 
 
 The package implements reconciliation via conditioning for probabilistic forecasts
