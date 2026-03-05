@@ -310,6 +310,9 @@ reconc_TDcond <- function(A, base_fc_bottom, base_fc_upper,
 #' @param return_type Character string specifying return format: 'pmf', 'samples', or 'all'.
 #' @param return_upper Logical, whether to return reconciled upper forecasts (default TRUE).
 #' @param suppress_warnings Logical, whether to suppress warnings about samples outside support (default TRUE).
+#' @param min_fraction_samples_ok Numeric between 0 and 1, minimum fraction of reconciled 
+#' upper samples that must lie in the support of the bottom-up distribution (default 0.5). 
+#' If the fraction is below this threshold, the function returns an error.
 #'
 #' @return A list containing:
 #'   \itemize{
@@ -332,7 +335,8 @@ reconc_TDcond <- function(A, base_fc_bottom, base_fc_upper,
 #' @export
 .core_reconc_TDcond <- function(A, mean_upper, cov_upper, L_pmf, num_samples,
                                 return_type, return_upper = TRUE,
-                                suppress_warnings = TRUE) {
+                                suppress_warnings = TRUE,
+                                min_fraction_samples_ok = .MIN_FRACTION_SAMPLES_OK) {
   # Find the "lowest upper"
   n_u <- nrow(A)
   n_b <- ncol(A)
@@ -388,10 +392,13 @@ reconc_TDcond <- function(A, base_fc_bottom, base_fc_upper,
 
   # Check if the fraction of samples that are in the support of the bottom-up distribution 
   # is above the threshold; if not, stop 
-  if (mean(samp_ok) < .MIN_FRACTION_SAMPLES_OK) {
-    stop("The fraction of reconciled upper samples that lie in the support of the bottom-up 
-          distribution is below the minimum threshold. 
-          Consider increasing the variance of the base forecasts.")
+  if (mean(samp_ok) < min_fraction_samples_ok) {
+    stop(paste0("The fraction of reconciled upper samples that lie in the support 
+                 of the bottom-up distribution is",
+                 round(mean(samp_ok * 100), 1), 
+                "which is below the minimum threshold (",
+                 round(min_fraction_samples_ok * 100, 1),  "). ",
+                "Consider increasing the variance of the base forecasts."))
   }
 
   # Resample the upper samples that are in the support of the bottom-up distribution, if necessary.
