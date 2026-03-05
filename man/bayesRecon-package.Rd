@@ -94,8 +94,9 @@ Useful links:
 
 Authors:
 \itemize{
-  \item Nicolò Rubattu \email{nicolo.rubattu@idsia.ch} (\href{https://orcid.org/0000-0002-2703-1005}{ORCID})
   \item Lorenzo Zambon \email{lorenzo.zambon@idsia.ch} (\href{https://orcid.org/0000-0002-8939-993X}{ORCID})
+  \item Stefano Damato \email{stefano.damato@idsia.ch} (\href{https://orcid.org/0009-0001-0225-3736}{ORCID})
+  \item Nicolò Rubattu \email{nicolo.rubattu@idsia.ch} (\href{https://orcid.org/0000-0002-2703-1005}{ORCID})
   \item Giorgio Corani \email{giorgio.corani@idsia.ch} (\href{https://orcid.org/0000-0002-1541-8384}{ORCID})
 }
 

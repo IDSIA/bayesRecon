@@ -299,13 +299,9 @@ here](https://arxiv.org/abs/2506.19554)
 ## Contributors
 
 <!-- prettier-ignore-start -->
-
 <!-- markdownlint-disable -->
-
 <table>
-
 <tbody>
-
 <tr>
 
 <td align="center" valign="top" width="11.42%">
@@ -348,15 +344,10 @@ here](https://arxiv.org/abs/2506.19554)
 <sub><b>Giorgio Corani</b></sub></a><br /> <sub> </sub><br />
 <a href="mailto:giorgio.corani@idsia.ch?subject=[bayesRecon package]">Email</a>
 </td>
-
 </tr>
-
 </tbody>
-
 </table>
-
 <!-- markdownlint-restore -->
-
 <!-- prettier-ignore-end -->
 
 ## Getting help
