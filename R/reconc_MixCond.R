@@ -3,12 +3,16 @@
 ###############################################################################
 
 
-#' @title Probabilistic forecast reconciliation of mixed hierarchies via conditioning
+#' @title Probabilistic forecast reconciliation of mixed hierarchies 
 #'
 #' @description
 #'
-#' Uses importance sampling to draw samples from the reconciled
+#' `reconc_MixCond()` uses importance sampling to draw samples from the reconciled
 #' forecast distribution, obtained via conditioning, in the case of a mixed hierarchy.
+#'
+#' `reconc_TDcond()` uses a top-down conditioning algorithm: first, upper base forecasts are
+#' reconciled via conditioning using only the hierarchical constraints between the
+#' upper; then, the bottom distributions are updated via a probabilistic top-down procedure.
 #'
 #' @details
 #'
@@ -31,14 +35,21 @@
 #' Each element corresponds to the probability of the integers from 0 to the last value of the support.
 #' See also [PMF] for functions that handle PMF objects.
 #'
-#' Warnings are triggered from the Importance Sampling step if:
+#' @section Warnings and errors:
 #'
+#' In `reconc_MixCond`, warnings are triggered from the importance sampling step if:
 #' * weights are all zeros, then the upper forecast is ignored during reconciliation;
 #' * the effective sample size is < 200;
 #' * the effective sample size is < 1% of the sample size.
-#'
-#' Note that warnings are an indication that the base forecasts might have issues.
+#' 
+#' These warnings are an indication that the base forecasts might have issues.
 #' Please check the base forecasts in case of warnings.
+#' 
+#' In `reconc_TDcond`, if some of the reconciled upper samples lie outside the support of the bottom-up
+#' distribution, those samples are discarded; the remaining ones are resampled with
+#' replacement, so that the number of output samples is equal to `num_samples`.
+#' In this case, a warning is issued if `suppress_warnings=FALSE` (default is `TRUE`).
+#' If the fraction of discarded samples is above 50%, the function returns an error.
 #'
 #' @param A Aggregation matrix (n_upper x n_bottom).
 #' @param base_fc_bottom A list containing the bottom base forecasts, see details.
@@ -63,11 +74,13 @@
 #' * 'pmf' returns a list containing the reconciled marginal pmf objects;
 #' * 'samples' returns a list containing the reconciled multivariate samples;
 #' * 'all' returns a list with both pmf objects and samples.
-#' 
+#'
 #' @param return_upper Logical, whether to return the reconciled parameters for the upper variables (default is TRUE).
 #'
-#' @param suppress_warnings Logical. If \code{TRUE}, no warnings about samples
-#'        are triggered. If \code{FALSE}, warnings are generated. Default is \code{FALSE}. See Details.
+#' @param suppress_warnings Logical. If \code{TRUE}, no warnings about samples are triggered;
+#'        if \code{FALSE}, warnings are generated. Default is \code{FALSE} for `reconc_MixCond`
+#'        and \code{TRUE} for `reconc_TDcond`. See the respective sections above.
+#' 
 #' @param seed Seed for reproducibility.
 #'
 #' @return A list containing the reconciled forecasts. The list has the following named elements:
@@ -77,6 +90,18 @@
 #' * `upper_rec`: a list containing the pmf, the samples (matrix n_upper x `num_samples`) or both,
 #'    depending on the value of `return_type` (only if `return_upper = TRUE`).
 #'
+#' @references
+#' Zambon, L., Azzimonti, D., Rubattu, N., Corani, G. (2024).
+#' *Probabilistic reconciliation of mixed-type hierarchical time series*.
+#' Proceedings of the Fortieth Conference on Uncertainty in Artificial Intelligence,
+#' PMLR 244:4078-4095. <https://proceedings.mlr.press/v244/zambon24a.html>.
+#'
+#' @seealso [reconc_BUIS()], [reconc_gaussian()], [PMF]
+#'
+#' @name reconc_mixed
+NULL
+
+#' @rdname reconc_mixed
 #' @examples
 #'
 #' library(bayesRecon)
@@ -87,15 +112,15 @@
 #' lambda <- 15
 #' n_tot <- 60
 #' base_fc_bottom <- list()
-#' base_fc_bottom[[1]] <- apply(matrix(seq(0, n_tot)), MARGIN = 1, 
+#' base_fc_bottom[[1]] <- apply(matrix(seq(0, n_tot)), MARGIN = 1,
 #'                              FUN = \(x) dpois(x, lambda = lambda))
-#' base_fc_bottom[[2]] <- apply(matrix(seq(0, n_tot)), MARGIN = 1, 
+#' base_fc_bottom[[2]] <- apply(matrix(seq(0, n_tot)), MARGIN = 1,
 #'                              FUN = \(x) dpois(x, lambda = lambda))
 #'
 #' # The upper forecast is a Normal with mean 40 and std 5
 #' base_fc_upper <- list(mean = 40, cov = matrix(5^2))
 #'
-#' # We can reconcile with reconc_MixCond
+#' # Reconcile with reconc_MixCond
 #' res.mixCond <- reconc_MixCond(A, base_fc_bottom, base_fc_upper)
 #'
 #' # Note that the bottom distributions are slightly shifted to the right
@@ -108,14 +133,6 @@
 #' # The upper distribution is slightly shifted to the left
 #' PMF_summary(res.mixCond$upper_rec$pmf[[1]])
 #' PMF_get_var(res.mixCond$upper_rec$pmf[[1]])
-#'
-#' @references
-#' Zambon, L., Azzimonti, D., Rubattu, N., Corani, G. (2024).
-#' *Probabilistic reconciliation of mixed-type hierarchical time series*.
-#' Proceedings of the Fortieth Conference on Uncertainty in Artificial Intelligence,
-#' PMLR 244:4078-4095. <https://proceedings.mlr.press/v244/zambon24a.html>.
-#'
-#' @seealso [reconc_TDcond()], [reconc_BUIS()]
 #'
 #' @export
 reconc_MixCond <- function(A, base_fc_bottom, base_fc_upper,
@@ -151,8 +168,10 @@ reconc_MixCond <- function(A, base_fc_bottom, base_fc_upper,
 
   out <- .core_reconc_MixCond(
     A, B, mean_upper, cov_upper, num_samples,
-    return_type, suppress_warnings,
-    return_upper = return_upper
+    return_type = return_type, 
+    return_ESS = FALSE,
+    return_upper = return_upper,
+    suppress_warnings = suppress_warnings
   )
 
   return(out)
@@ -171,19 +190,22 @@ reconc_MixCond <- function(A, base_fc_bottom, base_fc_upper,
 #' @param cov_upper Covariance matrix of upper level.
 #' @param num_samples Number of samples to draw/resample from.
 #' @param return_type Character string specifying return format: 'pmf', 'samples', or 'all'.
-#' @param suppress_warnings Logical. If TRUE, suppresses warnings about sample quality. Default is FALSE.
+#' @param return_ESS Logical, whether to return the Effective Sample Size (ESS) from importance sampling weights (default TRUE).
+#' @param return_upper Logical, whether to return the reconciled parameters for the upper variables (default TRUE).
+#' @param suppress_warnings Logical. If TRUE, suppresses warnings about sample quality (default FALSE).
 
 #' @return A list containing:
 #'   \itemize{
 #'     \item `bottom_rec`: List with reconciled bottom forecasts (pmf and/or samples).
 #'     \item `upper_rec`: (only if `return_upper = TRUE`) List with reconciled upper forecasts (pmf and/or samples).
-#'     \item `ESS`: Effective Sample Size resulting from importance sampling reweighting.
+#'     \item `ESS`: Effective Sample Size resulting from importance sampling reweighting (only if `return_ESS = TRUE`).
 #'   }
 #'
 #' @keywords internal
 #' @export
-.core_reconc_MixCond <- function(A, B, mean_upper, cov_upper, num_samples, return_type, suppress_warnings,
-                                 return_upper = TRUE) {
+.core_reconc_MixCond <- function(A, B, mean_upper, cov_upper, num_samples, return_type, 
+                                 return_ESS = TRUE, return_upper = TRUE,
+                                 suppress_warnings = FALSE) {
   # Get dimensions
   n_u <- nrow(A)
   n_b <- ncol(A)
@@ -202,13 +224,11 @@ reconc_MixCond <- function(A, base_fc_bottom, base_fc_upper,
     B <- .resample(B, weights, num_samples)
   }
 
-  ESS <- sum(weights)**2 / sum(weights**2)
-
   B <- t(B)
   U <- A %*% B
 
   # Prepare output: include the marginal pmfs and/or the samples (depending on "return" inputs)
-  out <- list(bottom_rec = list(), upper_rec = list(), ESS = ESS)
+  out <- list(bottom_rec = list(), upper_rec = list())
   if (return_type %in% c("pmf", "all")) {
     bottom_pmf <- lapply(1:n_b, function(i) PMF_from_samples(B[i, ]))
     out$bottom_rec$pmf <- bottom_pmf
@@ -222,6 +242,10 @@ reconc_MixCond <- function(A, base_fc_bottom, base_fc_upper,
     if (return_upper) {
       out$upper_rec$samples <- U
     }
+  }
+  
+  if (return_ESS) {
+    out$ESS <- sum(weights)**2 / sum(weights**2)
   }
 
   return(out)

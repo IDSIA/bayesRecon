@@ -11,8 +11,9 @@
   cov_upper,
   num_samples,
   return_type,
-  suppress_warnings,
-  return_upper = TRUE
+  return_ESS = TRUE,
+  return_upper = TRUE,
+  suppress_warnings = FALSE
 )
 }
 \arguments{
@@ -28,14 +29,18 @@
 
 \item{return_type}{Character string specifying return format: 'pmf', 'samples', or 'all'.}
 
-\item{suppress_warnings}{Logical. If TRUE, suppresses warnings about sample quality. Default is FALSE.}
+\item{return_ESS}{Logical, whether to return the Effective Sample Size (ESS) from importance sampling weights (default TRUE).}
+
+\item{return_upper}{Logical, whether to return the reconciled parameters for the upper variables (default TRUE).}
+
+\item{suppress_warnings}{Logical. If TRUE, suppresses warnings about sample quality (default FALSE).}
 }
 \value{
 A list containing:
 \itemize{
 \item \code{bottom_rec}: List with reconciled bottom forecasts (pmf and/or samples).
 \item \code{upper_rec}: (only if \code{return_upper = TRUE}) List with reconciled upper forecasts (pmf and/or samples).
-\item \code{ESS}: Effective Sample Size resulting from importance sampling reweighting.
+\item \code{ESS}: Effective Sample Size resulting from importance sampling reweighting (only if \code{return_ESS = TRUE}).
 }
 }
 \description{

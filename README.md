@@ -19,7 +19,7 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 The package `bayesRecon` implements several methods for probabilistic
 reconciliation of hierarchical time series forecasts.
 
-The main functions are:
+The reconciliation functions are:
 
 - `reconc_gaussian`: reconciliation via conditioning of multivariate
   Gaussian base forecasts; this is done analytically;
@@ -39,6 +39,9 @@ The main functions are:
   done analytically.
 
 ## News
+
+:boom: \[2026-03-05\] bayesRecon v1.0: major update to the API, added
+`reconc_t`.
 
 :boom: \[2024-05-29\] Added `reconc_MixCond` and `reconc_TDcond` and the
 vignette “Reconciliation of M5 hierarchy with mixed-type forecasts”.
@@ -288,6 +291,11 @@ Proceedings of the Fortieth Conference on Uncertainty in Artificial
 Intelligence, in Proceedings of Machine Learning Research 244:4078-4095.
 [Available here](https://proceedings.mlr.press/v244/zambon24a.html).
 
+Carrara, C., Corani, G., Azzimonti, D., Zambon, L. (2025). *Modeling the
+uncertainty on the covariance matrix for probabilistic forecast
+reconciliation*. arXiv preprint arXiv:2506.19554. [Available
+here](https://arxiv.org/abs/2506.19554)
+
 ## Contributors
 
 <!-- prettier-ignore-start -->
@@ -295,36 +303,46 @@ Intelligence, in Proceedings of Machine Learning Research 244:4078-4095.
 <table>
 <tbody>
 <tr>
-<td align="center" valign="top" width="14.28%">
+
+<td align="center" valign="top" width="11.42%">
+
 <a href="https://sites.google.com/view/darioazzimonti/home">
-<img src="https://github.com/dazzimonti.png" width="100px;" alt="Dario Azzimonti" style="border-radius:50%;border:1px solid #646464;"/><br />
+<img src="https://github.com/dazzimonti.png" width="80px;" alt="Dario Azzimonti" style="border-radius:50%;border:1px solid #646464;"/><br />
 <sub><b>Dario Azzimonti</b></sub></a><br />
 <sub>(Maintainer)</sub><br />
-<a href="mailto:dario.azzimonti@gmail.com?subject=bayesRecon package!">dario.azzimonti@gmail.com</a>
+<a href="mailto:dario.azzimonti@gmail.com?subject=[bayesRecon package]">Email</a>
 </td>
-<td align="center" valign="top" width="14.28%">
+
+<td align="center" valign="top" width="11.42%">
+
 <a href="#">
-<img src="https://github.com/LorenzoZambon.png" width="100px;" alt="Lorenzo Zambon" style="border-radius:50%;border:1px solid #646464;"/><br />
-<sub><b>Lorenzo Zambon</b></sub></a><br />
-<a href="mailto:lorenzo.zambon@idsia.ch?subject=bayesRecon package!">lorenzo.zambon@idsia.ch</a>
+<img src="https://github.com/LorenzoZambon.png" width="80px;" alt="Lorenzo Zambon" style="border-radius:50%;border:1px solid #646464;"/><br />
+<sub><b>Lorenzo Zambon</b></sub></a><br /> <sub> </sub><br />
+<a href="mailto:lorenzo.zambon@idsia.ch?subject=[bayesRecon package]">Email</a>
 </td>
-<td align="center" valign="top" width="14.28%">
+
+<td align="center" valign="top" width="11.42%">
+
 <a href="#">
-<img src="https://github.com/StefanoDamato.png" width="100px;" alt="Stefano Damato" style="border-radius:50%;border:1px solid #646464;"/><br />
-<sub><b>Stefano Damato</b></sub></a><br />
-<a href="mailto:stefano.damato@idsia.ch?subject=bayesRecon package!">stefano.damato@idsia.ch</a>
+<img src="https://github.com/StefanoDamato.png" width="80px;" alt="Stefano Damato" style="border-radius:50%;border:1px solid #646464;"/><br />
+<sub><b>Stefano Damato</b></sub></a><br /> <sub> </sub><br />
+<a href="mailto:stefano.damato@idsia.ch?subject=[bayesRecon package]">Email</a>
 </td>
-<td align="center" valign="top" width="14.28%">
+
+<td align="center" valign="top" width="11.42%">
+
 <a href="#">
-<img src="https://github.com/nicorbtt.png" width="100px;" alt="Nicolò Rubattu" style="border-radius:50%;border:1px solid #646464;"/><br />
-<sub><b>Nicolò Rubattu</b></sub></a><br />
-<a href="mailto:nicolo.rubattu@idsia.ch?subject=bayesRecon package!">nicolo.rubattu@idsia.ch</a>
+<img src="https://github.com/nicorbtt.png" width="80px;" alt="Nicolò Rubattu" style="border-radius:50%;border:1px solid #646464;"/><br />
+<sub><b>Nicolò Rubattu</b></sub></a><br /> <sub> </sub><br />
+<a href="mailto:nico.rubattu@gmail.com?subject=[bayesRecon package]">Email</a>
 </td>
-<td align="center" valign="top" width="14.28%">
+
+<td align="center" valign="top" width="11.42%">
+
 <a href="https://sites.google.com/site/awerbhjkl678214/home">
-<img src="https://github.com/gcorani.png" width="100px;" alt="Giorgio Corani" style="border-radius:50%;border:1px solid #646464;"/><br />
-<sub><b>Giorgio Corani</b></sub></a><br />
-<a href="mailto:giorgio.corani@idsia.ch">giorgio.corani@idsia.ch</a>
+<img src="https://github.com/gcorani.png" width="80px;" alt="Giorgio Corani" style="border-radius:50%;border:1px solid #646464;"/><br />
+<sub><b>Giorgio Corani</b></sub></a><br /> <sub> </sub><br />
+<a href="mailto:giorgio.corani@idsia.ch?subject=[bayesRecon package]">Email</a>
 </td>
 </tr>
 </tbody>
