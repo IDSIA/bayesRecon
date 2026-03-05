@@ -33,7 +33,10 @@ The main functions are:
   the bottom forecasts are discrete distributions;
 - `reconc_TDcond`: reconciliation via top-down conditioning of mixed
   hierarchies, where the upper forecasts are multivariate Gaussian and
-  the bottom forecasts are discrete distributions.
+  the bottom forecasts are discrete distributions;
+- `reconc_t`: reconciliation via conditioning with uncertain covariance
+  matrix; the reconciled forecasts are multivariate Student-t; this is
+  done analytically.
 
 ## News
 
@@ -73,7 +76,7 @@ bottom variables are the two 6-monthly forecasts and the upper variable
 is the yearly forecast. We denote the variables for the two semesters
 and the year by $S_1, S_2, Y$ respectively.
 
-<img src="./man/figures/minimal_hierarchy.png" width="50%" style="display: block; margin: auto;" />
+<img src="./man/figures/minimal_hierarchy.png" alt="" width="50%" style="display: block; margin: auto;" />
 
 The hierarchy is described by the *aggregation matrix* A, which can be
 obtained using the function `get_reconc_matrices`.
@@ -147,7 +150,7 @@ points(
 )
 ```
 
-<img src="man/figures/README-unnamed-chunk-6-1.png" width="80%" style="display: block; margin: auto;" />
+<img src="man/figures/README-unnamed-chunk-6-1.png" alt="" width="80%" style="display: block; margin: auto;" />
 
 The blue circles represent the probability mass function of a Poisson
 with parameter $\lambda_{S_1}$ plotted on top of the histogram of the
@@ -179,7 +182,7 @@ plot(
 )
 ```
 
-<img src="man/figures/README-unnamed-chunk-7-1.png" width="80%" style="display: block; margin: auto;" />
+<img src="man/figures/README-unnamed-chunk-7-1.png" alt="" width="80%" style="display: block; margin: auto;" />
 
 We also provide a function for sampling using Markov Chain Monte Carlo
 (Corani et al., 2023).
@@ -288,56 +291,45 @@ Intelligence, in Proceedings of Machine Learning Research 244:4078-4095.
 ## Contributors
 
 <!-- prettier-ignore-start -->
-
 <!-- markdownlint-disable -->
-
 <table>
-
 <tbody>
-
 <tr>
-
 <td align="center" valign="top" width="14.28%">
-
 <a href="https://sites.google.com/view/darioazzimonti/home">
 <img src="https://github.com/dazzimonti.png" width="100px;" alt="Dario Azzimonti" style="border-radius:50%;border:1px solid #646464;"/><br />
 <sub><b>Dario Azzimonti</b></sub></a><br />
 <sub>(Maintainer)</sub><br />
 <a href="mailto:dario.azzimonti@gmail.com?subject=bayesRecon package!">dario.azzimonti@gmail.com</a>
 </td>
-
 <td align="center" valign="top" width="14.28%">
-
-<a href="#">
-<img src="https://github.com/nicorbtt.png" width="100px;" alt="Nicolò Rubattu" style="border-radius:50%;border:1px solid #646464;"/><br />
-<sub><b>Nicolò Rubattu</b></sub></a><br />
-<a href="mailto:nicolo.rubattu@idsia.ch?subject=bayesRecon package!">nicolo.rubattu@idsia.ch</a>
-</td>
-
-<td align="center" valign="top" width="14.28%">
-
 <a href="#">
 <img src="https://github.com/LorenzoZambon.png" width="100px;" alt="Lorenzo Zambon" style="border-radius:50%;border:1px solid #646464;"/><br />
 <sub><b>Lorenzo Zambon</b></sub></a><br />
 <a href="mailto:lorenzo.zambon@idsia.ch?subject=bayesRecon package!">lorenzo.zambon@idsia.ch</a>
 </td>
-
 <td align="center" valign="top" width="14.28%">
-
+<a href="#">
+<img src="https://github.com/StefanoDamato.png" width="100px;" alt="Stefano Damato" style="border-radius:50%;border:1px solid #646464;"/><br />
+<sub><b>Stefano Damato</b></sub></a><br />
+<a href="mailto:stefano.damato@idsia.ch?subject=bayesRecon package!">stefano.damato@idsia.ch</a>
+</td>
+<td align="center" valign="top" width="14.28%">
+<a href="#">
+<img src="https://github.com/nicorbtt.png" width="100px;" alt="Nicolò Rubattu" style="border-radius:50%;border:1px solid #646464;"/><br />
+<sub><b>Nicolò Rubattu</b></sub></a><br />
+<a href="mailto:nicolo.rubattu@idsia.ch?subject=bayesRecon package!">nicolo.rubattu@idsia.ch</a>
+</td>
+<td align="center" valign="top" width="14.28%">
 <a href="https://sites.google.com/site/awerbhjkl678214/home">
 <img src="https://github.com/gcorani.png" width="100px;" alt="Giorgio Corani" style="border-radius:50%;border:1px solid #646464;"/><br />
 <sub><b>Giorgio Corani</b></sub></a><br />
 <a href="mailto:giorgio.corani@idsia.ch">giorgio.corani@idsia.ch</a>
 </td>
-
 </tr>
-
 </tbody>
-
 </table>
-
 <!-- markdownlint-restore -->
-
 <!-- prettier-ignore-end -->
 
 ## Getting help

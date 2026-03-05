@@ -287,15 +287,21 @@ in Proceedings of Machine Learning Research 244:4078-4095. [Available here](http
       </td>
       <td align="center" valign="top" width="14.28%">
         <a href="#">
-        <img src="https://github.com/nicorbtt.png" width="100px;" alt="Nicolò Rubattu" style="border-radius:50%;border:1px solid #646464;"/><br />
-        <sub><b>Nicolò Rubattu</b></sub></a><br />
-        <a href="mailto:nicolo.rubattu@idsia.ch?subject=bayesRecon package!">nicolo.rubattu@idsia.ch</a>
-      </td>
-      <td align="center" valign="top" width="14.28%">
-        <a href="#">
         <img src="https://github.com/LorenzoZambon.png" width="100px;" alt="Lorenzo Zambon" style="border-radius:50%;border:1px solid #646464;"/><br />
         <sub><b>Lorenzo Zambon</b></sub></a><br />
         <a href="mailto:lorenzo.zambon@idsia.ch?subject=bayesRecon package!">lorenzo.zambon@idsia.ch</a>
+      </td>
+      <td align="center" valign="top" width="14.28%">
+        <a href="#">
+        <img src="https://github.com/StefanoDamato.png" width="100px;" alt="Stefano Damato" style="border-radius:50%;border:1px solid #646464;"/><br />
+        <sub><b>Stefano Damato</b></sub></a><br />
+        <a href="mailto:stefano.damato@idsia.ch?subject=bayesRecon package!">stefano.damato@idsia.ch</a>
+      </td>
+      <td align="center" valign="top" width="14.28%">
+        <a href="#">
+        <img src="https://github.com/nicorbtt.png" width="100px;" alt="Nicolò Rubattu" style="border-radius:50%;border:1px solid #646464;"/><br />
+        <sub><b>Nicolò Rubattu</b></sub></a><br />
+        <a href="mailto:nicolo.rubattu@idsia.ch?subject=bayesRecon package!">nicolo.rubattu@idsia.ch</a>
       </td>
       <td align="center" valign="top" width="14.28%">
         <a href="https://sites.google.com/site/awerbhjkl678214/home">
