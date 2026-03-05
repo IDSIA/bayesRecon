@@ -8,7 +8,7 @@
 \description{
 \if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
 
-Provides methods for probabilistic reconciliation of hierarchical forecasts of time series. The available methods include analytical Gaussian reconciliation (Corani et al., 2021) \doi{10.1007/978-3-030-67664-3_13}, MCMC reconciliation of count time series (Corani et al., 2024) \doi{10.1016/j.ijforecast.2023.04.003}, Bottom-Up Importance Sampling (Zambon et al., 2024) \doi{10.1007/s11222-023-10343-y}, methods for the reconciliation of mixed hierarchies (Mix-Cond and TD-cond) (Zambon et al., 2024) \url{https://proceedings.mlr.press/v244/zambon24a.html}.
+Provides methods for probabilistic reconciliation of hierarchical forecasts of time series. The available methods include analytical Gaussian reconciliation (Corani et al., 2021) \doi{10.1007/978-3-030-67664-3_13}, MCMC reconciliation of count time series (Corani et al., 2024) \doi{10.1016/j.ijforecast.2023.04.003}, Bottom-Up Importance Sampling (Zambon et al., 2024) \doi{10.1007/s11222-023-10343-y}, methods for the reconciliation of mixed hierarchies (Mix-Cond and TD-cond) (Zambon et al., 2024) \url{https://proceedings.mlr.press/v244/zambon24a.html}, analytical reconciliation with Bayesian treatment of the covariance matrix (Carrara et al., 2025) \doi{ 10.48550/arXiv.2506.19554}.
 }
 \section{Learn more}{
 

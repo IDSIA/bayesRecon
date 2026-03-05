@@ -37,9 +37,9 @@ Description: Provides methods for probabilistic reconciliation of hierarchical f
              Bottom-Up Importance Sampling (Zambon et al., 2024) 
              <doi:10.1007/s11222-023-10343-y>,
              methods for the reconciliation of mixed hierarchies (Mix-Cond and TD-cond) (Zambon et al., 2024) 
-             <https://proceedings.mlr.press/v244/zambon24a.html>. 
-             reconciliation via conditioning with uncertain covariance matrix via multivariate Student-t (Carrara et al., 2025) 
-             <https://arxiv.org/abs/2506.19554>.
+             <https://proceedings.mlr.press/v244/zambon24a.html>,
+             analytical reconciliation with Bayesian treatment of the covariance matrix (Carrara et al., 2025)
+             <doi: 10.48550/arXiv.2506.19554>.
 License: LGPL (>= 3)
 Depends: R (>= 4.1.0)
 Imports:
