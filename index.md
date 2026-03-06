@@ -245,6 +245,11 @@ the reconciled means obtained via BUIS are 7.41, 2.71, 4.71.
 
 ## References
 
+Carrara, C., Corani, G., Azzimonti, D., Zambon, L. (2025). *Modeling the
+uncertainty on the covariance matrix for probabilistic forecast
+reconciliation*. arXiv preprint arXiv:2506.19554. [Available
+here](https://arxiv.org/abs/2506.19554)
+
 Corani, G., Azzimonti, D., Augusto, J.P.S.C., Zaffalon, M. (2021).
 *Probabilistic Reconciliation of Hierarchical Forecast via Bayes’ Rule*.
 ECML PKDD 2020. Lecture Notes in Computer Science, vol 12459.
