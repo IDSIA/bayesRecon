@@ -296,6 +296,7 @@ multi_log_score_optimization <- function(res, prior_mean, trim = 0.1) {
 #' If \code{return_parameters} is TRUE, also returns:
 #' \itemize{
 #'   \item \code{prior_nu}: Prior degrees of freedom.
+#'   \item \code{prior_Psi}: Prior scale matrix.
 #'   \item \code{posterior_nu}: Posterior degrees of freedom.
 #'   \item \code{posterior_Psi}: Posterior scale matrix.
 #'   \item \code{C}: Scaling factor for the scale matrix.
@@ -446,6 +447,11 @@ reconc_t <- function(A,
     A = A, base_fc_mean = base_fc_mean, Psi_post = Psi_post, nu_post = nu_post,
     return_upper = return_upper, return_parameters = return_parameters, suppress_warnings = FALSE
   )
+
+  if (return_parameters) {
+    out$prior_nu <- nu_prior
+    out$prior_Psi <- Psi_prior
+  }
 
   return(out)
 }
