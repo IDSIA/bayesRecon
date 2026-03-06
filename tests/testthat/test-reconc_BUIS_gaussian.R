@@ -159,4 +159,98 @@ test_that("Monthly simple, in_type=='params', distr='nbinom'", {
   expect_equal(res.mixCond$upper_rec$pmf[[1]], upp_pmf, tolerance = 0.1)
 })
 
+
+# reconc_gaussian with residuals -----------------------------------------------
+
+# Shared fixture
+set.seed(42)
+.n_gauss   <- 3L
+.L_gauss   <- 60L
+.A_gauss   <- matrix(c(1, 1), nrow = 1)
+.res_gauss <- matrix(rnorm(.L_gauss * .n_gauss), nrow = .L_gauss, ncol = .n_gauss)
+.mu_gauss  <- c(11, 4, 6)  # incoherent: 11 != 4 + 6 = 10
+
+test_that("reconc_gaussian runs without error when residuals are provided", {
+  expect_no_error(
+    reconc_gaussian(.A_gauss, base_fc_mean = .mu_gauss, residuals = .res_gauss)
+  )
+})
+
+test_that("reconc_gaussian output structure is correct with residuals", {
+  result <- reconc_gaussian(.A_gauss, base_fc_mean = .mu_gauss, residuals = .res_gauss)
+
+  expect_named(result, c("bottom_rec_mean", "bottom_rec_covariance"), ignore.order = TRUE)
+  expect_length(result$bottom_rec_mean, ncol(.A_gauss))
+  expect_equal(dim(result$bottom_rec_covariance), c(ncol(.A_gauss), ncol(.A_gauss)))
+})
+
+test_that("reconc_gaussian reconciled covariance is symmetric and positive definite with residuals", {
+  result <- reconc_gaussian(.A_gauss, base_fc_mean = .mu_gauss, residuals = .res_gauss)
+
+  S <- result$bottom_rec_covariance
+  expect_equal(S, t(S), tolerance = 1e-12)
+  eigs <- eigen(S, symmetric = TRUE, only.values = TRUE)$values
+  expect_true(all(eigs > 0))
+})
+
+test_that("reconc_gaussian satisfies hierarchical constraint with residuals", {
+  result <- reconc_gaussian(.A_gauss, base_fc_mean = .mu_gauss, residuals = .res_gauss,
+    return_upper = TRUE
+  )
+
+  expect_equal(
+    as.vector(.A_gauss %*% result$bottom_rec_mean),
+    as.vector(result$upper_rec_mean),
+    tolerance = 1e-10
+  )
+  expect_equal(
+    .A_gauss %*% result$bottom_rec_covariance %*% t(.A_gauss),
+    result$upper_rec_covariance,
+    tolerance = 1e-10
+  )
+})
+
+test_that("return_upper=TRUE returns upper fields with residuals", {
+  result <- reconc_gaussian(.A_gauss, base_fc_mean = .mu_gauss, residuals = .res_gauss,
+    return_upper = TRUE
+  )
+  expect_true(all(c("upper_rec_mean", "upper_rec_covariance") %in% names(result)))
+})
+
+# Regression test: hard-coded reference values
+# Reference computed with:
+#   set.seed(42)
+#   n_series <- 3L; L_train <- 60L
+#   A <- matrix(c(1,1), nrow=1)
+#   res_mat <- matrix(rnorm(L_train * n_series), nrow=L_train, ncol=n_series)
+#   mu <- c(11, 4, 6)
+#   reconc_gaussian(A, base_fc_mean=mu, residuals=res_mat, return_upper=TRUE)
+
+test_that("reconc_gaussian with residuals matches hard-coded reference values", {
+  set.seed(42)
+  n_series <- 3L
+  L_train  <- 60L
+  A        <- matrix(c(1, 1), nrow = 1)
+  res_mat  <- matrix(rnorm(L_train * n_series), nrow = L_train, ncol = n_series)
+  mu       <- c(11, 4, 6)
+
+  result <- reconc_gaussian(A, base_fc_mean = mu, residuals = res_mat, return_upper = TRUE)
+
+  # bottom_rec_mean
+  expect_equal(result$bottom_rec_mean, c(4.284368, 6.268177), tolerance = 1e-5)
+
+  # bottom_rec_covariance
+  expect_equal(
+    result$bottom_rec_covariance,
+    matrix(c(0.5930640, -0.2222453, -0.2222453, 0.5719506), nrow = 2),
+    tolerance = 1e-5
+  )
+
+  # upper_rec_mean
+  expect_equal(result$upper_rec_mean, 10.55254, tolerance = 1e-4)
+
+  # upper_rec_covariance
+  expect_equal(result$upper_rec_covariance, matrix(0.7205241), tolerance = 1e-5)
+})
+
 ##############################################################################
