@@ -156,7 +156,7 @@ test_that("Monthly simple, in_type=='params', distr='nbinom'", {
   res.mixCond <- reconc_MixCond(rec_mat$A, fc_bottom, fc_upper_gauss, bottom_in_type = "params", distr = "nbinom")
   upp_pmf <- PMF_from_samples(as.integer(res.buis_params$upper_rec_samples))
 
-  expect_equal(res.mixCond$upper_rec$pmf[[1]], upp_pmf, tolerance = 0.1)
+  expect_equal(res.mixCond$upper_rec_pmf[[1]], upp_pmf, tolerance = 0.1)
 })
 
 

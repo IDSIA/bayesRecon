@@ -35,7 +35,7 @@
 #' Each element corresponds to the probability of the integers from 0 to the last value of the support.
 #' See also [PMF] for functions that handle PMF objects.
 #'
-#' @section Warnings and errors:
+#' \strong{Warnings and errors.}
 #'
 #' In `reconc_MixCond`, warnings are triggered from the importance sampling step if:
 #' * weights are all zeros, then the upper forecast is ignored during reconciliation;
@@ -85,10 +85,14 @@
 #'
 #' @return A list containing the reconciled forecasts. The list has the following named elements:
 #'
-#' * `bottom_rec`: a list containing the pmf, the samples (matrix n_bottom x `num_samples`) or both,
-#'    depending on the value of `return_type`;
-#' * `upper_rec`: a list containing the pmf, the samples (matrix n_upper x `num_samples`) or both,
-#'    depending on the value of `return_type` (only if `return_upper = TRUE`).
+#' * `bottom_rec_pmf`: a list of PMF objects for each bottom series
+#'    (only if `return_type` is `'pmf'` or `'all'`);
+#' * `bottom_rec_samples`: a matrix (n_bottom x `num_samples`) of reconciled bottom samples
+#'    (only if `return_type` is `'samples'` or `'all'`);
+#' * `upper_rec_pmf`: a list of PMF objects for each upper series
+#'    (only if `return_type` is `'pmf'` or `'all'`, and `return_upper = TRUE`);
+#' * `upper_rec_samples`: a matrix (n_upper x `num_samples`) of reconciled upper samples
+#'    (only if `return_type` is `'samples'` or `'all'`, and `return_upper = TRUE`).
 #'
 #' @references
 #' Zambon, L., Azzimonti, D., Rubattu, N., Corani, G. (2024).
@@ -124,15 +128,15 @@ NULL
 #' res.mixCond <- reconc_MixCond(A, base_fc_bottom, base_fc_upper)
 #'
 #' # Note that the bottom distributions are slightly shifted to the right
-#' PMF_summary(res.mixCond$bottom_rec$pmf[[1]])
+#' PMF_summary(res.mixCond$bottom_rec_pmf[[1]])
 #' PMF_summary(base_fc_bottom[[1]])
 #'
-#' PMF_summary(res.mixCond$bottom_rec$pmf[[2]])
+#' PMF_summary(res.mixCond$bottom_rec_pmf[[2]])
 #' PMF_summary(base_fc_bottom[[2]])
 #'
 #' # The upper distribution is slightly shifted to the left
-#' PMF_summary(res.mixCond$upper_rec$pmf[[1]])
-#' PMF_get_var(res.mixCond$upper_rec$pmf[[1]])
+#' PMF_summary(res.mixCond$upper_rec_pmf[[1]])
+#' PMF_get_var(res.mixCond$upper_rec_pmf[[1]])
 #'
 #' @export
 reconc_MixCond <- function(A, base_fc_bottom, base_fc_upper,
@@ -197,7 +201,10 @@ reconc_MixCond <- function(A, base_fc_bottom, base_fc_upper,
 #' @return A list containing:
 #'   \itemize{
 #'     \item `bottom_rec`: List with reconciled bottom forecasts (pmf and/or samples).
-#'     \item `upper_rec`: (only if `return_upper = TRUE`) List with reconciled upper forecasts (pmf and/or samples).
+#'     \item `bottom_rec_pmf`: list of PMF objects for each bottom series (only if `return_type` is 'pmf' or 'all').
+#'     \item `bottom_rec_samples`: matrix (n_bottom x num_samples) of reconciled bottom samples (only if `return_type` is 'samples' or 'all').
+#'     \item `upper_rec_pmf`: list of PMF objects for each upper series (only if `return_type` is 'pmf' or 'all', and `return_upper = TRUE`).
+#'     \item `upper_rec_samples`: matrix (n_upper x num_samples) of reconciled upper samples (only if `return_type` is 'samples' or 'all', and `return_upper = TRUE`).
 #'     \item `ESS`: Effective Sample Size resulting from importance sampling reweighting (only if `return_ESS = TRUE`).
 #'   }
 #'
@@ -228,19 +235,17 @@ reconc_MixCond <- function(A, base_fc_bottom, base_fc_upper,
   U <- A %*% B
 
   # Prepare output: include the marginal pmfs and/or the samples (depending on "return" inputs)
-  out <- list(bottom_rec = list(), upper_rec = list())
+  out <- list()
   if (return_type %in% c("pmf", "all")) {
-    bottom_pmf <- lapply(1:n_b, function(i) PMF_from_samples(B[i, ]))
-    out$bottom_rec$pmf <- bottom_pmf
+    out$bottom_rec_pmf <- lapply(1:n_b, function(i) PMF_from_samples(B[i, ]))
     if (return_upper) {
-      upper_pmf <- lapply(1:n_u, function(i) PMF_from_samples(U[i, ]))
-      out$upper_rec$pmf <- upper_pmf
+      out$upper_rec_pmf <- lapply(1:n_u, function(i) PMF_from_samples(U[i, ]))
     }
   }
   if (return_type %in% c("samples", "all")) {
-    out$bottom_rec$samples <- B
+    out$bottom_rec_samples <- B
     if (return_upper) {
-      out$upper_rec$samples <- U
+      out$upper_rec_samples <- U
     }
   }
   

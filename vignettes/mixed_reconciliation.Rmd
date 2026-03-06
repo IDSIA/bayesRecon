@@ -155,8 +155,8 @@ mix_cond <- reconc_MixCond(A, fc_bottom_4rec, fc_upper_4rec,
 stop <- Sys.time()
 
 rec_fc$Mixed_cond <- list(
-  bottom = mix_cond$bottom_rec$pmf,
-  upper  = mix_cond$upper_rec$pmf,
+  bottom = mix_cond$bottom_rec_pmf,
+  upper  = mix_cond$upper_rec_pmf,
   ESS    = mix_cond$ESS
 )
 
@@ -189,8 +189,8 @@ We will see that this warning does not impact the performances of TD-cond.
 
 ```{r print computational time TD cond}
 rec_fc$TD_cond <- list(
-  bottom = td$bottom_rec$pmf,
-  upper  = td$upper_rec$pmf
+  bottom = td$bottom_rec_pmf,
+  upper  = td$upper_rec_pmf
 )
 
 TDCond_time <- as.double(round(difftime(stop, start, units = "secs"), 2))

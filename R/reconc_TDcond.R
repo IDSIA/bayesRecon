@@ -92,15 +92,15 @@
 #' res.TDcond <- reconc_TDcond(A, base_fc_bottom, base_fc_upper)
 #'
 #' # Note that the bottom distributions are shifted to the right
-#' PMF_summary(res.TDcond$bottom_rec$pmf[[1]])
+#' PMF_summary(res.TDcond$bottom_rec_pmf[[1]])
 #' PMF_summary(base_fc_bottom[[1]])
 #'
-#' PMF_summary(res.TDcond$bottom_rec$pmf[[2]])
+#' PMF_summary(res.TDcond$bottom_rec_pmf[[2]])
 #' PMF_summary(base_fc_bottom[[2]])
 #'
 #' # The upper distribution remains similar
-#' PMF_summary(res.TDcond$upper_rec$pmf[[1]])
-#' PMF_get_var(res.TDcond$upper_rec$pmf[[1]])
+#' PMF_summary(res.TDcond$upper_rec_pmf[[1]])
+#' PMF_get_var(res.TDcond$upper_rec_pmf[[1]])
 #'
 #' ## Example 2: reconciliation with unbalanced hierarchy
 #' # We consider the example in Fig. 9 of Zambon et al. (2024).
@@ -168,7 +168,7 @@
 #'
 #' # Note that the reconciled distribution of b5 and u4 are identical,
 #' # keep this in mind when using the results of your reconciliation!
-#' max(abs(res.TDcond$bottom_rec$pmf[[5]] - res.TDcond$upper_rec$pmf[[4]]))
+#' max(abs(res.TDcond$bottom_rec_pmf[[5]] - res.TDcond$upper_rec_pmf[[4]]))
 #'
 #' @export
 reconc_TDcond <- function(A, base_fc_bottom, base_fc_upper,
@@ -229,8 +229,10 @@ reconc_TDcond <- function(A, base_fc_bottom, base_fc_upper,
 #'
 #' @return A list containing:
 #'   \itemize{
-#'     \item `bottom_rec`: List with reconciled bottom forecasts (pmf and/or samples).
-#'     \item `upper_rec`:  (only if `return_upper = TRUE`) List with reconciled upper forecasts (pmf and/or samples).
+#'     \item `bottom_rec_pmf`: list of PMF objects for each bottom series (only if `return_type` is 'pmf' or 'all').
+#'     \item `bottom_rec_samples`: matrix (n_bottom x num_samples) of reconciled bottom samples (only if `return_type` is 'samples' or 'all').
+#'     \item `upper_rec_pmf`: list of PMF objects for each upper series (only if `return_type` is 'pmf' or 'all', and `return_upper = TRUE`).
+#'     \item `upper_rec_samples`: matrix (n_upper x num_samples) of reconciled upper samples (only if `return_type` is 'samples' or 'all', and `return_upper = TRUE`).
 #'   }
 #'
 #' @details
@@ -338,19 +340,17 @@ reconc_TDcond <- function(A, base_fc_bottom, base_fc_upper,
   U <- A %*% B # dim: n_upper x num_samples
 
   # Prepare output: include the marginal pmfs and/or the samples (depending on "return" inputs)
-  out <- list(bottom_rec = list(), upper_rec = list())
+  out <- list()
   if (return_type %in% c("pmf", "all")) {
-    bottom_pmf <- lapply(1:n_b, function(i) PMF_from_samples(B[i, ]))
-    out$bottom_rec$pmf <- bottom_pmf
+    out$bottom_rec_pmf <- lapply(1:n_b, function(i) PMF_from_samples(B[i, ]))
     if (return_upper) {
-      upper_pmf <- lapply(1:n_u, function(i) PMF_from_samples(U[i, ]))
-      out$upper_rec$pmf <- upper_pmf
+      out$upper_rec_pmf <- lapply(1:n_u, function(i) PMF_from_samples(U[i, ]))
     }
   }
   if (return_type %in% c("samples", "all")) {
-    out$bottom_rec$samples <- B
+    out$bottom_rec_samples <- B
     if (return_upper) {
-      out$upper_rec$samples <- U
+      out$upper_rec_samples <- U
     }
   }
   return(out)
