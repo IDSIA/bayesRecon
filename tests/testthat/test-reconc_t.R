@@ -89,21 +89,7 @@ test_that("return_upper=FALSE (default) does not return upper fields", {
 })
 
 
-# 5. return_parameters ---------------------------------------------------------
-
-test_that("return_parameters=TRUE returns posterior_nu, posterior_Psi", {
-  res <- reconc_t(.A_simple, .mu_inc,
-    posterior = list(nu = .nu_post, Psi = .Psi_post),
-    return_parameters = TRUE
-  )
-
-  expect_true(all(c("posterior_nu", "posterior_Psi") %in% names(res)))
-  expect_equal(res$posterior_nu, .nu_post)
-  expect_equal(res$posterior_Psi, .Psi_post)
-})
-
-
-# 6. Scale matrix is symmetric and positive-definite ---------------------------
+# 5. Scale matrix is symmetric and positive-definite ---------------------------
 
 test_that("bottom_rec_scale_matrix is symmetric and positive definite", {
   res <- reconc_t(.A_simple, .mu_inc,
@@ -120,7 +106,7 @@ test_that("bottom_rec_scale_matrix is symmetric and positive definite", {
 })
 
 
-# 7. Incoherence: reconciled mean is coherent ----------------------------------
+# 6. Incoherence: reconciled mean is coherent ----------------------------------
 # After reconciliation, A %*% bottom_rec_mean always equals upper_rec_mean
 
 test_that("reconciled forecasts satisfy the hierarchical constraint", {
@@ -136,7 +122,7 @@ test_that("reconciled forecasts satisfy the hierarchical constraint", {
 })
 
 
-# 8. Input via residuals (no error) --------------------------------------------
+# 7. Input via residuals (no error) --------------------------------------------
 
 test_that("reconc_t runs without error when residuals and prior are provided", {
   set.seed(42)
@@ -159,7 +145,7 @@ test_that("reconc_t runs without error when residuals and prior are provided", {
 })
 
 
-# 9. Posterior input reproduces prior+residuals path -------------------------
+# 8. Posterior input reproduces prior+residuals path -------------------------
 
 test_that("direct posterior input gives same result as prior+residuals path", {
   set.seed(7)
@@ -199,7 +185,7 @@ test_that("direct posterior input gives same result as prior+residuals path", {
 })
 
 
-# 10. Unknown argument triggers a warning -------------------------------------
+# 9. Unknown argument triggers a warning -------------------------------------
 
 test_that("unknown arguments in ... trigger a warning", {
   expect_warning(
@@ -212,7 +198,7 @@ test_that("unknown arguments in ... trigger a warning", {
 })
 
 
-# 11. Standard usage: y_train + residuals (CASE 2b) ---------------------------
+# 10. Standard usage: y_train + residuals (CASE 2b) ---------------------------
 # This path runs .compute_naive_cov + multi_log_score_optimization to estimate
 # nu_prior and Psi_prior, then updates to the posterior and reconciles.
 
@@ -275,12 +261,15 @@ test_that("posterior_nu equals optimized nu_prior + L with y_train + residuals",
   expect_true(result$posterior_nu > .n_series - 1)
 })
 
-test_that("posterior_Psi is returned with y_train + residuals (return_parameters=TRUE)", {
+test_that("prior and posterior parameters are returned with y_train + residuals (return_parameters=TRUE)", {
   result <- reconc_t(.A_2b, .mu_2b, y_train = .y_mat, residuals = .res_mat,
     return_parameters = TRUE
   )
 
-  expect_true(all(c("posterior_nu", "posterior_Psi") %in% names(result)))
+  expect_true(all(c("prior_nu", "prior_Psi", "posterior_nu", "posterior_Psi") %in% names(result)))
+  expect_true(is.numeric(result$prior_nu))
+  expect_true(is.matrix(result$prior_Psi))
+  expect_equal(dim(result$prior_Psi), c(.n_series, .n_series))
   expect_true(is.numeric(result$posterior_nu))
   expect_true(is.matrix(result$posterior_Psi))
   expect_equal(dim(result$posterior_Psi), c(.n_series, .n_series))

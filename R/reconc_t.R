@@ -457,8 +457,13 @@ reconc_t <- function(A,
   )
 
   if (return_parameters) {
-    out$prior_nu <- nu_prior
-    out$prior_Psi <- Psi_prior
+    if(!is.null(posterior)) {
+      warning("Prior parameters are not returned when 'posterior' is provided, 
+              as the prior is not used in this case.")
+    } else {
+      out$prior_nu <- nu_prior
+      out$prior_Psi <- Psi_prior
+    }
     out$posterior_nu <- nu_post
     out$posterior_Psi <- Psi_post
   }
