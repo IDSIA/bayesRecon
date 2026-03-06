@@ -118,7 +118,7 @@ cat(
   "Computational time for ", N, " reconciliations: ",
   round(difftime(stop, start, units = "secs"), 2), "s"
 )
-#> Computational time for  3508  reconciliations:  64.55 s
+#> Computational time for  3508  reconciliations:  62.38 s
 ```
 
 We compute the median and the quantiles of the negative binomial base
