@@ -45,6 +45,10 @@
     # compute residuals of seasonal naive
     res_seas <- y_train[(freq + 1):L, ] - y_train[1:(L - freq), ]
 
+    if (is.null(criterion)) {
+      criterion <- "RSS"
+    }
+
     # Choose which residuals to use based on the criterion
     if (criterion == "seas-test") {
       # check if forecast package is installed
