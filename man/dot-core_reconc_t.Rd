@@ -2,7 +2,7 @@
 % Please edit documentation in R/reconc_t.R
 \name{.core_reconc_t}
 \alias{.core_reconc_t}
-\title{Core Reconciliation via Multivariate Student-t Distribution.}
+\title{Core reconciliation via multivariate t-distribution.}
 \usage{
 .core_reconc_t(
   A,
@@ -21,9 +21,9 @@
 for both upper and bottom levels (upper first, then bottom).}
 
 \item{Psi_post}{Scale matrix (n_upper + n_bottom x n_upper + n_bottom) of the posterior
-Student-t distribution.}
+multivariate t-distribution.}
 
-\item{nu_post}{Degrees of freedom of the posterior Student-t distribution.}
+\item{nu_post}{Degrees of freedom of the posterior multivariate t-distribution.}
 
 \item{return_upper}{Logical, whether to return the reconciled parameters for the upper variables (default is FALSE).}
 
