@@ -39,8 +39,8 @@ test_that("reconc_MixCond simple example", {
 
   res.MixCond <- reconc_MixCond(A, fc_bottom, fc_upper, bottom_in_type = "samples", seed = 42)
 
-  bott_rec_means <- unlist(lapply(res.MixCond$bottom_rec$pmf, PMF_get_mean))
-  bott_rec_vars <- unlist(lapply(res.MixCond$bottom_rec$pmf, PMF_get_var))
+  bott_rec_means <- unlist(lapply(res.MixCond$bottom_rec_pmf, PMF_get_mean))
+  bott_rec_vars <- unlist(lapply(res.MixCond$bottom_rec_pmf, PMF_get_var))
 
 
   # Create PMF from samples
@@ -52,8 +52,8 @@ test_that("reconc_MixCond simple example", {
   # Reconcile from bottom PMF
   res.MixCond_pmf <- reconc_MixCond(A, fc_bottom_pmf, fc_upper, seed = 42)
 
-  bott_rec_means_pmf <- unlist(lapply(res.MixCond_pmf$bottom_rec$pmf, PMF_get_mean))
-  bott_rec_vars_pmf <- unlist(lapply(res.MixCond_pmf$bottom_rec$pmf, PMF_get_var))
+  bott_rec_means_pmf <- unlist(lapply(res.MixCond_pmf$bottom_rec_pmf, PMF_get_mean))
+  bott_rec_vars_pmf <- unlist(lapply(res.MixCond_pmf$bottom_rec_pmf, PMF_get_var))
 
   expect_equal(bott_rec_means, bott_rec_means_pmf, tolerance = 0.01)
   expect_equal(bott_rec_vars, bott_rec_vars_pmf, tolerance = 0.1)
@@ -96,25 +96,25 @@ test_that("reconc_MixCond and reconc_TDcond with temporal hier and params", {
   res.TDcond <- reconc_TDcond(rec_mat$A, fc_bottom, fc_upper, bottom_in_type = "params", distr = "poisson")
 
   # Summary of the upper reconciled with TDcond
-  pmfSum <- PMF_summary(res.TDcond$upper_rec$pmf[[1]])
+  pmfSum <- PMF_summary(res.TDcond$upper_rec_pmf[[1]])
   # We expect that the reconciled mean is very similar to the initial mean (should be equal)
   expect_equal(pmfSum$Mean, fc_upper$mean, tolerance = 0.01)
 
   # Check that all bottom and upper reconciled PMF sum to 1
-  check_pmf_bott_mixCond <- sum(unlist(lapply(res.mixCond$bottom_rec$pmf, function(x) {
+  check_pmf_bott_mixCond <- sum(unlist(lapply(res.mixCond$bottom_rec_pmf, function(x) {
     sum(x)
   })))
-  check_pmf_upp_mixCond <- sum(unlist(lapply(res.mixCond$upper_rec$pmf, function(x) {
+  check_pmf_upp_mixCond <- sum(unlist(lapply(res.mixCond$upper_rec_pmf, function(x) {
     sum(x)
   })))
   expect_equal(check_pmf_bott_mixCond, 12)
   expect_equal(check_pmf_upp_mixCond, 1)
 
   # Check that all bottom and upper reconciled PMF sum to 1
-  check_pmf_bott_TDcond <- sum(unlist(lapply(res.TDcond$bottom_rec$pmf, function(x) {
+  check_pmf_bott_TDcond <- sum(unlist(lapply(res.TDcond$bottom_rec_pmf, function(x) {
     sum(x)
   })))
-  check_pmf_upp_TDcond <- sum(unlist(lapply(res.TDcond$upper_rec$pmf, function(x) {
+  check_pmf_upp_TDcond <- sum(unlist(lapply(res.TDcond$upper_rec_pmf, function(x) {
     sum(x)
   })))
   expect_equal(check_pmf_bott_TDcond, 12)

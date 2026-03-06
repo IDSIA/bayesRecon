@@ -45,6 +45,10 @@
     # compute residuals of seasonal naive
     res_seas <- y_train[(freq + 1):L, ] - y_train[1:(L - freq), ]
 
+    if (is.null(criterion)) {
+      criterion <- "RSS"
+    }
+
     # Choose which residuals to use based on the criterion
     if (criterion == "seas-test") {
       # check if forecast package is installed
@@ -89,7 +93,7 @@
 }
 
 
-#' Optimize Degrees of Freedom (nu) via LOO Cross-Validation
+#' Optimize degrees of freedom (nu) via LOO Cross-Validation
 #'
 #' @param res Matrix of residuals (n_obs x n_var).
 #' @param prior_mean The prior mean covariance matrix (n_var x n_var).
@@ -107,8 +111,8 @@
 #' \deqn{\mathcal{L}(\nu) = \sum_{i=1}^T \log f(\mathbf{r}_i | \mathbf{R}_{-i}, \nu)}
 #'
 #' \strong{The Log-Density Function:}
-#' For each LOO step, the residuals are assumed to follow a Multivariate
-#' Student-t distribution. The density is expressed directly as a function of the
+#' For each LOO step, the residuals are assumed to follow a
+#' multivariate t-distribution. The density is expressed directly as a function of the
 #' posterior sum-of-squares matrix \eqn{\Psi}, where \eqn{\Psi} scales implicitly with \eqn{\nu}:
 #' \deqn{f(\mathbf{r}_i | \Psi, \nu) = \frac{\Gamma(\frac{\nu + T}{2})}{\Gamma(\frac{\nu + T - p}{2}) \pi^{p/2}} |\Psi|^{-1/2} \left( 1 + \mathbf{r}_i^\top \Psi^{-1} \mathbf{r}_i \right)^{-\frac{\nu + T}{2}}}
 #' In the code, \eqn{\Psi} is constructed as:
@@ -213,64 +217,73 @@ multi_log_score_optimization <- function(res, prior_mean, trim = 0.1) {
 }
 
 
-#' t-Rec: Reconciliation via Conditioning with uncertain covariance via Multivariate Student-t
+#' t-Rec: reconciliation via conditioning with uncertain covariance via multivariate t-distribution
 #'
 #' Reconciles base forecasts in a hierarchy by conditioning on the hierarchical
 #' constraints, specified by the aggregation matrix A.
 #' The base forecasts are assumed to be jointly Gaussian, conditionally on the
-#  covariance matrix of the forecast errors. To account for uncertainty in the
-#' covariance matrix, a Bayesian approach is adopted using an Inverse-Wishart prior,
-#' leading to a Multivariate Student-t distribution for the base forecasts.
-#' The reconciliation is in closed-form, yielding a multivariate Student-t reconciled distribution.
+#' covariance matrix of the forecast errors. 
+#' A Bayesian approach is adopted to account for the uncertainty of the covariance matrix. 
+#' An Inverse-Wishart prior is specified on the covariance matrix, 
+#' leading to a multivariate t-distribution for the base forecasts.
+#' The reconciliation via conditioning is in closed-form, yielding a multivariate t 
+#' reconciled distribution.
 #'
 #' @param A Matrix (n_upp x n_bott) defining the hierarchy (u = Ab).
 #' @param base_fc_mean Vector of base forecasts (length n = n_upp + n_bott).
 #' @param y_train mts (or matrix) of historical training data (T x n) used for setting prior parameters.
 #' @param residuals Matrix (T x n) of base forecast residuals.
 #' @param ... Additional arguments for advanced usage: see details.
-#' @param return_upper Logical; if TRUE, also returns parameters for the upper level reconciled distribution.
-#' @param return_parameters Logical; if TRUE, returns internal parameters like C and posterior nu.
+#' @param return_upper Logical; if TRUE, also returns parameters for the upper-level reconciled distribution.
+#' @param return_parameters Logical; if TRUE, also returns prior and posterior parameters.
 #'
 #' @details
-#' \strong{Standard Usage and Parameter Estimation:}
+#' \strong{Standard usage.}
+#' 
 #' The standard workflow for this function is to provide the in-sample \code{residuals}
 #' and the historical training data \code{y_train}.
+#' The parameters of the Inverse-Wishart prior distribution of the covariance matrix 
+#' are set as follows: 
 #' \itemize{
-#'   \item \strong{Prior Scale (\eqn{\Psi_0}):} Set as the covariance of the residuals of naive (or seasonal naive,
-#'         a criterion is used to choose between the 2) forecasts computed on \code{y_train}.
-#'   \item \strong{Prior Degrees of Freedom (\eqn{\nu_0}):} Estimated via Bayesian Leave-One-Out
+#'   \item Prior scale matrix (Psi): set as the covariance of the residuals of naive (or seasonal naive,
+#'         a criterion is used to choose between the two) forecasts computed on \code{y_train}.
+#'   \item Prior degrees of freedom (nu): estimated via Bayesian Leave-One-Out
 #'         Cross-Validation (LOOCV) to maximize out-of-sample performance.
 #' }
+#' The posterior distribution of the covariance matrix is still Inverse-Wishart.
+#' The parameters of the posterior are computed in closed-form using the sample 
+#' covariance of the provided \code{residuals}.
 #'
-#' \strong{Advanced Options:}
-#' Users can bypass the automated estimation by:
+#' \strong{Advanced Options.}
+#' 
+#' Users can bypass the automated estimation by specifying:
 #' \enumerate{
-#'   \item Directly passing the \code{prior} parameters as a list with entries 'nu' and 'Psi'.
+#'   \item \code{prior}: a list with entries 'nu' and 'Psi'.
 #'         This skips the LOOCV step for \eqn{\nu_0} and the covariance estimation from \code{y_train}.
 #'         It requires \code{residuals} to compute the posterior.
-#'   \item Directly passing the \code{posterior} parameters as a list with entries 'nu' and 'Psi'.
+#'   \item \code{posterior}: a list with entries 'nu' and 'Psi'.
 #'         This skips all internal estimation and updating logic.
 #' }
 #' Moreover, users can specify:
 #' \itemize{
-#'   \item \code{freq}: positive integer, used as frequency of data for the seasonal naive forecast in the specification of \eqn{\Psi_0}.
+#'   \item \code{freq}: positive integer, used as frequency of data for the seasonal naive forecast in the specification of the prior scale matrix.
 #'         By default, if \code{y_train} is a multivariate time series, the frequency of the data is used; otherwise, it is set to 1 (no seasonality).
 #'   \item \code{criterion}: either 'RSS' (default) or 'seas-test', specifying which criterior is used to choose between 
-#'                           the naive and seasonal naive forecasts for the specification of \eqn{\Psi_0}. 
+#'                           the naive and seasonal naive forecasts for the specification of the prior scale matrix. 
 #'                           'RSS' computes the residual sum of squares for both methods and chooses the one with lower RSS, 
 #'                           while 'seas-test' uses a statistical test for seasonality 
 #'                           (currently implemented using the number of seasonal differences suggested by the `forecast` package, 
 #'                           which must be installed). 
 #' }
+#' 
+#' \strong{Reconciled distribution.}
+#' 
+#' The reconciled distribution is a multivariate t-distribution, 
+#' specified by a vector of means, a scale matrix, and a number of degrees of freedom.
+#' These parameters are computed in closed-form.
+#' By default, only the parameters of the reconciled distribution for the bottom-level 
+#' series are returned. See examples.
 #'
-#' \strong{The Reconciled Bottom Distribution:}
-#' The reconciliation yields a distribution:
-#' \deqn{\tilde{\mathbf{b}} \sim t(\hat{\mathbf{b}}_{tilde}, \tilde{\Sigma}_B, \tilde{\nu})}
-#' where the reconciled mean is:
-#' \deqn{\hat{\mathbf{b}}_{tilde} = \hat{\mathbf{b}} + ((\Psi'_{UB})^\top - \Psi'_B A^\top) Q^{-1} (A\hat{\mathbf{b}} - \hat{\mathbf{u}})}
-#' and the scale matrix is:
-#' \deqn{\tilde{\Sigma}_B = C [\Psi'_B - ((\Psi'_{UB})^\top - \Psi'_B A^\top) Q^{-1} ((\Psi'_{UB})^\top - \Psi'_B A^\top)^\top]}
-#' with scalar \deqn{C = \frac{1 + (A\hat{\mathbf{b}} - \hat{\mathbf{u}})^\top Q^{-1} (A\hat{\mathbf{b}} - \hat{\mathbf{u}})}{\tilde{\nu}}.}
 #'
 #' @references
 #' Carrara, C., Corani, G., Azzimonti, D., & Zambon, L. (2025). Modeling the uncertainty on the covariance
@@ -279,22 +292,22 @@ multi_log_score_optimization <- function(res, prior_mean, trim = 0.1) {
 #'
 #' @return A list containing:
 #' \itemize{
-#'   \item \code{bottom_rec_mean}: Reconciled bottom-level mean forecasts.
-#'   \item \code{bottom_rec_scale_matrix}: Reconciled bottom-level scale matrix.
-#'   \item \code{bottom_rec_df}: Reconciled degrees of freedom.
+#'   \item \code{bottom_rec_mean}: reconciled bottom-level mean.
+#'   \item \code{bottom_rec_scale_matrix}: reconciled bottom-level scale matrix.
+#'   \item \code{bottom_rec_df}: reconciled degrees of freedom.
 #' }
 #' If \code{return_upper} is TRUE, also returns:
 #' \itemize{
-#'  \item \code{upper_rec_mean}: Reconciled upper-level mean forecasts.
-#'  \item \code{upper_rec_scale_matrix}: Reconciled upper-level scale matrix.
-#'  \item \code{upper_rec_df}: Reconciled upper-level degrees of freedom.
+#'  \item \code{upper_rec_mean}: reconciled upper-level mean.
+#'  \item \code{upper_rec_scale_matrix}: reconciled upper-level scale matrix.
+#'  \item \code{upper_rec_df}: reconciled upper-level degrees of freedom.
 #'  }
 #' If \code{return_parameters} is TRUE, also returns:
 #' \itemize{
-#'   \item \code{prior_nu}: Prior degrees of freedom.
-#'   \item \code{posterior_nu}: Posterior degrees of freedom.
-#'   \item \code{posterior_Psi}: Posterior scale matrix.
-#'   \item \code{C}: Scaling factor for the scale matrix.
+#'   \item \code{prior_nu}: prior degrees of freedom.
+#'   \item \code{prior_Psi}: prior scale matrix.
+#'   \item \code{posterior_nu}: posterior degrees of freedom.
+#'   \item \code{posterior_Psi}: posterior scale matrix.
 #' }
 #'
 #' @examples
@@ -332,7 +345,7 @@ multi_log_score_optimization <- function(res, prior_mean, trim = 0.1) {
 #'   # --- 1) Generate joint reconciled samples ---
 #'   result <- reconc_t(A, base_fc_mean, y_train = y_train, residuals = res)
 #'
-#'   # Sample from the reconciled bottom-level Student-t distribution
+#'   # Sample from the reconciled bottom-level t-distribution
 #'   n_samples <- 2000
 #'   L_chol <- t(chol(result$bottom_rec_scale_matrix))
 #'   z <- matrix(rt(ncol(A) * n_samples, df = result$bottom_rec_df), nrow = ncol(A))
@@ -440,13 +453,25 @@ reconc_t <- function(A,
 
   out <- .core_reconc_t(
     A = A, base_fc_mean = base_fc_mean, Psi_post = Psi_post, nu_post = nu_post,
-    return_upper = return_upper, return_parameters = return_parameters, suppress_warnings = FALSE
+    return_upper = return_upper, suppress_warnings = FALSE
   )
+
+  if (return_parameters) {
+    if(!is.null(posterior)) {
+      warning("Prior parameters are not returned when 'posterior' is provided, 
+              as the prior is not used in this case.")
+    } else {
+      out$prior_nu <- nu_prior
+      out$prior_Psi <- Psi_prior
+    }
+    out$posterior_nu <- nu_post
+    out$posterior_Psi <- Psi_post
+  }
 
   return(out)
 }
 
-#' Core Reconciliation via Multivariate Student-t Distribution.
+#' Core reconciliation via multivariate t-distribution.
 #'
 #' Internal function that performs the core reconciliation logic for the t-distribution based
 #' reconciliation method. This function assumes an uncertain covariance matrix with an Inverse-Wishart prior.
@@ -455,25 +480,23 @@ reconc_t <- function(A,
 #' @param base_fc_mean Vector of length (n_upper + n_bottom) containing the base forecast means
 #'   for both upper and bottom levels (upper first, then bottom).
 #' @param Psi_post Scale matrix (n_upper + n_bottom x n_upper + n_bottom) of the posterior
-#'   Student-t distribution.
-#' @param nu_post Degrees of freedom of the posterior Student-t distribution.
+#'   multivariate t-distribution.
+#' @param nu_post Degrees of freedom of the posterior multivariate t-distribution.
 #' @param return_upper Logical, whether to return the reconciled parameters for the upper variables (default is FALSE).
-#' @param return_parameters Logical. If TRUE, returns internal parameters (posterior nu, posterior Psi, C)
-#'   for debugging or advanced use. Default is FALSE.
 #' @param suppress_warnings Logical. If TRUE, suppresses warnings about numerical issues. Default is FALSE.
 #'
 #' @return A list containing:
-#'   \itemize{
-#'     \item `bottom_rec_mean`: Reconciled mean vector for bottom level.
-#'     \item `bottom_rec_scale_matrix`: Reconciled scale matrix for bottom level.
-#'     \item `bottom_rec_df`: Reconciled degrees of freedom for bottom level.
-#'     \item `upper_rec_mean`: (only if `return_upper=TRUE`) Reconciled mean vector for upper level.
-#'     \item `upper_rec_scale_matrix`: (only if `return_upper=TRUE`) Reconciled scale matrix for upper level.
-#'     \item `upper_rec_df`: (only if `return_upper=TRUE`) Reconciled degrees of freedom for upper level.
-#'     \item `posterior_nu`: (only if `return_parameters=TRUE`) Posterior degrees of freedom.
-#'     \item `posterior_Psi`: (only if `return_parameters=TRUE`) Posterior scale matrix.
-#'     \item `C`: (only if `return_parameters=TRUE`) Scaling factor used in reconciliation.
-#'   }
+#' \itemize{
+#'   \item \code{bottom_rec_mean}: reconciled bottom-level mean.
+#'   \item \code{bottom_rec_scale_matrix}: reconciled bottom-level scale matrix.
+#'   \item \code{bottom_rec_df}: reconciled degrees of freedom.
+#' }
+#' If \code{return_upper} is TRUE, also returns:
+#' \itemize{
+#'  \item \code{upper_rec_mean}: reconciled upper-level mean.
+#'  \item \code{upper_rec_scale_matrix}: reconciled upper-level scale matrix.
+#'  \item \code{upper_rec_df}: reconciled upper-level degrees of freedom.
+#'  }
 #'
 #' @keywords internal
 #' @export
@@ -544,11 +567,6 @@ reconc_t <- function(A,
     out$upper_rec_mean <- as.vector(u_tilde)
     out$upper_rec_scale_matrix <- Sigma_tilde_U
     out$upper_rec_df <- nu_tilde
-  }
-  if (return_parameters) {
-    out$posterior_nu <- nu_post
-    out$posterior_Psi <- Psi_post
-    out$C <- C
   }
 
   return(out)

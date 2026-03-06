@@ -73,10 +73,14 @@ and \code{TRUE} for \code{reconc_TDcond}. See the respective sections above.}
 \value{
 A list containing the reconciled forecasts. The list has the following named elements:
 \itemize{
-\item \code{bottom_rec}: a list containing the pmf, the samples (matrix n_bottom x \code{num_samples}) or both,
-depending on the value of \code{return_type};
-\item \code{upper_rec}: a list containing the pmf, the samples (matrix n_upper x \code{num_samples}) or both,
-depending on the value of \code{return_type} (only if \code{return_upper = TRUE}).
+\item \code{bottom_rec_pmf}: a list of PMF objects for each bottom series
+(only if \code{return_type} is \code{'pmf'} or \code{'all'});
+\item \code{bottom_rec_samples}: a matrix (n_bottom x \code{num_samples}) of reconciled bottom samples
+(only if \code{return_type} is \code{'samples'} or \code{'all'});
+\item \code{upper_rec_pmf}: a list of PMF objects for each upper series
+(only if \code{return_type} is \code{'pmf'} or \code{'all'}, and \code{return_upper = TRUE});
+\item \code{upper_rec_samples}: a matrix (n_upper x \code{num_samples}) of reconciled upper samples
+(only if \code{return_type} is \code{'samples'} or \code{'all'}, and \code{return_upper = TRUE}).
 }
 }
 \description{
@@ -110,9 +114,8 @@ The order of the upper and bottom base forecasts must match the order of (respec
 A PMF object is a numerical vector containing the probability mass function of a discrete distribution.
 Each element corresponds to the probability of the integers from 0 to the last value of the support.
 See also \link{PMF} for functions that handle PMF objects.
-}
-\section{Warnings and errors}{
 
+\strong{Warnings and errors.}
 
 In \code{reconc_MixCond}, warnings are triggered from the importance sampling step if:
 \itemize{
@@ -130,7 +133,6 @@ replacement, so that the number of output samples is equal to \code{num_samples}
 In this case, a warning is issued if \code{suppress_warnings=FALSE} (default is \code{TRUE}).
 If the fraction of discarded samples is above 50\%, the function returns an error.
 }
-
 \examples{
 
 library(bayesRecon)
@@ -153,15 +155,15 @@ base_fc_upper <- list(mean = 40, cov = matrix(5^2))
 res.mixCond <- reconc_MixCond(A, base_fc_bottom, base_fc_upper)
 
 # Note that the bottom distributions are slightly shifted to the right
-PMF_summary(res.mixCond$bottom_rec$pmf[[1]])
+PMF_summary(res.mixCond$bottom_rec_pmf[[1]])
 PMF_summary(base_fc_bottom[[1]])
 
-PMF_summary(res.mixCond$bottom_rec$pmf[[2]])
+PMF_summary(res.mixCond$bottom_rec_pmf[[2]])
 PMF_summary(base_fc_bottom[[2]])
 
 # The upper distribution is slightly shifted to the left
-PMF_summary(res.mixCond$upper_rec$pmf[[1]])
-PMF_get_var(res.mixCond$upper_rec$pmf[[1]])
+PMF_summary(res.mixCond$upper_rec_pmf[[1]])
+PMF_get_var(res.mixCond$upper_rec_pmf[[1]])
 
 
 library(bayesRecon)
@@ -184,15 +186,15 @@ base_fc_upper <- list(mean = 40, cov = matrix(c(5^2)))
 res.TDcond <- reconc_TDcond(A, base_fc_bottom, base_fc_upper)
 
 # Note that the bottom distributions are shifted to the right
-PMF_summary(res.TDcond$bottom_rec$pmf[[1]])
+PMF_summary(res.TDcond$bottom_rec_pmf[[1]])
 PMF_summary(base_fc_bottom[[1]])
 
-PMF_summary(res.TDcond$bottom_rec$pmf[[2]])
+PMF_summary(res.TDcond$bottom_rec_pmf[[2]])
 PMF_summary(base_fc_bottom[[2]])
 
 # The upper distribution remains similar
-PMF_summary(res.TDcond$upper_rec$pmf[[1]])
-PMF_get_var(res.TDcond$upper_rec$pmf[[1]])
+PMF_summary(res.TDcond$upper_rec_pmf[[1]])
+PMF_get_var(res.TDcond$upper_rec_pmf[[1]])
 
 ## Example 2: reconciliation with unbalanced hierarchy
 # We consider the example in Fig. 9 of Zambon et al. (2024).
@@ -260,7 +262,7 @@ res.TDcond <- reconc_TDcond(A, base_fc_bottom, base_fc_upper)
 
 # Note that the reconciled distribution of b5 and u4 are identical,
 # keep this in mind when using the results of your reconciliation!
-max(abs(res.TDcond$bottom_rec$pmf[[5]] - res.TDcond$upper_rec$pmf[[4]]))
+max(abs(res.TDcond$bottom_rec_pmf[[5]] - res.TDcond$upper_rec_pmf[[4]]))
 
 }
 \references{

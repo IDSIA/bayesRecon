@@ -2,7 +2,7 @@
 % Please edit documentation in R/reconc_t.R
 \name{multi_log_score_optimization}
 \alias{multi_log_score_optimization}
-\title{Optimize Degrees of Freedom (nu) via LOO Cross-Validation}
+\title{Optimize degrees of freedom (nu) via LOO Cross-Validation}
 \usage{
 multi_log_score_optimization(res, prior_mean, trim = 0.1)
 }
@@ -23,7 +23,7 @@ A list containing the optimization results:
 }
 }
 \description{
-Optimize Degrees of Freedom (nu) via LOO Cross-Validation
+Optimize degrees of freedom (nu) via LOO Cross-Validation
 }
 \details{
 TODO: check these details
@@ -37,8 +37,8 @@ predictive log-densities:
 \deqn{\mathcal{L}(\nu) = \sum_{i=1}^T \log f(\mathbf{r}_i | \mathbf{R}_{-i}, \nu)}
 
 \strong{The Log-Density Function:}
-For each LOO step, the residuals are assumed to follow a Multivariate
-Student-t distribution. The density is expressed directly as a function of the
+For each LOO step, the residuals are assumed to follow a
+multivariate t-distribution. The density is expressed directly as a function of the
 posterior sum-of-squares matrix \eqn{\Psi}, where \eqn{\Psi} scales implicitly with \eqn{\nu}:
 \deqn{f(\mathbf{r}_i | \Psi, \nu) = \frac{\Gamma(\frac{\nu + T}{2})}{\Gamma(\frac{\nu + T - p}{2}) \pi^{p/2}} |\Psi|^{-1/2} \left( 1 + \mathbf{r}_i^\top \Psi^{-1} \mathbf{r}_i \right)^{-\frac{\nu + T}{2}}}
 In the code, \eqn{\Psi} is constructed as:

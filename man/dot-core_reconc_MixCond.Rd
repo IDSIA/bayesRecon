@@ -39,7 +39,10 @@
 A list containing:
 \itemize{
 \item \code{bottom_rec}: List with reconciled bottom forecasts (pmf and/or samples).
-\item \code{upper_rec}: (only if \code{return_upper = TRUE}) List with reconciled upper forecasts (pmf and/or samples).
+\item \code{bottom_rec_pmf}: list of PMF objects for each bottom series (only if \code{return_type} is 'pmf' or 'all').
+\item \code{bottom_rec_samples}: matrix (n_bottom x num_samples) of reconciled bottom samples (only if \code{return_type} is 'samples' or 'all').
+\item \code{upper_rec_pmf}: list of PMF objects for each upper series (only if \code{return_type} is 'pmf' or 'all', and \code{return_upper = TRUE}).
+\item \code{upper_rec_samples}: matrix (n_upper x num_samples) of reconciled upper samples (only if \code{return_type} is 'samples' or 'all', and \code{return_upper = TRUE}).
 \item \code{ESS}: Effective Sample Size resulting from importance sampling reweighting (only if \code{return_ESS = TRUE}).
 }
 }
