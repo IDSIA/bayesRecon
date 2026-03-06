@@ -308,7 +308,6 @@ multi_log_score_optimization <- function(res, prior_mean, trim = 0.1) {
 #'   \item \code{prior_Psi}: prior scale matrix.
 #'   \item \code{posterior_nu}: posterior degrees of freedom.
 #'   \item \code{posterior_Psi}: posterior scale matrix.
-#'   \item \code{C}: scaling factor for the scale matrix.
 #' }
 #'
 #' @examples
@@ -454,12 +453,14 @@ reconc_t <- function(A,
 
   out <- .core_reconc_t(
     A = A, base_fc_mean = base_fc_mean, Psi_post = Psi_post, nu_post = nu_post,
-    return_upper = return_upper, return_parameters = return_parameters, suppress_warnings = FALSE
+    return_upper = return_upper, suppress_warnings = FALSE
   )
 
   if (return_parameters) {
     out$prior_nu <- nu_prior
     out$prior_Psi <- Psi_prior
+    out$posterior_nu <- nu_post
+    out$posterior_Psi <- Psi_post
   }
 
   return(out)
@@ -477,22 +478,20 @@ reconc_t <- function(A,
 #'   multivariate t-distribution.
 #' @param nu_post Degrees of freedom of the posterior multivariate t-distribution.
 #' @param return_upper Logical, whether to return the reconciled parameters for the upper variables (default is FALSE).
-#' @param return_parameters Logical. If TRUE, returns internal parameters (posterior nu, posterior Psi, C)
-#'   for debugging or advanced use. Default is FALSE.
 #' @param suppress_warnings Logical. If TRUE, suppresses warnings about numerical issues. Default is FALSE.
 #'
 #' @return A list containing:
-#'   \itemize{
-#'     \item `bottom_rec_mean`: Reconciled mean vector for bottom level.
-#'     \item `bottom_rec_scale_matrix`: Reconciled scale matrix for bottom level.
-#'     \item `bottom_rec_df`: Reconciled degrees of freedom for bottom level.
-#'     \item `upper_rec_mean`: (only if `return_upper=TRUE`) Reconciled mean vector for upper level.
-#'     \item `upper_rec_scale_matrix`: (only if `return_upper=TRUE`) Reconciled scale matrix for upper level.
-#'     \item `upper_rec_df`: (only if `return_upper=TRUE`) Reconciled degrees of freedom for upper level.
-#'     \item `posterior_nu`: (only if `return_parameters=TRUE`) Posterior degrees of freedom.
-#'     \item `posterior_Psi`: (only if `return_parameters=TRUE`) Posterior scale matrix.
-#'     \item `C`: (only if `return_parameters=TRUE`) Scaling factor used in reconciliation.
-#'   }
+#' \itemize{
+#'   \item \code{bottom_rec_mean}: reconciled bottom-level mean.
+#'   \item \code{bottom_rec_scale_matrix}: reconciled bottom-level scale matrix.
+#'   \item \code{bottom_rec_df}: reconciled degrees of freedom.
+#' }
+#' If \code{return_upper} is TRUE, also returns:
+#' \itemize{
+#'  \item \code{upper_rec_mean}: reconciled upper-level mean.
+#'  \item \code{upper_rec_scale_matrix}: reconciled upper-level scale matrix.
+#'  \item \code{upper_rec_df}: reconciled upper-level degrees of freedom.
+#'  }
 #'
 #' @keywords internal
 #' @export
@@ -563,11 +562,6 @@ reconc_t <- function(A,
     out$upper_rec_mean <- as.vector(u_tilde)
     out$upper_rec_scale_matrix <- Sigma_tilde_U
     out$upper_rec_df <- nu_tilde
-  }
-  if (return_parameters) {
-    out$posterior_nu <- nu_post
-    out$posterior_Psi <- Psi_post
-    out$C <- C
   }
 
   return(out)

@@ -27,23 +27,20 @@ multivariate t-distribution.}
 
 \item{return_upper}{Logical, whether to return the reconciled parameters for the upper variables (default is FALSE).}
 
-\item{return_parameters}{Logical. If TRUE, returns internal parameters (posterior nu, posterior Psi, C)
-for debugging or advanced use. Default is FALSE.}
-
 \item{suppress_warnings}{Logical. If TRUE, suppresses warnings about numerical issues. Default is FALSE.}
 }
 \value{
 A list containing:
 \itemize{
-\item \code{bottom_rec_mean}: Reconciled mean vector for bottom level.
-\item \code{bottom_rec_scale_matrix}: Reconciled scale matrix for bottom level.
-\item \code{bottom_rec_df}: Reconciled degrees of freedom for bottom level.
-\item \code{upper_rec_mean}: (only if \code{return_upper=TRUE}) Reconciled mean vector for upper level.
-\item \code{upper_rec_scale_matrix}: (only if \code{return_upper=TRUE}) Reconciled scale matrix for upper level.
-\item \code{upper_rec_df}: (only if \code{return_upper=TRUE}) Reconciled degrees of freedom for upper level.
-\item \code{posterior_nu}: (only if \code{return_parameters=TRUE}) Posterior degrees of freedom.
-\item \code{posterior_Psi}: (only if \code{return_parameters=TRUE}) Posterior scale matrix.
-\item \code{C}: (only if \code{return_parameters=TRUE}) Scaling factor used in reconciliation.
+\item \code{bottom_rec_mean}: reconciled bottom-level mean.
+\item \code{bottom_rec_scale_matrix}: reconciled bottom-level scale matrix.
+\item \code{bottom_rec_df}: reconciled degrees of freedom.
+}
+If \code{return_upper} is TRUE, also returns:
+\itemize{
+\item \code{upper_rec_mean}: reconciled upper-level mean.
+\item \code{upper_rec_scale_matrix}: reconciled upper-level scale matrix.
+\item \code{upper_rec_df}: reconciled upper-level degrees of freedom.
 }
 }
 \description{

@@ -25,9 +25,9 @@ reconc_t(
 
 \item{...}{Additional arguments for advanced usage: see details.}
 
-\item{return_upper}{Logical; if TRUE, also returns parameters for the upper level reconciled distribution.}
+\item{return_upper}{Logical; if TRUE, also returns parameters for the upper-level reconciled distribution.}
 
-\item{return_parameters}{Logical; if TRUE, returns internal parameters like C and posterior nu.}
+\item{return_parameters}{Logical; if TRUE, also returns prior and posterior parameters.}
 }
 \value{
 A list containing:
@@ -48,7 +48,6 @@ If \code{return_parameters} is TRUE, also returns:
 \item \code{prior_Psi}: prior scale matrix.
 \item \code{posterior_nu}: posterior degrees of freedom.
 \item \code{posterior_Psi}: posterior scale matrix.
-\item \code{C}: scaling factor for the scale matrix.
 }
 }
 \description{
