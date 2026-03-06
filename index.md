@@ -9,8 +9,7 @@
 [![CRAN
 status](https://www.r-pkg.org/badges/version/bayesRecon)](https://CRAN.R-project.org/package=bayesRecon)
 [![Downloads](http://cranlogs.r-pkg.org/badges/grand-total/bayesRecon)](https://cran.r-project.org/package=bayesRecon)
-[![Lifecycle:
-experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+[![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 [![License: LGPL (\>=
 3)](https://img.shields.io/badge/license-LGPL%20(%3E=%203)-yellow.svg)](https://www.gnu.org/licences/lgpl-3.0)
 [![coverage](https://coveralls.io/repos/github/IDSIA/bayesRecon/badge.svg)](https://coveralls.io/github/IDSIA/bayesRecon)
