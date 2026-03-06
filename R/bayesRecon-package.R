@@ -31,6 +31,11 @@
 #' * [PMF]: functions for handling PMF objects (sampling, computing statistics like mean, variance, quantiles, and summaries).
 #'
 #' @references
+#' 
+#' Carrara, C., Corani, G., Azzimonti, D., & Zambon, L. (2025).
+#' *Modeling the uncertainty on the covariance matrix for probabilistic forecast reconciliation*.
+#' arXiv preprint arXiv:2506.19554. <https://arxiv.org/abs/2506.19554>.
+#' 
 #' Corani, G., Azzimonti, D., Augusto, J.P.S.C., Zaffalon, M. (2021).
 #' *Probabilistic Reconciliation of Hierarchical Forecast via Bayes' Rule*.
 #' ECML PKDD 2020. Lecture Notes in Computer Science, vol 12459.
@@ -56,9 +61,6 @@
 #' Proceedings of the Fortieth Conference on Uncertainty in Artificial Intelligence,
 #' PMLR 244:4078-4095. <https://proceedings.mlr.press/v244/zambon24a.html>.
 #'
-#' Carrara, C., Corani, G., Azzimonti, D., & Zambon, L. (2025).
-#' *Modeling the uncertainty on the covariance matrix for probabilistic forecast reconciliation*.
-#' arXiv preprint arXiv:2506.19554. <https://arxiv.org/abs/2506.19554>.
 #'
 #' @keywords internal
 "_PACKAGE"

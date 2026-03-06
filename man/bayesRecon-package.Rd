@@ -51,6 +51,10 @@ by maximizing the leave-one-out (LOO) multivariate log density;
 }
 
 \references{
+Carrara, C., Corani, G., Azzimonti, D., & Zambon, L. (2025).
+\emph{Modeling the uncertainty on the covariance matrix for probabilistic forecast reconciliation}.
+arXiv preprint arXiv:2506.19554. \url{https://arxiv.org/abs/2506.19554}.
+
 Corani, G., Azzimonti, D., Augusto, J.P.S.C., Zaffalon, M. (2021).
 \emph{Probabilistic Reconciliation of Hierarchical Forecast via Bayes' Rule}.
 ECML PKDD 2020. Lecture Notes in Computer Science, vol 12459.
@@ -75,10 +79,6 @@ Zambon, L., Azzimonti, D., Rubattu, N., Corani, G. (2024).
 \emph{Probabilistic reconciliation of mixed-type hierarchical time series}.
 Proceedings of the Fortieth Conference on Uncertainty in Artificial Intelligence,
 PMLR 244:4078-4095. \url{https://proceedings.mlr.press/v244/zambon24a.html}.
-
-Carrara, C., Corani, G., Azzimonti, D., & Zambon, L. (2025).
-\emph{Modeling the uncertainty on the covariance matrix for probabilistic forecast reconciliation}.
-arXiv preprint arXiv:2506.19554. \url{https://arxiv.org/abs/2506.19554}.
 }
 \seealso{
 Useful links:
