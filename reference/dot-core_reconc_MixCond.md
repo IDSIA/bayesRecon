@@ -71,8 +71,18 @@ A list containing:
 - `bottom_rec`: List with reconciled bottom forecasts (pmf and/or
   samples).
 
-- `upper_rec`: (only if `return_upper = TRUE`) List with reconciled
-  upper forecasts (pmf and/or samples).
+- `bottom_rec_pmf`: list of PMF objects for each bottom series (only if
+  `return_type` is 'pmf' or 'all').
+
+- `bottom_rec_samples`: matrix (n_bottom x num_samples) of reconciled
+  bottom samples (only if `return_type` is 'samples' or 'all').
+
+- `upper_rec_pmf`: list of PMF objects for each upper series (only if
+  `return_type` is 'pmf' or 'all', and `return_upper = TRUE`).
+
+- `upper_rec_samples`: matrix (n_upper x num_samples) of reconciled
+  upper samples (only if `return_type` is 'samples' or 'all', and
+  `return_upper = TRUE`).
 
 - `ESS`: Effective Sample Size resulting from importance sampling
   reweighting (only if `return_ESS = TRUE`).

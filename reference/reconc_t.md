@@ -1,12 +1,14 @@
-# t-Rec: Reconciliation via Conditioning with uncertain covariance via Multivariate Student-t
+# t-Rec: reconciliation via conditioning with uncertain covariance via multivariate t-distribution
 
 Reconciles base forecasts in a hierarchy by conditioning on the
 hierarchical constraints, specified by the aggregation matrix A. The
 base forecasts are assumed to be jointly Gaussian, conditionally on the
-covariance matrix, a Bayesian approach is adopted using an
-Inverse-Wishart prior, leading to a Multivariate Student-t distribution
-for the base forecasts. The reconciliation is in closed-form, yielding a
-multivariate Student-t reconciled distribution.
+covariance matrix of the forecast errors. A Bayesian approach is adopted
+to account for the uncertainty of the covariance matrix. An
+Inverse-Wishart prior is specified on the covariance matrix, leading to
+a multivariate t-distribution for the base forecasts. The reconciliation
+via conditioning is in closed-form, yielding a multivariate t reconciled
+distribution.
 
 ## Usage
 
@@ -47,91 +49,95 @@ reconc_t(
 
 - return_upper:
 
-  Logical; if TRUE, also returns parameters for the upper level
+  Logical; if TRUE, also returns parameters for the upper-level
   reconciled distribution.
 
 - return_parameters:
 
-  Logical; if TRUE, returns internal parameters like C and posterior nu.
+  Logical; if TRUE, also returns prior and posterior parameters.
 
 ## Value
 
 A list containing:
 
-- `bottom_rec_mean`: Reconciled bottom-level mean forecasts.
+- `bottom_rec_mean`: reconciled bottom-level mean.
 
-- `bottom_rec_scale_matrix`: Reconciled bottom-level scale matrix.
+- `bottom_rec_scale_matrix`: reconciled bottom-level scale matrix.
 
-- `bottom_rec_df`: Reconciled degrees of freedom.
+- `bottom_rec_df`: reconciled degrees of freedom.
 
 If `return_upper` is TRUE, also returns:
 
-- `upper_rec_mean`: Reconciled upper-level mean forecasts.
+- `upper_rec_mean`: reconciled upper-level mean.
 
-- `upper_rec_scale_matrix`: Reconciled upper-level scale matrix.
+- `upper_rec_scale_matrix`: reconciled upper-level scale matrix.
 
-- `upper_rec_df`: Reconciled upper-level degrees of freedom.
+- `upper_rec_df`: reconciled upper-level degrees of freedom.
 
 If `return_parameters` is TRUE, also returns:
 
-- `prior_nu`: Prior degrees of freedom.
+- `prior_nu`: prior degrees of freedom.
 
-- `posterior_nu`: Posterior degrees of freedom.
+- `prior_Psi`: prior scale matrix.
 
-- `posterior_Psi`: Posterior scale matrix.
+- `posterior_nu`: posterior degrees of freedom.
 
-- `C`: Scaling factor for the scale matrix.
+- `posterior_Psi`: posterior scale matrix.
 
 ## Details
 
-**Standard Usage and Parameter Estimation:** The standard workflow for
-this function is to provide the in-sample `residuals` and the historical
-training data `y_train`.
+**Standard usage.**
 
-- **Prior Scale (\\\Psi_0\\):** Set as the covariance of the residuals
-  of naive (or seasonal naive, a criterion is used to choose between
-  the 2) forecasts computed on `y_train`.
+The standard workflow for this function is to provide the in-sample
+`residuals` and the historical training data `y_train`. The parameters
+of the Inverse-Wishart prior distribution of the covariance matrix are
+set as follows:
 
-- **Prior Degrees of Freedom (\\\nu_0\\):** Estimated via Bayesian
-  Leave-One-Out Cross-Validation (LOOCV) to maximize out-of-sample
-  performance.
+- Prior scale matrix (Psi): set as the covariance of the residuals of
+  naive (or seasonal naive, a criterion is used to choose between the
+  two) forecasts computed on `y_train`.
 
-**Advanced Options:** Users can bypass the automated estimation by:
+- Prior degrees of freedom (nu): estimated via Bayesian Leave-One-Out
+  Cross-Validation (LOOCV) to maximize out-of-sample performance.
 
-1.  Directly passing the `prior` parameters as a list with entries 'nu'
-    and 'Psi'. This skips the LOOCV step for \\\nu_0\\ and the
-    covariance estimation from `y_train`. It requires `residuals` to
-    compute the posterior.
+The posterior distribution of the covariance matrix is still
+Inverse-Wishart. The parameters of the posterior are computed in
+closed-form using the sample covariance of the provided `residuals`.
 
-2.  Directly passing the `posterior` parameters as a list with entries
-    'nu' and 'Psi'. This skips all internal estimation and updating
-    logic.
+**Advanced Options.**
+
+Users can bypass the automated estimation by specifying:
+
+1.  `prior`: a list with entries 'nu' and 'Psi'. This skips the LOOCV
+    step for \\\nu_0\\ and the covariance estimation from `y_train`. It
+    requires `residuals` to compute the posterior.
+
+2.  `posterior`: a list with entries 'nu' and 'Psi'. This skips all
+    internal estimation and updating logic.
 
 Moreover, users can specify:
 
 - `freq`: positive integer, used as frequency of data for the seasonal
-  naive forecast in the specification of \\\Psi_0\\. By default, if
-  `y_train` is a multivariate time series, the frequency of the data is
-  used; otherwise, it is set to 1 (no seasonality).
+  naive forecast in the specification of the prior scale matrix. By
+  default, if `y_train` is a multivariate time series, the frequency of
+  the data is used; otherwise, it is set to 1 (no seasonality).
 
 - `criterion`: either 'RSS' (default) or 'seas-test', specifying which
   criterior is used to choose between the naive and seasonal naive
-  forecasts for the specification of \\\Psi_0\\. 'RSS' computes the
-  residual sum of squares for both methods and chooses the one with
-  lower RSS, while 'seas-test' uses a statistical test for seasonality
-  (currently implemented using the number of seasonal differences
-  suggested by the `forecast` package, which must be installed).
+  forecasts for the specification of the prior scale matrix. 'RSS'
+  computes the residual sum of squares for both methods and chooses the
+  one with lower RSS, while 'seas-test' uses a statistical test for
+  seasonality (currently implemented using the number of seasonal
+  differences suggested by the `forecast` package, which must be
+  installed).
 
-**The Reconciled Bottom Distribution:** The reconciliation yields a
-distribution: \$\$\tilde{\mathbf{b}} \sim t(\hat{\mathbf{b}}\_{tilde},
-\tilde{\Sigma}\_B, \tilde{\nu})\$\$ where the reconciled mean is:
-\$\$\hat{\mathbf{b}}\_{tilde} = \hat{\mathbf{b}} + ((\Psi'\_{UB})^\top -
-\Psi'\_B A^\top) Q^{-1} (A\hat{\mathbf{b}} - \hat{\mathbf{u}})\$\$ and
-the scale matrix is: \$\$\tilde{\Sigma}\_B = C \[\Psi'\_B -
-((\Psi'\_{UB})^\top - \Psi'\_B A^\top) Q^{-1} ((\Psi'\_{UB})^\top -
-\Psi'\_B A^\top)^\top\]\$\$ with scalar \$\$C = \frac{1 +
-(A\hat{\mathbf{b}} - \hat{\mathbf{u}})^\top Q^{-1} (A\hat{\mathbf{b}} -
-\hat{\mathbf{u}})}{\tilde{\nu}}.\$\$
+**Reconciled distribution.**
+
+The reconciled distribution is a multivariate t-distribution, specified
+by a vector of means, a scale matrix, and a number of degrees of
+freedom. These parameters are computed in closed-form. By default, only
+the parameters of the reconciled distribution for the bottom-level
+series are returned. See examples.
 
 ## References
 
@@ -180,7 +186,7 @@ if (requireNamespace("forecast", quietly = TRUE)) {
   # --- 1) Generate joint reconciled samples ---
   result <- reconc_t(A, base_fc_mean, y_train = y_train, residuals = res)
 
-  # Sample from the reconciled bottom-level Student-t distribution
+  # Sample from the reconciled bottom-level t-distribution
   n_samples <- 2000
   L_chol <- t(chol(result$bottom_rec_scale_matrix))
   z <- matrix(rt(ncol(A) * n_samples, df = result$bottom_rec_df), nrow = ncol(A))

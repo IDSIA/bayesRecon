@@ -1,6 +1,6 @@
-# Optimize Degrees of Freedom (nu) via LOO Cross-Validation
+# Optimize degrees of freedom (nu) via LOO Cross-Validation
 
-Optimize Degrees of Freedom (nu) via LOO Cross-Validation
+Optimize degrees of freedom (nu) via LOO Cross-Validation
 
 ## Usage
 
@@ -47,7 +47,7 @@ predictive log-densities: \$\$\mathcal{L}(\nu) = \sum\_{i=1}^T \log
 f(\mathbf{r}\_i \| \mathbf{R}\_{-i}, \nu)\$\$
 
 **The Log-Density Function:** For each LOO step, the residuals are
-assumed to follow a Multivariate Student-t distribution. The density is
+assumed to follow a multivariate t-distribution. The density is
 expressed directly as a function of the posterior sum-of-squares matrix
 \\\Psi\\, where \\\Psi\\ scales implicitly with \\\nu\\:
 \$\$f(\mathbf{r}\_i \| \Psi, \nu) = \frac{\Gamma(\frac{\nu +

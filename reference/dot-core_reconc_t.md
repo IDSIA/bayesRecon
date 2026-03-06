@@ -1,4 +1,4 @@
-# Core Reconciliation via Multivariate Student-t Distribution.
+# Core reconciliation via multivariate t-distribution.
 
 Internal function that performs the core reconciliation logic for the
 t-distribution based reconciliation method. This function assumes an
@@ -33,21 +33,16 @@ uncertain covariance matrix with an Inverse-Wishart prior.
 - Psi_post:
 
   Scale matrix (n_upper + n_bottom x n_upper + n_bottom) of the
-  posterior Student-t distribution.
+  posterior multivariate t-distribution.
 
 - nu_post:
 
-  Degrees of freedom of the posterior Student-t distribution.
+  Degrees of freedom of the posterior multivariate t-distribution.
 
 - return_upper:
 
   Logical, whether to return the reconciled parameters for the upper
   variables (default is FALSE).
-
-- return_parameters:
-
-  Logical. If TRUE, returns internal parameters (posterior nu, posterior
-  Psi, C) for debugging or advanced use. Default is FALSE.
 
 - suppress_warnings:
 
@@ -58,26 +53,16 @@ uncertain covariance matrix with an Inverse-Wishart prior.
 
 A list containing:
 
-- `bottom_rec_mean`: Reconciled mean vector for bottom level.
+- `bottom_rec_mean`: reconciled bottom-level mean.
 
-- `bottom_rec_scale_matrix`: Reconciled scale matrix for bottom level.
+- `bottom_rec_scale_matrix`: reconciled bottom-level scale matrix.
 
-- `bottom_rec_df`: Reconciled degrees of freedom for bottom level.
+- `bottom_rec_df`: reconciled degrees of freedom.
 
-- `upper_rec_mean`: (only if `return_upper=TRUE`) Reconciled mean vector
-  for upper level.
+If `return_upper` is TRUE, also returns:
 
-- `upper_rec_scale_matrix`: (only if `return_upper=TRUE`) Reconciled
-  scale matrix for upper level.
+- `upper_rec_mean`: reconciled upper-level mean.
 
-- `upper_rec_df`: (only if `return_upper=TRUE`) Reconciled degrees of
-  freedom for upper level.
+- `upper_rec_scale_matrix`: reconciled upper-level scale matrix.
 
-- `posterior_nu`: (only if `return_parameters=TRUE`) Posterior degrees
-  of freedom.
-
-- `posterior_Psi`: (only if `return_parameters=TRUE`) Posterior scale
-  matrix.
-
-- `C`: (only if `return_parameters=TRUE`) Scaling factor used in
-  reconciliation.
+- `upper_rec_df`: reconciled upper-level degrees of freedom.

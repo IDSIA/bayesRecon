@@ -117,7 +117,7 @@ rec_fc$Gauss <- list(
 
 Gauss_time <- as.double(round(difftime(stop, start, units = "secs"), 2))
 cat("Time taken by Gaussian reconciliation: ", Gauss_time, "s")
-#> Time taken by Gaussian reconciliation:  0.28 s
+#> Time taken by Gaussian reconciliation:  0.31 s
 ```
 
 ## Reconciliation with mixed-conditioning
@@ -159,14 +159,14 @@ mix_cond <- reconc_MixCond(A, fc_bottom_4rec, fc_upper_4rec,
 stop <- Sys.time()
 
 rec_fc$Mixed_cond <- list(
-  bottom = mix_cond$bottom_rec$pmf,
-  upper  = mix_cond$upper_rec$pmf,
+  bottom = mix_cond$bottom_rec_pmf,
+  upper  = mix_cond$upper_rec_pmf,
   ESS    = mix_cond$ESS
 )
 
 MixCond_time <- as.double(round(difftime(stop, start, units = "secs"), 2))
 cat("Computational time for Mix-cond reconciliation: ", MixCond_time, "s")
-#> Computational time for Mix-cond reconciliation:  9.74 s
+#> Computational time for Mix-cond reconciliation:  10.7 s
 ```
 
 As discussed in Zambon et al. (2024), Sect. 3, conditioning with mixed
@@ -204,19 +204,19 @@ warning does not impact the performances of TD-cond.
 
 ``` r
 rec_fc$TD_cond <- list(
-  bottom = td$bottom_rec$pmf,
-  upper  = td$upper_rec$pmf
+  bottom = td$bottom_rec_pmf,
+  upper  = td$upper_rec_pmf
 )
 
 TDCond_time <- as.double(round(difftime(stop, start, units = "secs"), 2))
 cat("Computational time for TD-cond reconciliation: ", TDCond_time, "s")
-#> Computational time for TD-cond reconciliation:  10.73 s
+#> Computational time for TD-cond reconciliation:  12.08 s
 ```
 
 ## Comparison
 
-The computational time required for the Gaussian reconciliation is 0.28
-seconds, Mix-cond requires 9.74 seconds and TD-cond requires 10.73
+The computational time required for the Gaussian reconciliation is 0.31
+seconds, Mix-cond requires 10.7 seconds and TD-cond requires 12.08
 seconds.
 
 For each time series in the hierarchy, we compute the following scores

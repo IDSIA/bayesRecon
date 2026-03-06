@@ -112,12 +112,19 @@ reconc_TDcond(
 A list containing the reconciled forecasts. The list has the following
 named elements:
 
-- `bottom_rec`: a list containing the pmf, the samples (matrix n_bottom
-  x `num_samples`) or both, depending on the value of `return_type`;
+- `bottom_rec_pmf`: a list of PMF objects for each bottom series (only
+  if `return_type` is `'pmf'` or `'all'`);
 
-- `upper_rec`: a list containing the pmf, the samples (matrix n_upper x
-  `num_samples`) or both, depending on the value of `return_type` (only
-  if `return_upper = TRUE`).
+- `bottom_rec_samples`: a matrix (n_bottom x `num_samples`) of
+  reconciled bottom samples (only if `return_type` is `'samples'` or
+  `'all'`);
+
+- `upper_rec_pmf`: a list of PMF objects for each upper series (only if
+  `return_type` is `'pmf'` or `'all'`, and `return_upper = TRUE`);
+
+- `upper_rec_samples`: a matrix (n_upper x `num_samples`) of reconciled
+  upper samples (only if `return_type` is `'samples'` or `'all'`, and
+  `return_upper = TRUE`).
 
 ## Details
 
@@ -151,7 +158,7 @@ probability of the integers from 0 to the last value of the support. See
 also [PMF](https://idsia.github.io/bayesRecon/reference/PMF.md) for
 functions that handle PMF objects.
 
-## Warnings and errors
+**Warnings and errors.**
 
 In `reconc_MixCond`, warnings are triggered from the importance sampling
 step if:
@@ -210,14 +217,14 @@ base_fc_upper <- list(mean = 40, cov = matrix(5^2))
 res.mixCond <- reconc_MixCond(A, base_fc_bottom, base_fc_upper)
 
 # Note that the bottom distributions are slightly shifted to the right
-PMF_summary(res.mixCond$bottom_rec$pmf[[1]])
+PMF_summary(res.mixCond$bottom_rec_pmf[[1]])
 #>   Min. 1st Qu. Median    Mean 3rd Qu. Max
 #> 1    0      15     18 17.7855      20  31
 PMF_summary(base_fc_bottom[[1]])
 #>   Min. 1st Qu. Median Mean 3rd Qu. Max
 #> 1    0      12     15   15      18  43
 
-PMF_summary(res.mixCond$bottom_rec$pmf[[2]])
+PMF_summary(res.mixCond$bottom_rec_pmf[[2]])
 #>   Min. 1st Qu. Median    Mean 3rd Qu. Max
 #> 1    0      15     18 17.7386      20  31
 PMF_summary(base_fc_bottom[[2]])
@@ -225,10 +232,10 @@ PMF_summary(base_fc_bottom[[2]])
 #> 1    0      12     15   15      18  43
 
 # The upper distribution is slightly shifted to the left
-PMF_summary(res.mixCond$upper_rec$pmf[[1]])
+PMF_summary(res.mixCond$upper_rec_pmf[[1]])
 #>   Min. 1st Qu. Median    Mean 3rd Qu. Max
 #> 1    0      33     35 35.5241      38  54
-PMF_get_var(res.mixCond$upper_rec$pmf[[1]])
+PMF_get_var(res.mixCond$upper_rec_pmf[[1]])
 #>          [,1]
 #> [1,] 14.52694
 
@@ -253,14 +260,14 @@ base_fc_upper <- list(mean = 40, cov = matrix(c(5^2)))
 res.TDcond <- reconc_TDcond(A, base_fc_bottom, base_fc_upper)
 
 # Note that the bottom distributions are shifted to the right
-PMF_summary(res.TDcond$bottom_rec$pmf[[1]])
+PMF_summary(res.TDcond$bottom_rec_pmf[[1]])
 #>   Min. 1st Qu. Median     Mean 3rd Qu. Max
 #> 1    0      17     20 19.97955      23  37
 PMF_summary(base_fc_bottom[[1]])
 #>   Min. 1st Qu. Median Mean 3rd Qu. Max
 #> 1    0      12     15   15      18  43
 
-PMF_summary(res.TDcond$bottom_rec$pmf[[2]])
+PMF_summary(res.TDcond$bottom_rec_pmf[[2]])
 #>   Min. 1st Qu. Median     Mean 3rd Qu. Max
 #> 1    0      17     20 19.98025      23  37
 PMF_summary(base_fc_bottom[[2]])
@@ -268,10 +275,10 @@ PMF_summary(base_fc_bottom[[2]])
 #> 1    0      12     15   15      18  43
 
 # The upper distribution remains similar
-PMF_summary(res.TDcond$upper_rec$pmf[[1]])
+PMF_summary(res.TDcond$upper_rec_pmf[[1]])
 #>   Min. 1st Qu. Median    Mean 3rd Qu. Max
 #> 1    0      37     40 39.9598      43  60
-PMF_get_var(res.TDcond$upper_rec$pmf[[1]])
+PMF_get_var(res.TDcond$upper_rec_pmf[[1]])
 #>          [,1]
 #> [1,] 25.58181
 
@@ -341,6 +348,6 @@ res.TDcond <- reconc_TDcond(A, base_fc_bottom, base_fc_upper)
 
 # Note that the reconciled distribution of b5 and u4 are identical,
 # keep this in mind when using the results of your reconciliation!
-max(abs(res.TDcond$bottom_rec$pmf[[5]] - res.TDcond$upper_rec$pmf[[4]]))
+max(abs(res.TDcond$bottom_rec_pmf[[5]] - res.TDcond$upper_rec_pmf[[4]]))
 #> [1] 0
 ```

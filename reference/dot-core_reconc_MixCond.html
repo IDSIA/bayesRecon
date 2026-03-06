@@ -106,7 +106,10 @@ are reweighted according to their fit to the upper multivariate Gaussian forecas
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A list containing:</p><ul><li><p><code>bottom_rec</code>: List with reconciled bottom forecasts (pmf and/or samples).</p></li>
-<li><p><code>upper_rec</code>: (only if <code>return_upper = TRUE</code>) List with reconciled upper forecasts (pmf and/or samples).</p></li>
+<li><p><code>bottom_rec_pmf</code>: list of PMF objects for each bottom series (only if <code>return_type</code> is 'pmf' or 'all').</p></li>
+<li><p><code>bottom_rec_samples</code>: matrix (n_bottom x num_samples) of reconciled bottom samples (only if <code>return_type</code> is 'samples' or 'all').</p></li>
+<li><p><code>upper_rec_pmf</code>: list of PMF objects for each upper series (only if <code>return_type</code> is 'pmf' or 'all', and <code>return_upper = TRUE</code>).</p></li>
+<li><p><code>upper_rec_samples</code>: matrix (n_upper x num_samples) of reconciled upper samples (only if <code>return_type</code> is 'samples' or 'all', and <code>return_upper = TRUE</code>).</p></li>
 <li><p><code>ESS</code>: Effective Sample Size resulting from importance sampling reweighting (only if <code>return_ESS = TRUE</code>).</p></li>
 </ul></div>
 

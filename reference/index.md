@@ -27,7 +27,7 @@
 - [`infantMortality`](https://idsia.github.io/bayesRecon/reference/infantMortality.md)
   : Infant Mortality grouped time series dataset
 - [`multi_log_score_optimization()`](https://idsia.github.io/bayesRecon/reference/multi_log_score_optimization.md)
-  : Optimize Degrees of Freedom (nu) via LOO Cross-Validation
+  : Optimize degrees of freedom (nu) via LOO Cross-Validation
 - [`reconc_BUIS()`](https://idsia.github.io/bayesRecon/reference/reconc_BUIS.md)
   : BUIS for Probabilistic Reconciliation of forecasts via conditioning
 - [`reconc_MCMC()`](https://idsia.github.io/bayesRecon/reference/reconc_MCMC.md)
@@ -35,8 +35,8 @@
 - [`reconc_gaussian()`](https://idsia.github.io/bayesRecon/reference/reconc_gaussian.md)
   : Analytical reconciliation of Gaussian base forecasts
 - [`reconc_t()`](https://idsia.github.io/bayesRecon/reference/reconc_t.md)
-  : t-Rec: Reconciliation via Conditioning with uncertain covariance via
-  Multivariate Student-t
+  : t-Rec: reconciliation via conditioning with uncertain covariance via
+  multivariate t-distribution
 - [`schaferStrimmer_cov()`](https://idsia.github.io/bayesRecon/reference/schaferStrimmer_cov.md)
   : Schäfer Strimmer covariance shrinkage
 - [`swiss_tourism`](https://idsia.github.io/bayesRecon/reference/swiss_tourism.md)
