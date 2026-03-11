@@ -59,7 +59,7 @@
       }
       # Seasonality test for each time series
       is_seas = as.logical(apply(stats::ts(y_train, frequency = freq), 2, 
-                                 function(col) forecast::nsdiffs(col)))
+                                 function(col) forecast::nsdiffs(stats::ts(col,frequency = freq))))
       
     } else if (criterion == "RSS") {
       # Compute RSS for both methods, for each series
