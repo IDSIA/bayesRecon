@@ -73,177 +73,285 @@ devtools::install_github("IDSIA/bayesRecon", build_vignettes = TRUE, dependencie
 
 ## Usage
 
-Let us consider the minimal temporal hierarchy in the figure,
-where the bottom variables are the two 6-monthly forecasts and the upper variable is the yearly forecast. We denote the variables for the two semesters and the year by $S_1, S_2, Y$ respectively. 
+The package `bayesRecon` implements several functions for probabilistic forecast reconciliation.
+The choice of the function depends on the type of the base forecasts and on the size of the hierarchy.
+
+
+### Example 1: discrete forecast distributions
 
 ```{r echo=FALSE, out.width='50%', fig.align='center'}
-knitr::include_graphics("./man/figures/minimal_hierarchy.png")
+knitr::include_graphics("./man/figures/hier_small_README.png")
 ```
 
-The hierarchy is described by the *aggregation matrix* A,
-which can be obtained using the function `get_reconc_matrices`.
+Let us consider the hierarchy in the figure, with 4 bottom time series and 3 upper time series.
+The hierarchy is specified by the *aggregation matrix* **A**:
+
+```{r}
+A <- matrix(c(
+  1, 1, 1, 1,
+  1, 1, 0, 0,
+  0, 0, 1, 1
+), nrow = 3, byrow = TRUE)
+```
+
+Let us consider the case of time series of counts.
+We randomly generate the bottom series and then aggregate them using **A** to obtain the upper series.
+
+```{r}
+set.seed(1234)
+n_obs <- 60
+# Assume Poisson data generating process
+lambdas <- c(3, 4, 5, 6)
+# Specify monthly seasonality
+seas <- 1.5*sin(2*pi*(1:n_obs)/12)
+lambdas <- outer(lambdas, seas, FUN = "+")
+# Add random noise
+lambdas <- lambdas + matrix(rnorm(4 * n_obs, sd = 0.1), nrow = 4)
+# Generate bottom series
+B <- matrix(rpois(4 * n_obs, lambdas), nrow = 4)
+# Aggregate to obtain upper series
+U <- A %*% B
+# Convert to mts
+B <- ts(t(B), frequency = 12)
+U <- ts(t(U), frequency = 12)
+Y <- cbind(U, B)
+```
+
+We compute the *base forecasts* using the package [`glarma`](https://cran.r-project.org/package=glarma),
+which is specific for count time series.
+We forecast using a `glarma` model with Poisson predictive distribution.
+For simplicity, we only compute one-step-ahead forecasts, but the same procedure can be applied to multi-step-ahead forecasts.
+
+```{r}
+library(glarma)
+
+base_fc <- list()
+for (j in 1:ncol(Y)) {
+  yj <- Y[,j]
+  X <- matrix(c(rep(1, length(yj)), seas), ncol = 2)  # exogenous regressors
+  fit <- glarma::glarma(yj, X, type = "Poi", method = "NR")
+  fc_lambda <- forecast(fit, newdata = matrix(c(1, 2*sin(2*pi*61/12)), ncol = 2), n.ahead = 1)$mu
+  base_fc[[j]] <- list(lambda = fc_lambda)
+}
+```
+
+We then compute the reconciled forecasts via samples, using the BUIS algorithm (see [Zambon et al. 2024](https://doi.org/10.1007/s11222-023-10343-y) for details).
 
 ```{r}
 library(bayesRecon)
 
-rec_mat <- get_reconc_matrices(agg_levels = c(1, 2), h = 2)
-A <- rec_mat$A
-print(A)
+rec_buis <- reconc_BUIS(
+  A,
+  base_fc,
+  in_type = "params",
+  distr = "poisson",
+  num_samples = 20000
+)
+
+samples_buis <- rbind(rec_buis$upper_rec_samples,
+                      rec_buis$bottom_rec_samples)
+rownames(samples_buis) <- c("U1", "U2", "U3", "B1", "B2", "B3", "B4")
+
+# Compute reconciled means
+print(round(rowMeans(samples_buis), 2))
+
+# Compute upper quantiles of the reconciled forecast distributions:
+print(apply(samples_buis, 1, quantile, probs = c(0.80, 0.95)))
 ```
 
-### Example 1: Poisson base forecasts
+Similar results can be obtained with `reconc_MCMC`,
+which is a bare-bones implementation of the Metropolis-Hastings algorithm.
+We recommend using `reconc_BUIS` instead of `reconc_MCMC` for sampling from the reconciled distribution.
 
-We assume that the base forecasts are Poisson distributed, with parameters given by $\lambda_{Y} = 9$, $\lambda_{S_1} = 2$, and $\lambda_{S_2} = 4$. 
+
+### Example 2: Gaussian forecast distributions
+
+We now consider the same hierarchy of Ex. 1, but we now assume smooth time series.
+
+First, we generate the series using an autoregressive process.
 
 ```{r}
-lambdaS1 <- 2
-lambdaS2 <- 4
-lambdaY <- 9
-lambdas <- c(lambdaY, lambdaS1, lambdaS2)
-n_tot <- length(lambdas)
+set.seed(123)
 
-base_forecasts <- list()
-for (i in 1:n_tot) {
-  base_forecasts[[i]] <- list(lambda = lambdas[i])
+# Simulate bottom series from AR(1) processes
+n_obs <- 12
+B <- matrix(nrow = 4, ncol = n_obs)
+for (j in 1:4) {
+  B[j, ] <- arima.sim(model = list(ar = 0.8), n = n_obs)
+}
+# Aggregate to obtain upper series (same aggregation matrix A as in Ex. 1)
+U <- A %*% B
+# Convert to mts
+B <- ts(t(B))
+U <- ts(t(U))
+Y <- cbind(U, B)
+```
+
+We compute the one-step-ahead base forecasts using an ETS model with Gaussian predictive distribution.
+
+```{r}
+library(forecast)
+
+base_fc_mean <- c()
+residuals <- matrix(nrow = n_obs, ncol = ncol(Y))
+for (j in 1:ncol(Y)) {
+  fit <- forecast::ets(Y[,j], additive.only = TRUE)
+  base_fc_mean[j] <- as.numeric(forecast::forecast(fit, h = 1)$mean)
+  residuals[,j] <- fit$residuals
 }
 ```
 
-We recommend using the BUIS algorithm (Zambon et al., 2024) to sample from the reconciled distribution.
+We then analytically compute the reconciled forecasts via conditioning using the `reconc_gaussian` 
+function and the `reconc_t` function.
+The reconciled forecasts produced by `reconc_gaussian` are multivariate Gaussian,
+and they are equivalent to MinT reconciliation.
+The `reconc_t` method accounts for the uncertainty on the covariance matrix of the base forecasts;
+the reconciled forecasts, which are multivariate Student-t, 
+are typically better calibrated (see [Carrara et al. 2025](https://arxiv.org/abs/2506.19554) for details).
 
 ```{r}
-buis <- reconc_BUIS(
+
+rec_g <- reconc_gaussian(
   A,
-  base_forecasts,
-  in_type = "params",
-  distr = "poisson",
-  num_samples = 100000,
-  seed = 42
+  base_fc_mean,
+  residuals = residuals,
+  return_upper = TRUE
 )
-
-samples_buis <- rbind(buis$upper_rec_samples, buis$bottom_rec_samples)
-```
-
-
-Since there is a positive incoherence in the forecasts ($\lambda_Y > \lambda_{S_1}+\lambda_{S_2}$), the mean of the bottom reconciled forecast increases. We show below this behavior for $S_1$.  
-
-```{r, out.width='80%', fig.align='center'}
-reconciled_forecast_S1 <- buis$bottom_rec_samples[1, ]
-range_forecats <- range(reconciled_forecast_S1)
-hist(
-  reconciled_forecast_S1,
-  breaks = seq(range_forecats[1] - 0.5, range_forecats[2] + 0.5),
-  freq = F,
-  xlab = "S_1",
-  ylab = NULL,
-  main = "base vs reconciled"
-)
-points(
-  seq(range_forecats[1], range_forecats[2]),
-  stats::dpois(seq(range_forecats[1], range_forecats[2]), lambda = lambdaS1),
-  pch = 16,
-  col = 4,
-  cex = 2
-)
-```
-
-The blue circles represent the probability mass function of a Poisson with parameter $\lambda_{S_1}$ plotted on top of the histogram of the reconciled bottom forecasts for $S_1$. Note how the histogram is shifted to the right.
-
-Moreover, while the base bottom forecast were assumed independent, the operation of reconciliation introduced a negative correlation between $S_1$ and $S_2$. We can visualize it with the plot below which shows the empirical correlations between the reconciled samples of $S_1$ and the reconciled samples of $S_2$. 
-
-```{r,  out.width='80%', fig.align='center'}
-AA <-
-  xyTable(
-    buis$bottom_rec_samples[1, ],
-    buis$bottom_rec_samples[2, ]
-  )
-plot(
-  AA$x,
-  AA$y,
-  cex = AA$number * 0.001,
-  pch = 16,
-  col = rgb(0, 0, 1, 0.4),
-  xlab = "S_1",
-  ylab = "S_2",
-  xlim = range(buis$bottom_rec_samples[1, ]),
-  ylim = range(buis$bottom_rec_samples[2, ])
-)
-```
-
-
-We also provide a function for sampling using Markov Chain Monte Carlo (Corani et al., 2023). 
-
-```{r}
-mcmc <- reconc_MCMC(
+rec_t <- reconc_t(
   A,
-  base_forecasts,
-  distr = "poisson",
-  num_samples = 30000,
-  seed = 42
+  base_fc_mean,
+  y_train = Y,
+  residuals = residuals,
+  return_upper = TRUE
 )
 
-samples_mcmc <- rbind(mcmc$upper_rec_samples, mcmc$bottom_rec_samples)
+# Compute reconciled means obtained with both methods
+rec_means <- rbind(c(rec_g$upper_rec_mean, rec_g$bottom_rec_mean),
+                   c(rec_t$upper_rec_mean, rec_t$bottom_rec_mean))
+rownames(rec_means) <- c("reconc_gaussian", "reconc_t")
+colnames(rec_means) <- c("U1", "U2", "U3", "B1", "B2", "B3", "B4")
+print(round(rec_means, 2))
+
+# Print 95% prediction intervals for the upper and bottom series
+low_g <- c(rec_g$upper_rec_mean + qnorm(0.025) * sqrt(diag(rec_g$upper_rec_cov)),
+           rec_g$bottom_rec_mean + qnorm(0.025) * sqrt(diag(rec_g$bottom_rec_cov)))
+up_g <- c(rec_g$upper_rec_mean + qnorm(0.975) * sqrt(diag(rec_g$upper_rec_cov)),
+          rec_g$bottom_rec_mean + qnorm(0.975) * sqrt(diag(rec_g$bottom_rec_cov)))
+low_t <- c(rec_t$upper_rec_mean + qt(0.025, df = rec_t$upper_rec_df) * sqrt(diag(rec_t$upper_rec_scale_matrix)),
+           rec_t$bottom_rec_mean + qt(0.025, df = rec_t$bottom_rec_df) * sqrt(diag(rec_t$bottom_rec_scale_matrix)))
+up_t <- c(rec_t$upper_rec_mean + qt(0.975, df = rec_t$upper_rec_df) * sqrt(diag(rec_t$upper_rec_scale_matrix)),
+          rec_t$bottom_rec_mean + qt(0.975, df = rec_t$bottom_rec_df) * sqrt(diag(rec_t$bottom_rec_scale_matrix)))
+
+# Interleave lower and upper bounds 
+intervals_g <- as.vector(matrix(c(low_g, up_g), nrow = 2, byrow = TRUE))
+intervals_t <- as.vector(matrix(c(low_t, up_t), nrow = 2, byrow = TRUE))
+intervals <- rbind(intervals_g, intervals_t)
+rownames(intervals) <- c("reconc_gaussian", "reconc_t")
+colnames(intervals) <- c("U1 low", "U1 up", "U2 low", "U2 up", "U3 low", "U3 up", "B1 low", "B1 up", "B2 low", "B2 up", "B3 low", "B3 up", "B4 low", "B4 up")
+print(round(intervals, 2))
 ```
 
+### Example 3: mixed-type forecast distributions
 
-### Example 2: Gaussian base forecasts
+In many practical hierarchies the bottom series are low-count integers (e.g. item-level sales),
+while the upper series are large enough to be treated as
+approximately Gaussian. `reconc_MixCond` and `reconc_TDcond` handle this mixed case: they take
+a list of discrete distributions for the bottom level and a multivariate Gaussian for the upper level.
 
-We now assume that the base forecasts are Gaussian distributed, with parameters given by 
+We consider a hierarchy with 3 upper and 100 bottom series arranged in 2 groups of 50:
 
-* $\mu_{Y} = 9$, $\mu_{S_1} = 2$, and $\mu_{S_2} = 4$;
-* $\sigma_{Y} = 2$, $\sigma_{S_1} = 2$, and $\sigma_{S_2} = 3$. 
+```{r echo=FALSE, out.width='50%', fig.align='center'}
+knitr::include_graphics("./man/figures/hier_large_README.png")
+```
+
+We draw the bottom series from static Poisson distributions with rates
+sampled uniformly in [0.1, 2]. Rates close to zero produce intermittent (mostly-zero) series;
+all realizations are non-negative integers by construction.
 
 ```{r}
-muS1 <- 2
-muS2 <- 4
-muY <- 9
-mus <- c(muY, muS1, muS2)
+set.seed(42)
+n_b   <- 100  # number of bottom series 
+n_u   <- 3    # number of upper series
+n_obs <- 60   # series length
 
-sigmaS1 <- 2
-sigmaS2 <- 2
-sigmaY <- 3
-sigmas <- c(sigmaY, sigmaS1, sigmaS2)
+# Hierarchy: U1 = B1+...+B100, U2 = B1+...+B50, U3 = B51+...+B100
+A <- rbind(rep(1, n_b),
+            c(rep(1, 50), rep(0, 50)),
+            c(rep(0, 50), rep(1, 50)))
 
-base_forecasts <- list()
-for (i in 1:n_tot) {
-  base_forecasts[[i]] <- list(mean = mus[[i]], sd = sigmas[[i]])
+# Sample Poisson rates
+lambdas_b <- runif(n_b, min = 0.1, max = 2)
+
+# Generate bottom series
+B <- matrix(rpois(n_obs * n_b, lambda = rep(lambdas_b, each = n_obs)),
+             nrow = n_obs, ncol = n_b)
+
+# Aggregate to obtain upper series
+U <- t(A %*% t(B))  # n_obs x n_u
+```
+
+We compute the base forecasts for each upper series with an additive ETS model.
+We estimate the joint forecast covariance from the residuals using the `schaferStrimmer_cov` function.
+
+```{r}
+library(forecast)
+library(bayesRecon)
+
+mu_u        <- numeric(n_u)
+residuals_u <- matrix(nrow = n_obs, ncol = n_u)
+
+for (j in seq_len(n_u)) {
+  fit <- forecast::ets(ts(U[, j]), additive.only = TRUE)
+  mu_u[j]          <- as.numeric(forecast::forecast(fit, h = 1)$mean)
+  residuals_u[, j] <- fit$residuals
 }
+
+Sigma_u       <- schaferStrimmer_cov(residuals_u)$shrink_cov
+base_fc_upper <- list(mean = mu_u, cov = Sigma_u)
 ```
 
-We use the BUIS algorithm to sample from the reconciled distribution:
+TODO: come calcolare base fc bottom??
 
 ```{r}
-buis <- reconc_BUIS(
-  A,
-  base_forecasts,
-  in_type = "params",
-  distr = "gaussian",
-  num_samples = 100000,
-  seed = 42
-)
-samples_buis <- rbind(buis$upper_rec_samples, buis$bottom_rec_samples)
-buis_means <- rowMeans(samples_buis)
+base_fc_bottom <- lapply(seq_len(n_b), function(j) list(lambda = mean(B[, j])))
 ```
 
-If the base forecasts are Gaussian, the reconciled distribution is still Gaussian and can be computed in closed form:
+We reconcile with both `reconc_MixCond` (importance-sampling based) and
+`reconc_TDcond` (top-down conditioning). 
+
+TODO: commenti?
+
+For large hierarchies, `reconc_TDcond` is the recommended approach
+(see [Zambon et al. 2024](https://proceedings.mlr.press/v244/zambon24a.html)):
 
 ```{r}
-Sigma <- diag(sigmas^2) # transform into covariance matrix
-analytic_rec <- reconc_gaussian(A,
-  base_fc_mean = mus,
-  base_fc_cov = Sigma
+res_mc <- reconc_MixCond(
+  A, base_fc_bottom, base_fc_upper,
+  bottom_in_type = "params", distr = "poisson",
+  num_samples = 2e4, return_type = "pmf", seed = 42
 )
-analytic_means_bottom <- analytic_rec$bottom_rec_mean
-analytic_means_upper <- A %*% analytic_means_bottom
-analytic_means <- rbind(analytic_means_upper, analytic_means_bottom)
+
+res_td <- reconc_TDcond(
+  A, base_fc_bottom, base_fc_upper,
+  bottom_in_type = "params", distr = "poisson",
+  num_samples = 1e4, return_type = "pmf", seed = 42
+)
 ```
 
-The base means of $Y$, $S_1$, and $S_2$ are
-`r round(mus,2)`.
+We compare the base-forecast means and the reconciled means for the 3 upper series.
 
-The reconciled means obtained analytically are
-`r round(analytic_means,2)`,
-while the reconciled means obtained via BUIS are
-`r round(buis_means,2)`.
+TODO: cambiare nome nel codice o nella figura??
+
+
+```{r}
+upper_means <- rbind(
+  base    = mu_u,
+  MixCond = sapply(res_mc$upper_rec_pmf, PMF_get_mean),
+  TDcond  = sapply(res_td$upper_rec_pmf, PMF_get_mean)
+)
+colnames(upper_means) <- c("U1", "U2", "U3")
+print(round(upper_means, 2))
+```
 
 
 ## References
