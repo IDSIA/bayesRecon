@@ -1,4 +1,18 @@
 ---
+title: "temp_readme"
+output: html_document
+date: "2026-03-20"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like th---
 output: github_document
 ---
 
@@ -34,16 +48,15 @@ The reconciliation functions are:
 
  * `reconc_gaussian`: reconciliation via conditioning of multivariate Gaussian base forecasts; 
     this is done analytically;
- * `reconc_t`: reconciliation via conditioning of Gaussian forecasts with uncertain covariance matrix; 
-    the reconciled forecasts are multivariate Student-t; this is done analytically;
- * `reconc_BUIS`: reconciliation via conditioning of any probabilistic forecast via 
-    bottom-up importance sampling;
-    an alternative MCMC-based method for discrete forecasts is implemented in `reconc_MCMC`, 
-    but we recommend using `reconc_BUIS`;
- * `reconc_MixCond` and `reconc_TDcond`: reconciliation of mixed hierarchies, where 
-    the upper forecasts are multivariate Gaussian and the bottom forecasts are 
-    discrete distributions; `reconc_MixCond` implements conditioning via importance sampling, 
-    while `reconc_TDcond` implements top-down conditioning.
+ * `reconc_BUIS`: reconciliation via conditioning of any probabilistic forecast via importance sampling;
+    this is the recommended option for non-Gaussian base forecasts;
+ * `reconc_MCMC`: reconciliation via conditioning of discrete probabilistic forecasts via Markov Chain Monte Carlo;
+ * `reconc_MixCond`: reconciliation via conditioning of mixed hierarchies, where 
+    the upper forecasts are multivariate Gaussian and the bottom forecasts are discrete distributions;
+ * `reconc_TDcond`: reconciliation via top-down conditioning of mixed hierarchies, where the upper forecasts are
+    multivariate Gaussian and the bottom forecasts are discrete distributions;
+ * `reconc_t`: reconciliation via conditioning with uncertain covariance matrix; 
+    the reconciled forecasts are multivariate Student-t; this is done analytically.
  
 ## News
 :boom: [2026-03-05] bayesRecon v1.0: major update to the API, added `reconc_t`. 
@@ -77,17 +90,10 @@ devtools::install_github("IDSIA/bayesRecon", build_vignettes = TRUE, dependencie
 ## Usage
 
 The package `bayesRecon` implements several functions for probabilistic forecast reconciliation.
-In the following examples, we show how to use the main reconciliation functions 
-of the package for different types of base forecasts.
-
-In each example, we
-
-1. generate the hierarchical time series;
-2. compute the base forecasts for each series;
-3. reconcile the forecasts using the functions from the `bayesRecon` package.
+The choice of the function depends on the type of the base forecasts and on the size of the hierarchy.
 
 
-### Example 1: Gaussian forecast distributions
+### Example 1: discrete forecast distributions
 
 ```{r echo=FALSE, out.width='50%', fig.align='center'}
 knitr::include_graphics("./man/figures/hier_small_README.png")
@@ -106,150 +112,25 @@ A <- matrix(c(
 ), nrow = 3, byrow = TRUE)
 ```
 
-In this example, we assume that the base forecasts are multivariate Gaussian, 
-which is a common choice for real-valued time series.
-
-To generate the hierarchical time series, we first randomly simulate the bottom series 
-using an AR(1) process and then aggregate them using **A** to obtain the upper series.
-
-```{r}
-set.seed(1234)
-
-# Simulate bottom series from AR(1) processes
-n_obs <- 12  # length of the time series
-B_ts <- matrix(nrow = 4, ncol = n_obs)
-for (j in 1:4) {
-  B_ts[j, ] <- arima.sim(model = list(ar = 0.8), n = n_obs)
-}
-# Aggregate to obtain upper series 
-U_ts <- A %*% B_ts
-# Convert to mts
-B_ts <- ts(t(B_ts))
-U_ts <- ts(t(U_ts))
-Y_ts <- cbind(U_ts, B_ts)
-```
-
-We compute the base forecasts using an ETS model with Gaussian predictive distribution,
-implemented in the [`forecast`](https://cran.r-project.org/package=forecast) package.
-For simplicity, we only compute one-step-ahead forecasts, but the same procedure 
-can be applied to multi-step-ahead forecasts.
-
-We also save the in-sample residuals of the fitted models, as we later need them 
-to estimate the covariance matrix of the base forecasts.
-
-```{r}
-library(forecast)
-
-base_fc_mean <- c()
-residuals <- matrix(nrow = n_obs, ncol = ncol(Y_ts))
-for (j in 1:ncol(Y_ts)) {
-  fit <- forecast::ets(Y_ts[,j], additive.only = TRUE)  # fit ets on each time series
-  base_fc_mean[j] <- as.numeric(forecast::forecast(fit, h = 1)$mean)
-  residuals[,j] <- fit$residuals
-}
-```
-
-We then analytically compute the reconciled forecasts via conditioning using the 
-`reconc_gaussian` and the `reconc_t` functions.
-The reconciled forecasts produced by `reconc_gaussian` are multivariate Gaussian,
-and they are equivalent to MinT reconciliation ([Zambon et al. 2024](https://doi.org/10.1016/j.ijforecast.2023.12.004)).
-The `reconc_t` method adopts a Bayesian approach to account for the uncertainty 
-of the covariance matrix of the base forecasts;
-the reconciled forecasts, which are multivariate Student-t, 
-are typically better calibrated (see [Carrara et al. 2025](https://arxiv.org/abs/2506.19554) for details).
-
-```{r}
-library(bayesRecon)
-
-# Reconcile with both methods
-rec_g <- reconc_gaussian(
-  A,
-  base_fc_mean,
-  residuals = residuals,
-  return_upper = TRUE
-)
-rec_t <- reconc_t(
-  A,
-  base_fc_mean,
-  y_train = Y_ts,
-  residuals = residuals,
-  return_upper = TRUE
-)
-
-# Compare means of the base and reconciled forecasts
-means <- rbind(c(base_fc_mean),
-               c(rec_g$upper_rec_mean, rec_g$bottom_rec_mean),
-               c(rec_t$upper_rec_mean, rec_t$bottom_rec_mean))
-rownames(means) <- c("base", "reconc_gaussian", "reconc_t")
-colnames(means) <- c("T", "A", "B", "AA", "AB", "BA", "BB")
-print(round(means, 2))
-```
-
-Finally, we compare the reconciled forecast distributions for the top series T 
-obtained with the two methods by plotting their marginal densities.
-
-```{r, echo = FALSE}
-library(ggplot2)
-
-# Index of the series to plot 
-i <- 1
-# Gaussian reconciled: marginal is Gaussian
-mu_g <- rec_g$upper_rec_mean[i]
-sd_g <- sqrt(rec_g$upper_rec_cov[i, i])
-# t reconciled: marginal is t
-mu_t    <- rec_t$upper_rec_mean[i]
-scale_t <- sqrt(rec_t$upper_rec_scale_matrix[i, i])
-df_t    <- rec_t$upper_rec_df
-# x range covering both distributions at the 0.1%-99.9% level
-x_lo <- min(qnorm(0.001, mu_g, sd_g), mu_t + qt(0.001, df_t) * scale_t)
-x_hi <- max(qnorm(0.999, mu_g, sd_g), mu_t + qt(0.999, df_t) * scale_t)
-x_seq <- seq(x_lo, x_hi, length.out = 500)
-
-# Densities of the two reconciled forecasts
-df_ex2 <- data.frame(
-  x    = rep(x_seq, 2),
-  dens = c(
-    dnorm(x_seq, mean = mu_g, sd = sd_g),
-    dt((x_seq - mu_t) / scale_t, df = df_t) / scale_t
-  ),
-  type = rep(c("Gaussian reconciled", "t reconciled"), each = length(x_seq))
-)
-
-# Plot the densities
-ggplot(df_ex2, aes(x = x, y = dens, color = type, linetype = type)) +
-  geom_line(linewidth = 1.3) +
-  scale_color_manual(values = c("Gaussian reconciled" = "#619CFF", "t reconciled" = "#F8766D")) +
-  geom_area(data = subset(df_ex2, type == "Gaussian reconciled"), fill = "#619CFF", alpha = 0.3) +
-  geom_area(data = subset(df_ex2, type == "t reconciled"), fill = "#F8766D", alpha = 0.3) +
-  labs(
-    title = "Reconciled forecast distributions for time series T",
-    x = "Value", y = "Density", color = NULL, linetype = NULL
-  ) +
-  theme_minimal()
-```
-
-
-### Example 2: discrete forecast distributions
-
-We consider the same hierarchy of Example 1;
-however, we assume that the base forecasts are Poisson distributions, 
+In this example, we assume that the base forecasts are Poisson distributions, 
 which is a common choice for count time series.
+We first generate the series, then we compute the base forecasts, 
+and finally we reconcile them using `reconc_BUIS`.
 
-We randomly generate the bottom series using Poisson distributions with time-varying 
-rates that include a monthly seasonal pattern; we then aggregate them using **A** 
-to obtain the upper series.
+To generate the series, we randomly generate the bottom series 
+and then aggregate them using **A** to obtain the upper series.
 
 ```{r}
 set.seed(123)
 n_obs <- 60
-
-# Bottom time series are obtained by drawing from Poisson distributions with time-varying rates lambdas
-lambda_bls <- c(3, 4, 5, 6)  # baseline Poisson rates for bottom series
-seas <- 1.5*sin(2*pi*(1:n_obs)/12)  # specify monthly seasonality (period = 12) 
-lambdas <- outer(lambda_bls, seas, FUN = "+")  # adds seasonality to each baseline (4 x n_obs matrix)
-lambdas <- lambdas + matrix(rnorm(4 * n_obs, sd = 0.1), nrow = 4)  # add small Gaussian noise to the rates
-
-# Simulate bottom-level count time series
+# Assume Poisson data generating process
+lambdas <- c(3, 4, 5, 6)
+# Specify monthly seasonality
+seas <- 1.5*sin(2*pi*(1:n_obs)/12)
+lambdas <- outer(lambdas, seas, FUN = "+")
+# Add random noise
+lambdas <- lambdas + matrix(rnorm(4 * n_obs, sd = 0.1), nrow = 4)
+# Generate bottom series
 B_ts <- matrix(rpois(4 * n_obs, lambdas), nrow = 4)
 # Aggregate to obtain upper series
 U_ts <- A %*% B_ts
@@ -259,32 +140,33 @@ U_ts <- ts(t(U_ts), frequency = 12)
 Y_ts <- cbind(U_ts, B_ts)
 ```
 
-We compute the one-step-ahead *base forecasts* using the package [`glarma`](https://cran.r-project.org/package=glarma),
+We compute the *base forecasts* using the package [`glarma`](https://cran.r-project.org/package=glarma),
 which is specific for count time series.
 We forecast using a `glarma` model with Poisson predictive distribution.
+For simplicity, we only compute one-step-ahead forecasts, but the same procedure can be applied to multi-step-ahead forecasts.
 
 ```{r}
 library(glarma)
 
 base_fc <- list()
 for (j in 1:ncol(Y_ts)) {
-  yj <- Y_ts[,j]  # time series j
-  X <- matrix(c(rep(1, length(yj)), seas), ncol = 2)  # matrix of exogenous regressors
+  yj <- Y_ts[,j]
+  X <- matrix(c(rep(1, length(yj)), seas), ncol = 2)  # exogenous regressors
   X_new <- matrix(c(1, 2*sin(2*pi*61/12)), ncol = 2)  # regressors for the forecast period
-  fit <- glarma::glarma(yj, X, type = "Poi")  # fit the model
-  # Compute base forecasts, which are Poisson distributions specified by the rate parameter 
-  fc_lambda <- glarma::forecast(fit, newdata = X_new, n.ahead = 1)$mu  
-  # Save the base forecast parameters in a list of lists, one for each series
-  base_fc[[j]] <- list(lambda = fc_lambda)  
+  fit <- glarma::glarma(yj, X, type = "Poi", method = "NR")
+  fc_lambda <- glarma::forecast(fit, newdata = X_new, n.ahead = 1)$mu
+  base_fc[[j]] <- list(lambda = fc_lambda)
 }
 ```
 
-We then compute the reconciled forecasts using the bottom-up importance sampling (BUIS) algorithm 
+We then compute the reconciled forecasts using the BUIS algorithm 
 (see [Zambon et al. 2024](https://doi.org/10.1007/s11222-023-10343-y) for details).
 The output of `reconc_BUIS` is a joint sample from the reconciled distribution, 
 which can be used to compute any desired summary (e.g. mean, quantiles, etc.).
 
 ```{r}
+library(bayesRecon)
+
 rec_buis <- reconc_BUIS(
   A,
   base_fc,
@@ -292,6 +174,7 @@ rec_buis <- reconc_BUIS(
   distr = "poisson",
   num_samples = 20000
 )
+
 samples_buis <- rbind(rec_buis$upper_rec_samples,
                       rec_buis$bottom_rec_samples)
 rownames(samples_buis) <- c("T", "A", "B", "AA", "AB", "BA", "BB")
@@ -303,10 +186,11 @@ print(round(rowMeans(samples_buis), 2))
 print(apply(samples_buis, 1, quantile, probs = c(0.80, 0.95)))
 ```
 
-Finally, we compare the base and reconciled forecasts for the top series T by plotting 
-the base and reconciled forecast distributions.
+We compare the base and reconciled forecasts for the top series by plotting the base and reconciled forecast distributions.
 
 ```{r, echo = FALSE}
+library(ggplot2)
+
 # Index of the series to plot 
 i <- 1  # top series T
 lambda_i <- base_fc[[i]]$lambda
@@ -346,6 +230,120 @@ Similar results can be obtained with `reconc_MCMC`,
 which is a bare-bones implementation of the Metropolis-Hastings algorithm.
 However, we recommend using `reconc_BUIS` rather than `reconc_MCMC` for reconciling discrete forecasts.
 
+### Example 2: Gaussian forecast distributions
+
+We consider the same hierarchy of Example 1;
+however, we assume that the base forecasts are multivariate Gaussian, 
+which is a common choice for real-valued time series.
+The covariance matrix of the base forecasts is estimated from the in-sample residuals of the fitted models.
+
+First, we generate the series using an AR(1) process for the bottom series, 
+and then we aggregate them to obtain the upper series.
+
+```{r}
+set.seed(1234)
+
+# Simulate bottom series from AR(1) processes
+n_obs <- 12
+B_ts <- matrix(nrow = 4, ncol = n_obs)
+for (j in 1:4) {
+  B_ts[j, ] <- arima.sim(model = list(ar = 0.8), n = n_obs)
+}
+# Aggregate to obtain upper series (same aggregation matrix A as in Ex. 1)
+U_ts <- A %*% B_ts
+# Convert to mts
+B_ts <- ts(t(B_ts))
+U_ts <- ts(t(U_ts))
+Y_ts <- cbind(U_ts, B_ts)
+```
+
+We compute the one-step-ahead base forecasts using an ETS model with Gaussian predictive distribution,
+implemented in the [`forecast`](https://cran.r-project.org/package=forecast) package.
+
+```{r}
+library(forecast)
+
+base_fc_mean <- c()
+residuals <- matrix(nrow = n_obs, ncol = ncol(Y_ts))
+for (j in 1:ncol(Y_ts)) {
+  fit <- forecast::ets(Y_ts[,j], additive.only = TRUE)
+  base_fc_mean[j] <- as.numeric(forecast::forecast(fit, h = 1)$mean)
+  residuals[,j] <- fit$residuals
+}
+```
+
+We then analytically compute the reconciled forecasts via conditioning using the `reconc_gaussian` and the `reconc_t` functions.
+The reconciled forecasts produced by `reconc_gaussian` are multivariate Gaussian,
+and they are equivalent to MinT reconciliation ([Zambon et al. 2024](https://doi.org/10.1016/j.ijforecast.2023.12.004)).
+The `reconc_t` method adopts a Bayesian approach to account for the uncertainty of the covariance matrix of the base forecasts;
+the reconciled forecasts, which are multivariate Student-t, 
+are typically better calibrated (see [Carrara et al. 2025](https://arxiv.org/abs/2506.19554) for details).
+
+```{r}
+# Reconcile with both methods
+rec_g <- reconc_gaussian(
+  A,
+  base_fc_mean,
+  residuals = residuals,
+  return_upper = TRUE
+)
+rec_t <- reconc_t(
+  A,
+  base_fc_mean,
+  y_train = Y_ts,
+  residuals = residuals,
+  return_upper = TRUE
+)
+
+# Compare means of the base and reconciled forecasts
+means <- rbind(c(base_fc_mean),
+               c(rec_g$upper_rec_mean, rec_g$bottom_rec_mean),
+               c(rec_t$upper_rec_mean, rec_t$bottom_rec_mean))
+rownames(means) <- c("base", "reconc_gaussian", "reconc_t")
+colnames(means) <- c("T", "A", "B", "AA", "AB", "BA", "BB")
+print(round(means, 2))
+```
+
+Finally, we compare the two reconciled forecast distributions for the top series T by plotting their marginal densities.
+
+```{r, echo = FALSE}
+# Index of the series to plot 
+i <- 1
+# Gaussian reconciled: marginal is Gaussian
+mu_g <- rec_g$upper_rec_mean[i]
+sd_g <- sqrt(rec_g$upper_rec_cov[i, i])
+# t reconciled: marginal is t
+mu_t    <- rec_t$upper_rec_mean[i]
+scale_t <- sqrt(rec_t$upper_rec_scale_matrix[i, i])
+df_t    <- rec_t$upper_rec_df
+# x range covering both distributions at the 0.1%-99.9% level
+x_lo <- min(qnorm(0.001, mu_g, sd_g), mu_t + qt(0.001, df_t) * scale_t)
+x_hi <- max(qnorm(0.999, mu_g, sd_g), mu_t + qt(0.999, df_t) * scale_t)
+x_seq <- seq(x_lo, x_hi, length.out = 500)
+
+# Densities of the two reconciled forecasts
+df_ex2 <- data.frame(
+  x    = rep(x_seq, 2),
+  dens = c(
+    dnorm(x_seq, mean = mu_g, sd = sd_g),
+    dt((x_seq - mu_t) / scale_t, df = df_t) / scale_t
+  ),
+  type = rep(c("Gaussian reconciled", "t reconciled"), each = length(x_seq))
+)
+
+# Plot the densities
+ggplot(df_ex2, aes(x = x, y = dens, color = type, linetype = type)) +
+  geom_line(linewidth = 1.3) +
+  scale_color_manual(values = c("Gaussian reconciled" = "#619CFF", "t reconciled" = "#F8766D")) +
+  geom_area(data = subset(df_ex2, type == "Gaussian reconciled"), fill = "#619CFF", alpha = 0.3) +
+  geom_area(data = subset(df_ex2, type == "t reconciled"), fill = "#F8766D", alpha = 0.3) +
+  labs(
+    title = "Reconciled forecast distributions for time series T",
+    x = "Value", y = "Density", color = NULL, linetype = NULL
+  ) +
+  theme_minimal()
+```
+
 ### Example 3: mixed-type forecast distributions
 
 In many large hierarchies the bottom series are low-count integers (e.g. item-level sales),
@@ -363,8 +361,8 @@ knitr::include_graphics("./man/figures/hier_large_README.png")
 
 <br />
 
-We randomly generate the bottom count time series as in Ex. 2;
-we then aggregate them using **A** to obtain the upper series.
+As before, we randomly generate the bottom series 
+and then aggregate them using **A** to obtain the upper series.
 
 ```{r}
 set.seed(12345)
@@ -372,15 +370,14 @@ n_b   <- 52   # number of bottom series
 n_u   <- 3    # number of upper series
 n_obs <- 60   # series length
 
-# Build aggregation matrix A for the hierarchy in the figure above
 A <- rbind(rep(1, n_b),
-           c(rep(1, 26), rep(0, 26)),
-           c(rep(0, 26), rep(1, 26)))
+            c(rep(1, 26), rep(0, 26)),
+            c(rep(0, 26), rep(1, 26)))
 
 # Assume Poisson data generating process + monthly seasonality
-lambda_levels <- runif(n_b, min = 0.1, max = 2)
+lambdas <- runif(n_b, min = 0.1, max = 2)
 seas <- 1 + .5*sin(2*pi*(1:n_obs)/12)
-lambdas <- outer(lambda_levels, seas, FUN = "*")
+lambdas <- outer(lambdas, seas, FUN = "*")
 
 # Generate bottom series
 B_ts <- matrix(rpois(n_obs * n_b, lambdas), nrow = n_b)
@@ -391,44 +388,10 @@ B_ts <- ts(t(B_ts), frequency = 12)
 U_ts <- ts(t(U_ts), frequency = 12)
 ```
 
-We show a comparison of upper and bottom time series.
-Even though the bottom series are made of low counts, the upper series can be 
-considered as real-valued due to the smoothing effect of aggregation.
-
-```{r, echo = FALSE}
-# Pick one representative bottom series: AA = first bottom series (B_ts[, 1])
-i_b <- 1
-
-df_ts <- data.frame(
-  t     = rep(1:n_obs, 2),
-  value = c(as.numeric(U_ts[, 1]), as.numeric(B_ts[, i_b])),
-  type  = factor(
-    rep(c("Upper series T (smooth)", "Bottom series AA (count)"), each = n_obs),
-    levels = c("Upper series T (smooth)", "Bottom series AA (count)")   # upper panel first
-  )
-)
-
-ggplot(df_ts, aes(x = t, y = value, color = type)) +
-  geom_line(data = subset(df_ts, type == "Upper series T (smooth)"),
-            linewidth = 0.9) +
-  geom_step(data = subset(df_ts, type == "Bottom series AA (count)"),
-            linewidth = 0.8) +
-  scale_color_manual(
-    values = c("Upper series T (smooth)" = "#619CFF", "Bottom series AA (count)" = "#F8766D")
-  ) +
-  facet_wrap(~ type, ncol = 1, scales = "free_y") +
-  labs(x = "Time", y = "Value") +
-  theme_minimal() +
-  theme(
-    legend.position  = "none",
-    strip.text       = element_text(face = "bold", size = 13)
-  )
-```
-
-We compute the one-step-ahead base forecasts for each upper series with an additive ETS model,
+We compute the base forecasts for each upper series with an additive ETS model,
 implemented in the [`forecast`](https://cran.r-project.org/package=forecast) package.
-We use the covariance matrix of the in-sample residuals, estimated via shrinkage
-using the `schaferStrimmer_cov` function, as the joint forecast covariance of the upper series.
+We estimate the joint forecast covariance from the residuals using the `schaferStrimmer_cov` function.
+For simplicity, we only compute one-step-ahead forecasts.
 
 ```{r}
 mu_u <- numeric(n_u)
@@ -438,24 +401,21 @@ for (j in seq_len(n_u)) {
   mu_u[j] <- as.numeric(forecast::forecast(fit, h = 1)$mean)
   residuals_u[, j] <- fit$residuals
 }
-Sigma_u <- bayesRecon::schaferStrimmer_cov(residuals_u)$shrink_cov # estimate cov matrix via shrinkage
-base_fc_upper <- list(mean = mu_u, cov = Sigma_u)  # base fc for upper series is a list with mean and covariance
+Sigma_u       <- bayesRecon::schaferStrimmer_cov(residuals_u)$shrink_cov
+base_fc_upper <- list(mean = mu_u, cov = Sigma_u)
 ```
 
-We compute the one-step-ahead *base forecasts* for the bottom series using the 
-package [`glarma`](https://cran.r-project.org/package=glarma).
+We compute the *base forecasts* for the bottom series using the package [`glarma`](https://cran.r-project.org/package=glarma).
 The base forecasts are Poisson distributions.
 
 ```{r}
 base_fc_bottom <- list()
 for (j in seq_len(n_b)) {
   bj <- B_ts[,j]
-  X <- matrix(c(rep(1, length(bj)), seas), ncol = 2)  # matrix of exogenous regressors
+  X <- matrix(c(rep(1, length(bj)), seas), ncol = 2)  # exogenous regressors
   X_new <- matrix(c(1, 2*sin(2*pi*(n_obs + 1)/12)), ncol = 2)  # regressors for the forecast period
-  fit <- glarma(bj, X, type = "Poi")
-  # Bottom base forecasts are Poisson distributions, specified by the rate parameter 
+  fit <- glarma(bj, X, type = "Poi", method = "NR")
   fc_lambda <- glarma::forecast(fit, newdata = X_new, n.ahead = 1)$mu
-  # Save the parameters of bottom base forecasts in a list of lists, one for each series
   base_fc_bottom[[j]] <- list(lambda = fc_lambda)
 }
 ```
@@ -464,8 +424,7 @@ We reconcile using both `reconc_MixCond` (importance-sampling based conditioning
 `reconc_TDcond` (top-down conditioning). 
 These functions implement different methods for reconciling mixed hierarchies.
 We recommend using `reconc_MixCond` for moderately sized hierarchies
-and `reconc_TDcond` for large hierarchies 
-(see [Zambon et al. 2024](https://proceedings.mlr.press/v244/zambon24a.html) for details).
+and `reconc_TDcond` for large hierarchies (see [Zambon et al. 2024](https://proceedings.mlr.press/v244/zambon24a.html) for details).
 
 ```{r}
 res_mc <- reconc_MixCond(
@@ -677,3 +636,18 @@ If you encounter a clear bug, please file a minimal reproducible example
 on [GitHub](https://github.com/IDSIA/bayesRecon/issues).
 
 
+is:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
