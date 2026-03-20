@@ -27,9 +27,9 @@ The reconciliation functions are:
   uncertain covariance matrix; the reconciled forecasts are multivariate
   Student-t; this is done analytically;
 - `reconc_BUIS`: reconciliation via conditioning of any probabilistic
-  forecast via bottom-up importance sampling; an alternative MCMC-based
-  method for discrete forecasts is implemented in `reconc_MCMC`, but we
-  recommend using `reconc_BUIS`;
+  forecast via bottom-up importance sampling; an alternative method for
+  discrete forecasts is implemented in `reconc_MCMC`, but we recommend
+  using `reconc_BUIS`;
 - `reconc_MixCond` and `reconc_TDcond`: reconciliation of mixed
   hierarchies, where the upper forecasts are multivariate Gaussian and
   the bottom forecasts are discrete distributions; `reconc_MixCond`
@@ -193,7 +193,7 @@ Finally, we compare the reconciled forecast distributions for the top
 series T obtained with the two methods by plotting their marginal
 densities.
 
-<img src="man/figures/README-unnamed-chunk-7-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-7-1.png" width="75%" style="display: block; margin: auto;" />
 
 ### Example 2: discrete forecast distributions
 
@@ -209,11 +209,11 @@ aggregate them using **A** to obtain the upper series.
 set.seed(123)
 n_obs <- 60
 
-# Bottom time series are obtained by drawing from Poisson distributions with time-varying rates lambdas
+# Bottom time series are obtained by drawing from Poisson distributions with time-varying rates
 lambda_bls <- c(3, 4, 5, 6)  # baseline Poisson rates for bottom series
 seas <- 1.5*sin(2*pi*(1:n_obs)/12)  # specify monthly seasonality (period = 12) 
 lambdas <- outer(lambda_bls, seas, FUN = "+")  # adds seasonality to each baseline (4 x n_obs matrix)
-lambdas <- lambdas + matrix(rnorm(4 * n_obs, sd = 0.1), nrow = 4)  # add small Gaussian noise to the rates
+lambdas <- lambdas + matrix(rnorm(4 * n_obs, sd = 0.1), nrow = 4) # add small Gaussian noise to rates
 
 # Simulate bottom-level count time series
 B_ts <- matrix(rpois(4 * n_obs, lambdas), nrow = 4)
@@ -280,7 +280,7 @@ print(apply(samples_buis, 1, quantile, probs = c(0.80, 0.95)))
 Finally, we compare the base and reconciled forecasts for the top series
 T by plotting the base and reconciled forecast distributions.
 
-<img src="man/figures/README-unnamed-chunk-11-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-11-1.png" width="75%" style="display: block; margin: auto;" />
 
 Similar results can be obtained with `reconc_MCMC`, which is a
 bare-bones implementation of the Metropolis-Hastings algorithm. However,
@@ -338,7 +338,7 @@ We show a comparison of upper and bottom time series. Even though the
 bottom series are made of low counts, the upper series can be considered
 as real-valued due to the smoothing effect of aggregation.
 
-<img src="man/figures/README-unnamed-chunk-14-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-14-1.png" width="75%" style="display: block; margin: auto;" />
 
 We compute the one-step-ahead base forecasts for each upper series with
 an additive ETS model, implemented in the
@@ -355,8 +355,10 @@ for (j in seq_len(n_u)) {
   mu_u[j] <- as.numeric(forecast::forecast(fit, h = 1)$mean)
   residuals_u[, j] <- fit$residuals
 }
-Sigma_u <- bayesRecon::schaferStrimmer_cov(residuals_u)$shrink_cov # estimate cov matrix via shrinkage
-base_fc_upper <- list(mean = mu_u, cov = Sigma_u)  # base fc for upper series is a list with mean and covariance
+# Estimate the covariance matrix via Schafer-Strimmer shrinkage from in-sample residuals
+Sigma_u <- bayesRecon::schaferStrimmer_cov(residuals_u)$shrink_cov 
+# Save upper base forecasts as a list with mean and covariance
+base_fc_upper <- list(mean = mu_u, cov = Sigma_u)  
 ```
 
 We compute the one-step-ahead *base forecasts* for the bottom series
@@ -439,7 +441,7 @@ Finally, we compare the base forecast and the two reconciled forecast
 distributions for the top series T. The base distribution is a Gaussian
 density (line); the reconciled distributions are discrete PMFs (bars).
 
-<img src="man/figures/README-unnamed-chunk-19-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-19-1.png" width="75%" style="display: block; margin: auto;" />
 
 ## References
 

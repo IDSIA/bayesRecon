@@ -9,7 +9,11 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   fig.path = "man/figures/README-",
-  out.width = "100%",
+  out.width = "75%",
+  fig.width = 7,
+  fig.height = 4,
+  dpi = 150,
+  fig.align = "center",
   warning = FALSE,
   message = FALSE
 )
@@ -38,7 +42,7 @@ The reconciliation functions are:
     the reconciled forecasts are multivariate Student-t; this is done analytically;
  * `reconc_BUIS`: reconciliation via conditioning of any probabilistic forecast via 
     bottom-up importance sampling;
-    an alternative MCMC-based method for discrete forecasts is implemented in `reconc_MCMC`, 
+    an alternative method for discrete forecasts is implemented in `reconc_MCMC`, 
     but we recommend using `reconc_BUIS`;
  * `reconc_MixCond` and `reconc_TDcond`: reconciliation of mixed hierarchies, where 
     the upper forecasts are multivariate Gaussian and the bottom forecasts are 
@@ -225,7 +229,11 @@ ggplot(df_ex2, aes(x = x, y = dens, color = type, linetype = type)) +
     title = "Reconciled forecast distributions for time series T",
     x = "Value", y = "Density", color = NULL, linetype = NULL
   ) +
-  theme_minimal()
+  theme_minimal() +
+  theme(
+    plot.title  = element_text(face = "bold"),
+    legend.text = element_text(size = 11)
+  )
 ```
 
 
@@ -243,11 +251,11 @@ to obtain the upper series.
 set.seed(123)
 n_obs <- 60
 
-# Bottom time series are obtained by drawing from Poisson distributions with time-varying rates lambdas
+# Bottom time series are obtained by drawing from Poisson distributions with time-varying rates
 lambda_bls <- c(3, 4, 5, 6)  # baseline Poisson rates for bottom series
 seas <- 1.5*sin(2*pi*(1:n_obs)/12)  # specify monthly seasonality (period = 12) 
 lambdas <- outer(lambda_bls, seas, FUN = "+")  # adds seasonality to each baseline (4 x n_obs matrix)
-lambdas <- lambdas + matrix(rnorm(4 * n_obs, sd = 0.1), nrow = 4)  # add small Gaussian noise to the rates
+lambdas <- lambdas + matrix(rnorm(4 * n_obs, sd = 0.1), nrow = 4) # add small Gaussian noise to rates
 
 # Simulate bottom-level count time series
 B_ts <- matrix(rpois(4 * n_obs, lambdas), nrow = 4)
@@ -339,7 +347,11 @@ ggplot(df_ex1, aes(x = x, y = prob, fill = type)) +
     title = "Base vs reconciled forecast distribution for time series T",
     x = "Value", y = "Probability", fill = NULL
   ) +
-  theme_minimal() 
+  theme_minimal() +
+  theme(
+    plot.title  = element_text(face = "bold"),
+    legend.text = element_text(size = 11)
+  )
 ```
 
 Similar results can be obtained with `reconc_MCMC`,
@@ -395,7 +407,7 @@ We show a comparison of upper and bottom time series.
 Even though the bottom series are made of low counts, the upper series can be 
 considered as real-valued due to the smoothing effect of aggregation.
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, fig.height = 5}
 # Pick one representative bottom series: AA = first bottom series (B_ts[, 1])
 i_b <- 1
 
@@ -438,8 +450,10 @@ for (j in seq_len(n_u)) {
   mu_u[j] <- as.numeric(forecast::forecast(fit, h = 1)$mean)
   residuals_u[, j] <- fit$residuals
 }
-Sigma_u <- bayesRecon::schaferStrimmer_cov(residuals_u)$shrink_cov # estimate cov matrix via shrinkage
-base_fc_upper <- list(mean = mu_u, cov = Sigma_u)  # base fc for upper series is a list with mean and covariance
+# Estimate the covariance matrix via Schafer-Strimmer shrinkage from in-sample residuals
+Sigma_u <- bayesRecon::schaferStrimmer_cov(residuals_u)$shrink_cov 
+# Save upper base forecasts as a list with mean and covariance
+base_fc_upper <- list(mean = mu_u, cov = Sigma_u)  
 ```
 
 We compute the one-step-ahead *base forecasts* for the bottom series using the 
@@ -587,7 +601,11 @@ ggplot() +
     title = "Base vs reconciled forecast distributions for time series T",
     x = "Value", y = "Probability / Density"
   ) +
-  theme_minimal() 
+  theme_minimal() +
+  theme(
+    plot.title  = element_text(face = "bold"),
+    legend.text = element_text(size = 11)
+  )
 ```
 
 
