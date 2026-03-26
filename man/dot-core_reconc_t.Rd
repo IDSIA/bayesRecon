@@ -10,8 +10,7 @@
   Psi_post,
   nu_post,
   return_upper = FALSE,
-  return_parameters = FALSE,
-  suppress_warnings = FALSE
+  return_parameters = FALSE
 )
 }
 \arguments{
@@ -26,8 +25,6 @@ multivariate t-distribution.}
 \item{nu_post}{Degrees of freedom of the posterior multivariate t-distribution.}
 
 \item{return_upper}{Logical, whether to return the reconciled parameters for the upper variables (default is FALSE).}
-
-\item{suppress_warnings}{Logical. If TRUE, suppresses warnings about numerical issues. Default is FALSE.}
 }
 \value{
 A list containing:

@@ -80,13 +80,13 @@ devtools::install_github("IDSIA/bayesRecon", build_vignettes = TRUE, dependencie
 
 ## Usage
 
-The package `bayesRecon` implements several functions for probabilistic forecast reconciliation.
+The package `bayesRecon` implements functions for probabilistic forecast reconciliation.
 In the following examples, we show how to use the main reconciliation functions 
 of the package for different types of base forecasts.
 
 In each example, we
 
-1. generate the hierarchical time series;
+1. generate simulated hierarchical time series;
 2. compute the base forecasts for each series;
 3. reconcile the forecasts using the functions from the `bayesRecon` package.
 

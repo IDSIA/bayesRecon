@@ -72,21 +72,21 @@ devtools::install_github("IDSIA/bayesRecon", build_vignettes = TRUE, dependencie
 
 ## Usage
 
-The package `bayesRecon` implements several functions for probabilistic
-forecast reconciliation. In the following examples, we show how to use
-the main reconciliation functions of the package for different types of
-base forecasts.
+The package `bayesRecon` implements functions for probabilistic forecast
+reconciliation. In the following examples, we show how to use the main
+reconciliation functions of the package for different types of base
+forecasts.
 
 In each example, we
 
-1.  generate the hierarchical time series;
+1.  generate simulated hierarchical time series;
 2.  compute the base forecasts for each series;
 3.  reconcile the forecasts using the functions from the `bayesRecon`
     package.
 
 ### Example 1: Gaussian forecast distributions
 
-<img src="./man/figures/hier_small_README.png" width="50%" style="display: block; margin: auto;" />
+<img src="./man/figures/hier_small_README.png" alt="" width="50%" style="display: block; margin: auto;" />
 
 <br />
 
@@ -193,7 +193,7 @@ Finally, we compare the reconciled forecast distributions for the top
 series T obtained with the two methods by plotting their marginal
 densities.
 
-<img src="man/figures/README-unnamed-chunk-7-1.png" width="75%" style="display: block; margin: auto;" />
+<img src="man/figures/README-unnamed-chunk-7-1.png" alt="" width="75%" style="display: block; margin: auto;" />
 
 ### Example 2: discrete forecast distributions
 
@@ -280,7 +280,7 @@ print(apply(samples_buis, 1, quantile, probs = c(0.80, 0.95)))
 Finally, we compare the base and reconciled forecasts for the top series
 T by plotting the base and reconciled forecast distributions.
 
-<img src="man/figures/README-unnamed-chunk-11-1.png" width="75%" style="display: block; margin: auto;" />
+<img src="man/figures/README-unnamed-chunk-11-1.png" alt="" width="75%" style="display: block; margin: auto;" />
 
 Similar results can be obtained with `reconc_MCMC`, which is a
 bare-bones implementation of the Metropolis-Hastings algorithm. However,
@@ -302,7 +302,7 @@ multivariate Gaussian for the upper levels.
 Let us consider a hierarchy with 3 upper series and 52 bottom series
 arranged in 2 groups of 26:
 
-<img src="./man/figures/hier_large_README.png" width="50%" style="display: block; margin: auto;" />
+<img src="./man/figures/hier_large_README.png" alt="" width="50%" style="display: block; margin: auto;" />
 
 <br />
 
@@ -338,7 +338,7 @@ We show a comparison of upper and bottom time series. Even though the
 bottom series are made of low counts, the upper series can be considered
 as real-valued due to the smoothing effect of aggregation.
 
-<img src="man/figures/README-unnamed-chunk-14-1.png" width="75%" style="display: block; margin: auto;" />
+<img src="man/figures/README-unnamed-chunk-14-1.png" alt="" width="75%" style="display: block; margin: auto;" />
 
 We compute the one-step-ahead base forecasts for each upper series with
 an additive ETS model, implemented in the
@@ -441,7 +441,7 @@ Finally, we compare the base forecast and the two reconciled forecast
 distributions for the top series T. The base distribution is a Gaussian
 density (line); the reconciled distributions are discrete PMFs (bars).
 
-<img src="man/figures/README-unnamed-chunk-19-1.png" width="75%" style="display: block; margin: auto;" />
+<img src="man/figures/README-unnamed-chunk-19-1.png" alt="" width="75%" style="display: block; margin: auto;" />
 
 ## References
 
