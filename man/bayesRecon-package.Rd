@@ -20,20 +20,20 @@ To learn more about \code{bayesRecon}, start with the vignettes: \code{browseVig
 
 
 The package implements reconciliation via conditioning for probabilistic forecasts
-of hierarchical time series. The main functions are:
+of hierarchical time series. The reconciliation functions are:
 \itemize{
-\item \code{\link[=reconc_gaussian]{reconc_gaussian()}}: reconciliation via conditioning, assumes multivariate Gaussian
+\item \code{\link[=reconc_gaussian]{reconc_gaussian()}}: reconciliation via conditioning assuming multivariate Gaussian
 base forecasts; this is done analytically;
+\item \code{\link[=reconc_t]{reconc_t()}}: reconciliation via conditioning assuming multivariate Gaussian
+base forecasts with uncertain covariance matrix;
+the reconciled forecasts are multivariate Student-t; this is done analytically;
 \item \code{\link[=reconc_BUIS]{reconc_BUIS()}}: reconciliation via conditioning of any probabilistic forecast
-via importance sampling; this is the recommended option for non-Gaussian base forecasts;
-\item \code{\link[=reconc_MCMC]{reconc_MCMC()}}: reconciliation via conditioning of discrete probabilistic
-forecasts via Markov Chain Monte Carlo;
-\item \code{\link[=reconc_MixCond]{reconc_MixCond()}}: reconciliation via conditioning of mixed hierarchies, where
+via bottom-up importance sampling; an alternative method for discrete forecasts
+is implemented in \code{\link[=reconc_MCMC]{reconc_MCMC()}}, but we recommend using \code{reconc_BUIS};
+\item \code{\link[=reconc_MixCond]{reconc_MixCond()}} and \code{\link[=reconc_TDcond]{reconc_TDcond()}}: reconciliation of mixed hierarchies, where
 the upper forecasts are multivariate Gaussian and the bottom forecasts are discrete distributions;
-\item \code{\link[=reconc_TDcond]{reconc_TDcond()}}: reconciliation via top-down conditioning of mixed hierarchies, where
-the upper forecasts are multivariate Gaussian and the bottom forecasts are discrete distributions;
-\item \code{\link[=reconc_t]{reconc_t()}}: reconciliation via conditioning with uncertain covariance matrix;
-the reconciled forecasts are multivariate Student-t; this is done analytically.
+\code{reconc_MixCond} implements conditioning via importance sampling,
+while \code{reconc_TDcond} implements top-down conditioning.
 }
 }
 

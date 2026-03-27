@@ -36,12 +36,12 @@ The package `bayesRecon` implements several methods for probabilistic reconcilia
 
 The reconciliation functions are:
 
- * `reconc_gaussian`: reconciliation via conditioning of multivariate Gaussian base forecasts; 
+ * `reconc_gaussian`: reconciliation via conditioning assuming multivariate Gaussian base forecasts; 
     this is done analytically;
- * `reconc_t`: reconciliation via conditioning of Gaussian forecasts with uncertain covariance matrix; 
+ * `reconc_t`: reconciliation via conditioning assuming multivariate Gaussian base forecasts with uncertain covariance matrix; 
     the reconciled forecasts are multivariate Student-t; this is done analytically;
  * `reconc_BUIS`: reconciliation via conditioning of any probabilistic forecast via 
-    bottom-up importance sampling;
+    bottom-up importance sampling; 
     an alternative method for discrete forecasts is implemented in `reconc_MCMC`, 
     but we recommend using `reconc_BUIS`;
  * `reconc_MixCond` and `reconc_TDcond`: reconciliation of mixed hierarchies, where 
