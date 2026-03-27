@@ -86,7 +86,7 @@ In each example, we
 
 ### Example 1: Gaussian forecast distributions
 
-<img src="./man/figures/hier_small_README.png" alt="" width="50%" style="display: block; margin: auto;" />
+<img src="./man/figures/hier_small_README.png" width="50%" style="display: block; margin: auto;" />
 
 <br />
 
@@ -193,7 +193,7 @@ Finally, we compare the reconciled forecast distributions for the top
 series T obtained with the two methods by plotting their marginal
 densities.
 
-<img src="man/figures/README-unnamed-chunk-7-1.png" alt="" width="75%" style="display: block; margin: auto;" />
+<img src="man/figures/README-unnamed-chunk-7-1.png" width="75%" style="display: block; margin: auto;" />
 
 ### Example 2: discrete forecast distributions
 
@@ -237,7 +237,7 @@ base_fc <- list()
 for (j in 1:ncol(Y_ts)) {
   yj <- Y_ts[,j]  # time series j
   X <- matrix(c(rep(1, length(yj)), seas), ncol = 2)  # matrix of exogenous regressors
-  X_new <- matrix(c(1, 2*sin(2*pi*61/12)), ncol = 2)  # regressors for the forecast period
+  X_new <- matrix(c(1, 1.5*sin(2*pi*(n_obs + 1)/12)), ncol = 2)  # regressors for the forecast period
   fit <- glarma::glarma(yj, X, type = "Poi")  # fit the model
   # Compute base forecasts, which are Poisson distributions specified by the rate parameter 
   fc_lambda <- glarma::forecast(fit, newdata = X_new, n.ahead = 1)$mu  
@@ -268,19 +268,19 @@ rownames(samples_buis) <- c("T", "A", "B", "AA", "AB", "BA", "BB")
 # Compute reconciled means
 print(round(rowMeans(samples_buis), 2))
 #>     T     A     B    AA    AB    BA    BB 
-#> 22.09  9.09 13.00  4.54  4.55  6.16  6.85
+#> 20.69  8.36 12.33  4.05  4.31  5.83  6.50
 
 # Compute upper quantiles of the reconciled forecast distributions:
 print(apply(samples_buis, 1, quantile, probs = c(0.80, 0.95)))
 #>      T  A  B AA AB BA BB
-#> 80% 25 11 15  6  6  8  9
-#> 95% 27 13 17  8  8 10 10
+#> 80% 23 10 14  5  6  8  8
+#> 95% 26 12 16  7  7  9 10
 ```
 
 Finally, we compare the base and reconciled forecasts for the top series
 T by plotting the base and reconciled forecast distributions.
 
-<img src="man/figures/README-unnamed-chunk-11-1.png" alt="" width="75%" style="display: block; margin: auto;" />
+<img src="man/figures/README-unnamed-chunk-11-1.png" width="75%" style="display: block; margin: auto;" />
 
 Similar results can be obtained with `reconc_MCMC`, which is a
 bare-bones implementation of the Metropolis-Hastings algorithm. However,
@@ -290,19 +290,24 @@ reconciling discrete forecasts.
 ### Example 3: mixed-type forecast distributions
 
 In many large hierarchies the bottom series are low-count integers
-(e.g. item-level sales), while the upper series can be considered as
-real-valued due to the smoothing effect of aggregation (e.g. total
+(e.g., item-level sales), while the upper series can be considered as
+real-valued due to the smoothing effect of aggregation (e.g., total
 sales). These hierarchies are often referred to as *mixed*, since
 forecasts for the bottom series are discrete distributions, while
 forecasts for the upper series are continuous distributions. The
 functions `reconc_MixCond` and `reconc_TDcond` handle this mixed case:
 they take a list of discrete distributions for the bottom level and a
-multivariate Gaussian for the upper levels.
+multivariate Gaussian for the upper levels. These functions implement
+different methods for reconciling mixed hierarchies; we recommend using
+`reconc_MixCond` for moderately sized hierarchies and `reconc_TDcond`
+for large hierarchies (see [Zambon et
+al. 2024](https://proceedings.mlr.press/v244/zambon24a.html) for
+details).
 
 Let us consider a hierarchy with 3 upper series and 52 bottom series
 arranged in 2 groups of 26:
 
-<img src="./man/figures/hier_large_README.png" alt="" width="50%" style="display: block; margin: auto;" />
+<img src="./man/figures/hier_large_README.png" width="50%" style="display: block; margin: auto;" />
 
 <br />
 
@@ -310,7 +315,7 @@ We randomly generate the bottom count time series as in Ex. 2; we then
 aggregate them using **A** to obtain the upper series.
 
 ``` r
-set.seed(12345)
+set.seed(12)
 n_b   <- 52   # number of bottom series 
 n_u   <- 3    # number of upper series
 n_obs <- 60   # series length
@@ -338,7 +343,7 @@ We show a comparison of upper and bottom time series. Even though the
 bottom series are made of low counts, the upper series can be considered
 as real-valued due to the smoothing effect of aggregation.
 
-<img src="man/figures/README-unnamed-chunk-14-1.png" alt="" width="75%" style="display: block; margin: auto;" />
+<img src="man/figures/README-unnamed-chunk-14-1.png" width="75%" style="display: block; margin: auto;" />
 
 We compute the one-step-ahead base forecasts for each upper series with
 an additive ETS model, implemented in the
@@ -370,7 +375,7 @@ base_fc_bottom <- list()
 for (j in seq_len(n_b)) {
   bj <- B_ts[,j]
   X <- matrix(c(rep(1, length(bj)), seas), ncol = 2)  # matrix of exogenous regressors
-  X_new <- matrix(c(1, 2*sin(2*pi*(n_obs + 1)/12)), ncol = 2)  # regressors for the forecast period
+  X_new <- matrix(c(1, 1 + .5*sin(2*pi*(n_obs + 1)/12)), ncol = 2)  # regressors for the forecast period
   fit <- glarma(bj, X, type = "Poi")
   # Bottom base forecasts are Poisson distributions, specified by the rate parameter 
   fc_lambda <- glarma::forecast(fit, newdata = X_new, n.ahead = 1)$mu
@@ -381,11 +386,8 @@ for (j in seq_len(n_b)) {
 
 We reconcile using both `reconc_MixCond` (importance-sampling based
 conditioning) and `reconc_TDcond` (top-down conditioning). These
-functions implement different methods for reconciling mixed hierarchies.
-We recommend using `reconc_MixCond` for moderately sized hierarchies and
-`reconc_TDcond` for large hierarchies (see [Zambon et
-al. 2024](https://proceedings.mlr.press/v244/zambon24a.html) for
-details).
+functions implement different methods for reconciling mixed hierarchies,
+but they share the same input arguments and output structure.
 
 ``` r
 res_mc <- reconc_MixCond(
@@ -406,8 +408,9 @@ res_td <- reconc_TDcond(
 The joint forecast distribution can be obtained by specifying
 `return_type = "samples"`. In this case, since we set
 `return_type = "pmf"`, the functions return the reconciled marginal
-forecast distributions as PMFs. From these PMFs, we can compute any
-desired summary (e.g. mean, quantiles, etc.) using the `PMF` functions.
+forecast distributions as probability mass functions (PMFs). From these
+PMFs, we can compute any desired summary (e.g. mean, quantiles, etc.)
+using the `PMF` functions.
 
 ``` r
 # Compare the upper means of the base and reconciled forecasts
@@ -419,9 +422,9 @@ upper_means <- rbind(
 colnames(upper_means) <- c("T", "A", "B")
 print(round(upper_means, 2))
 #>             T     A     B
-#> base    55.00 25.81 26.13
-#> MixCond 52.48 26.22 26.26
-#> TDcond  53.82 26.69 27.13
+#> base    56.98 19.84 34.31
+#> MixCond 59.24 23.55 35.68
+#> TDcond  55.99 20.42 35.57
 
 # Compare the 95% upper quantiles of the base and reconciled forecast distributions
 upper_q <- rbind(
@@ -432,16 +435,20 @@ upper_q <- rbind(
 colnames(upper_q) <- c("T", "A", "B")
 print(round(upper_q, 2))
 #>             T    A     B
-#> base    79.48 50.3 50.62
-#> MixCond 63.00 34.0 34.00
-#> TDcond  78.00 42.0 42.00
+#> base    81.93 44.8 59.26
+#> MixCond 71.00 30.0 44.00
+#> TDcond  81.00 34.0 51.00
 ```
 
 Finally, we compare the base forecast and the two reconciled forecast
 distributions for the top series T. The base distribution is a Gaussian
 density (line); the reconciled distributions are discrete PMFs (bars).
+The black triangle indicates the actual value of T. We refer to [Zambon
+et al. 2024](https://proceedings.mlr.press/v244/zambon24a.html) for a
+detailed comparison of the two methods for reconciling mixed hierarchies
+of different sizes.
 
-<img src="man/figures/README-unnamed-chunk-19-1.png" alt="" width="75%" style="display: block; margin: auto;" />
+<img src="man/figures/README-unnamed-chunk-19-1.png" width="75%" style="display: block; margin: auto;" />
 
 ## References
 

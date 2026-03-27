@@ -278,7 +278,7 @@ base_fc <- list()
 for (j in 1:ncol(Y_ts)) {
   yj <- Y_ts[,j]  # time series j
   X <- matrix(c(rep(1, length(yj)), seas), ncol = 2)  # matrix of exogenous regressors
-  X_new <- matrix(c(1, 2*sin(2*pi*61/12)), ncol = 2)  # regressors for the forecast period
+  X_new <- matrix(c(1, 1.5*sin(2*pi*(n_obs + 1)/12)), ncol = 2)  # regressors for the forecast period
   fit <- glarma::glarma(yj, X, type = "Poi")  # fit the model
   # Compute base forecasts, which are Poisson distributions specified by the rate parameter 
   fc_lambda <- glarma::forecast(fit, newdata = X_new, n.ahead = 1)$mu  
@@ -360,12 +360,16 @@ However, we recommend using `reconc_BUIS` rather than `reconc_MCMC` for reconcil
 
 ### Example 3: mixed-type forecast distributions
 
-In many large hierarchies the bottom series are low-count integers (e.g. item-level sales),
-while the upper series can be considered as real-valued due to the smoothing effect of aggregation (e.g. total sales).
+In many large hierarchies the bottom series are low-count integers (e.g., item-level sales),
+while the upper series can be considered as real-valued due to the smoothing effect of aggregation (e.g., total sales).
 These hierarchies are often referred to as *mixed*, since forecasts for the bottom series are 
 discrete distributions, while forecasts for the upper series are continuous distributions.
 The functions `reconc_MixCond` and `reconc_TDcond` handle this mixed case: they take
 a list of discrete distributions for the bottom level and a multivariate Gaussian for the upper levels.
+These functions implement different methods for reconciling mixed hierarchies;
+we recommend using `reconc_MixCond` for moderately sized hierarchies
+and `reconc_TDcond` for large hierarchies 
+(see [Zambon et al. 2024](https://proceedings.mlr.press/v244/zambon24a.html) for details).
 
 Let us consider a hierarchy with 3 upper series and 52 bottom series arranged in 2 groups of 26:
 
@@ -379,7 +383,7 @@ We randomly generate the bottom count time series as in Ex. 2;
 we then aggregate them using **A** to obtain the upper series.
 
 ```{r}
-set.seed(12345)
+set.seed(12)
 n_b   <- 52   # number of bottom series 
 n_u   <- 3    # number of upper series
 n_obs <- 60   # series length
@@ -465,7 +469,7 @@ base_fc_bottom <- list()
 for (j in seq_len(n_b)) {
   bj <- B_ts[,j]
   X <- matrix(c(rep(1, length(bj)), seas), ncol = 2)  # matrix of exogenous regressors
-  X_new <- matrix(c(1, 2*sin(2*pi*(n_obs + 1)/12)), ncol = 2)  # regressors for the forecast period
+  X_new <- matrix(c(1, 1 + .5*sin(2*pi*(n_obs + 1)/12)), ncol = 2)  # regressors for the forecast period
   fit <- glarma(bj, X, type = "Poi")
   # Bottom base forecasts are Poisson distributions, specified by the rate parameter 
   fc_lambda <- glarma::forecast(fit, newdata = X_new, n.ahead = 1)$mu
@@ -476,10 +480,8 @@ for (j in seq_len(n_b)) {
 
 We reconcile using both `reconc_MixCond` (importance-sampling based conditioning) and
 `reconc_TDcond` (top-down conditioning). 
-These functions implement different methods for reconciling mixed hierarchies.
-We recommend using `reconc_MixCond` for moderately sized hierarchies
-and `reconc_TDcond` for large hierarchies 
-(see [Zambon et al. 2024](https://proceedings.mlr.press/v244/zambon24a.html) for details).
+These functions implement different methods for reconciling mixed hierarchies,
+but they share the same input arguments and output structure.
 
 ```{r}
 res_mc <- reconc_MixCond(
@@ -499,7 +501,7 @@ res_td <- reconc_TDcond(
 
 The joint forecast distribution can be obtained by specifying `return_type = "samples"`.
 In this case, since we set `return_type = "pmf"`, the functions return the reconciled marginal
-forecast distributions as PMFs.
+forecast distributions as probability mass functions (PMFs).
 From these PMFs, we can compute any desired summary (e.g. mean, quantiles, etc.) using the `PMF` functions.
 
 ```{r}
@@ -524,10 +526,21 @@ print(round(upper_q, 2))
 
 Finally, we compare the base forecast and the two reconciled forecast distributions for the top series T.
 The base distribution is a Gaussian density (line); the reconciled distributions are discrete PMFs (bars).
+The black triangle indicates the actual value of T.
+We refer to [Zambon et al. 2024](https://proceedings.mlr.press/v244/zambon24a.html)
+for a detailed comparison of the two methods for reconciling mixed hierarchies of
+different sizes.
 
 ```{r, echo = FALSE}
 # Index of the series to plot (1 = T, the top series)
 i <- 1
+
+# Compute the actual value of T in the forecast period, which we will plot as a reference
+# use same data generating process
+seas_new <- 1 + .5*sin(2*pi*(n_obs + 1)/12)
+lambdas_new <- lambda_levels * seas_new
+actual_bottom <- rpois(n_b, lambdas_new)
+T_actual <- sum(actual_bottom)  # actual value of T in the forecast period
 
 # Base (Gaussian)
 mu_base <- mu_u[i]
@@ -553,6 +566,7 @@ x_int <- x_lo:x_hi  # integer support for the bars
 
 # Helper: read probability at each integer in x from a PMF vector
 pmf_vals <- function(pmf, x) {
+  # initialize with zeros; then fill in the probabilities for the valid x values
   p <- numeric(length(x))
   ok <- x >= 0L & x < length(pmf)
   p[ok] <- pmf[x[ok] + 1L]
@@ -562,7 +576,7 @@ pmf_vals <- function(pmf, x) {
 # Tidy data frame for the two reconciled PMFs (bars)
 df_bars <- data.frame(
   x    = rep(x_int, 2),
-  prob = c(pmf_mc[x_int+1], pmf_td[x_int+1]),
+  prob = c(pmf_vals(pmf_mc, x_int), pmf_vals(pmf_td, x_int)),
   type = rep(c("MixCond reconciled", "TDcond reconciled"), each = length(x_int))
 )
 
@@ -582,20 +596,30 @@ ggplot() +
   ) +
   geom_line(
     data = df_line,
-    aes(x = x, y = dens, color = type, linetype = type),
-    linewidth = 1.3
+    aes(x = x, y = dens, color = "Base (Gaussian)"),
+    linetype = "solid", linewidth = 1.3
+  ) +
+  geom_point(
+    data = data.frame(x = T_actual, y = 0),
+    aes(x = x, y = y, color = "Actual value"),
+    shape = 17, size = 4
   ) +
   scale_fill_manual(
     values = c("MixCond reconciled" = "#F8766D", "TDcond reconciled" = "#00BA38"),
     name = NULL
   ) +
   scale_color_manual(
-    values = c("Base (Gaussian)" = "#619CFF"),
+    values = c("Actual value" = "black", "Base (Gaussian)" = "#619CFF"),
     name = NULL
   ) +
-  scale_linetype_manual(
-    values = c("Base (Gaussian)" = "solid"),
-    name = NULL
+  guides(
+    color = guide_legend(
+      override.aes = list(
+        shape     = c(17, NA),
+        linetype  = c("blank", "solid"),
+        linewidth = c(0, 1.3)
+      )
+    )
   ) +
   labs(
     title = "Base vs reconciled forecast distributions for time series T",
@@ -604,10 +628,10 @@ ggplot() +
   theme_minimal() +
   theme(
     plot.title  = element_text(face = "bold"),
-    legend.text = element_text(size = 11)
+    legend.text = element_text(size = 11),
+    legend.spacing.y = unit(-0.3, 'cm')
   )
 ```
-
 
 ## References
 
