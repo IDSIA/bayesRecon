@@ -123,7 +123,7 @@ set.seed(1234)
 n_obs <- 12  # length of the time series
 B_ts <- matrix(nrow = 4, ncol = n_obs)
 for (j in 1:4) {
-  B_ts[j, ] <- arima.sim(model = list(ar = 0.8), n = n_obs)
+  B_ts[j, ] <- arima.sim(model = list(ar = 0.8), n = n_obs, sd = 0.5)
 }
 # Aggregate to obtain upper series 
 U_ts <- A %*% B_ts
@@ -219,15 +219,33 @@ df_ex2 <- data.frame(
   type = rep(c("Gaussian reconciled", "t reconciled"), each = length(x_seq))
 )
 
+# Compute the actual value of T at time n_obs+1 
+last_B <- as.numeric(B_ts[n_obs, ])
+B_actual <- 0.8 * last_B + rnorm(4, sd = 0.5)  # use same AR(1) data generating process
+T_actual <- sum(A[1, ] * B_actual)
+
 # Plot the densities
-ggplot(df_ex2, aes(x = x, y = dens, color = type, linetype = type)) +
-  geom_line(linewidth = 1.3) +
-  scale_color_manual(values = c("Gaussian reconciled" = "#619CFF", "t reconciled" = "#F8766D")) +
+ggplot(df_ex2, aes(x = x, y = dens)) +
+  geom_line(aes(color = type, linetype = type), linewidth = 1.3) +
   geom_area(data = subset(df_ex2, type == "Gaussian reconciled"), fill = "#619CFF", alpha = 0.3) +
   geom_area(data = subset(df_ex2, type == "t reconciled"), fill = "#F8766D", alpha = 0.3) +
+  geom_point(
+    data = data.frame(x = T_actual, y = 0),
+    aes(x = x, y = y, color = "Actual value"),
+    inherit.aes = FALSE,
+    shape = 17, size = 4
+  ) +
+  scale_color_manual(
+    values = c("Gaussian reconciled" = "#619CFF", "t reconciled" = "#F8766D", "Actual value" = "black"),
+    name = NULL
+  ) +
+  scale_linetype_manual(
+    values = c("Gaussian reconciled" = "solid", "t reconciled" = "dashed"),
+    guide = "none"
+  ) +
   labs(
     title = "Reconciled forecast distributions for time series T",
-    x = "Value", y = "Density", color = NULL, linetype = NULL
+    x = "Value", y = "Density"
   ) +
   theme_minimal() +
   theme(
@@ -338,19 +356,42 @@ df_ex1 <- data.frame(
   type = rep(c("Base", "Reconciled"), each = length(x_range))
 )
 
+# Compute the actual value of T at time n_obs+1 
+seas_new <- 1.5 * sin(2*pi*(n_obs + 1)/12)
+lambdas_new <- lambda_bls + seas_new + rnorm(4, sd = 0.1)
+B_actual <- rpois(4, pmax(0, lambdas_new))
+T_actual <- sum(B_actual)
+
 ggplot(df_ex1, aes(x = x, y = prob, fill = type)) +
   geom_col(position = position_dodge(width = 0.8), width = 0.7, alpha = 0.85) +
+  geom_point(
+    data = data.frame(x = T_actual, y = 0),
+    aes(x = x, y = y, color = "Actual value"),
+    inherit.aes = FALSE,
+    shape = 17, size = 4
+  ) +
   scale_fill_manual(
-    values = c("Base" = "#619CFF", "Reconciled" = "#c77605")
+    values = c("Base" = "#619CFF", "Reconciled" = "#c77605"),
+    name = NULL
+  ) +
+  scale_color_manual(
+    values = c("Actual value" = "black"),
+    name = NULL
+  ) +
+  guides(
+    color = guide_legend(
+      override.aes = list(shape = 17, linetype = "blank", linewidth = 0)
+    )
   ) +
   labs(
     title = "Base vs reconciled forecast distribution for time series T",
-    x = "Value", y = "Probability", fill = NULL
+    x = "Value", y = "Probability"
   ) +
   theme_minimal() +
   theme(
     plot.title  = element_text(face = "bold"),
-    legend.text = element_text(size = 11)
+    legend.text = element_text(size = 11),
+    legend.spacing.y = unit(-0.3, 'cm')
   )
 ```
 
@@ -433,6 +474,7 @@ ggplot(df_ts, aes(x = t, y = value, color = type)) +
     values = c("Upper series T (smooth)" = "#619CFF", "Bottom series AA (count)" = "#F8766D")
   ) +
   facet_wrap(~ type, ncol = 1, scales = "free_y") +
+  scale_y_continuous(breaks = function(x) { b <- scales::breaks_pretty()(x); b[b == floor(b)] }) +
   labs(x = "Time", y = "Value") +
   theme_minimal() +
   theme(

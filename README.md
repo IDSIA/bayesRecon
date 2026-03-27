@@ -116,7 +116,7 @@ set.seed(1234)
 n_obs <- 12  # length of the time series
 B_ts <- matrix(nrow = 4, ncol = n_obs)
 for (j in 1:4) {
-  B_ts[j, ] <- arima.sim(model = list(ar = 0.8), n = n_obs)
+  B_ts[j, ] <- arima.sim(model = list(ar = 0.8), n = n_obs, sd = 0.5)
 }
 # Aggregate to obtain upper series 
 U_ts <- A %*% B_ts
@@ -184,9 +184,9 @@ rownames(means) <- c("base", "reconc_gaussian", "reconc_t")
 colnames(means) <- c("T", "A", "B", "AA", "AB", "BA", "BB")
 print(round(means, 2))
 #>                     T     A     B    AA    AB    BA    BB
-#> base            -5.28 -4.49 -0.71 -4.13 -0.36 -0.39 -0.93
-#> reconc_gaussian -5.47 -4.50 -0.97 -4.10 -0.39 -0.27 -0.70
-#> reconc_t        -5.74 -4.74 -1.00 -4.04 -0.70 -0.22 -0.78
+#> base            -2.64 -2.24 -0.35 -2.06 -0.18 -0.19 -0.47
+#> reconc_gaussian -2.73 -2.25 -0.49 -2.05 -0.20 -0.14 -0.35
+#> reconc_t        -2.87 -2.37 -0.50 -2.02 -0.35 -0.11 -0.39
 ```
 
 Finally, we compare the reconciled forecast distributions for the top
