@@ -28,12 +28,11 @@ This vignette shows how to perform *t-reconciliation*, a Bayesian approach to fo
 By exploiting the flexibility of Bayesian models to incorporate parameter uncertainty, we place an Inverse-Wishart prior on the covariance matrix. This choice allows the reconciliation to be derived in closed form, resulting in a reconciled predictive distribution that follows a multivariate t.
 
 
-```{r load}
+```{r load, message=FALSE, warning=FALSE}
 # load the packages
 library(bayesRecon)
-library(forecast) # base forecasts
-# for plot
-library(ggplot2)
+library(forecast) # for base forecasts
+library(ggplot2)  # for plot
 ```
 
 # Loading the dataset
@@ -61,12 +60,12 @@ n_b = ncol(A)
 n_u = nrow(A)
 n = n_b + n_u
 
-S = rbind(A, diag(rep(1, n_b))) 
+# Frequency is monthly:
+print(frequency(Y))
 
 # Select the length of the training set and the forecast horizon
-L = 60    # This parameter can be chosen differently
-freq = 12 # frequency is monthly
-h = 1     # forecast horizon is 1
+L = 60    
+h = 1    
 
 train = window(Y, end = time(Y)[L])
 actuals = window(Y, start= time(Y)[L + 1], end = time(Y)[L + h])
@@ -84,7 +83,7 @@ For each time series forecast, we save the base forecast mean (`base_fc`) and th
 base_fc = rep(1, n)
 res = matrix(NA, ncol = n, nrow = L)
 for (i in 1:n){
-    models = forecast::ets(ts(train[,i ], frequency = freq), model = "AZZ")
+    models = forecast::ets(train[,i], model = "AZZ")
     f = forecast(models, h = h)
     base_fc[i] = f$mean
     res[, i] = models$residuals
@@ -95,7 +94,7 @@ for (i in 1:n){
 
 We can now reconcile the forecasts with the function `reconc_t()`, which implements the t-Reconciliation method. 
 
-This function takes as input the aggregation matrix `A`, the base forecast means `base_fc_mean`, the training data `y_train` and the model residuals `residuals` and returns the parameters of the reconciled forecasts, represented by a multivariate t-distribution.
+This function takes as input the aggregation matrix `A`, the base forecast means `base_fc_mean`, the training data `y_train` and the model residuals `residuals` and returns the parameters of the reconciled forecasts, which are distributed as a multivariate-t.
 
 ```{r t-reconciliation}
 t_rec_results = reconc_t(A, base_fc_mean = base_fc, 
@@ -116,7 +115,8 @@ Base_cov_mat = (1 - 10^-4)* Sigma + 10^-4 * diag(diag(Sigma))
 
 
 ```{r Bottom-up}
-#BU reconciliation
+# Bottom-Up reconciliation
+S = rbind(A, diag(rep(1, n_b)))  # summing matrix
 BU_reconciled_mean = S %*% base_fc[(n_u + 1):n]
 BU_cov_mat = S %*% Base_cov_mat[(n_u + 1):n, (n_u + 1):n] %*% t(S)
 ```
@@ -257,7 +257,7 @@ knitr::kable(data.frame(
 
 **Table 1** shows the variance and correlation estimates for the upper-level series (CH) and the bottom-level series (GR) obtained with the Base, MinT and t-Rec methods.Note that the average variance of CH and GR estimated by t-Rec is higher than both the base and the Gaussian reconciled matrix. Moreover, the correlation between CH and GR is also estimated different in t-Rec compared to MinT. 
 
-Most importantly, however, t-Rec returns a distribution for those variance and correlation values. We can plot them by generating samples from the posterior of the covariance. This posterior distribution is an Inverse-Wishart distribution, with parameters returned by `reconc_t()` as `posterior_nu` and `posterior_Psi`. We sample from this distribution using the custom function `rinvwishart_base()`, defined below.
+Most importantly, however, t-Rec returns a distribution for those variance and correlation values. We can plot them by generating samples from the posterior of the covariance. This posterior distribution is an Inverse-Wishart distribution, with parameters returned by `reconc_t()` (if `return_params` is set to `TRUE`) as `posterior_nu` and `posterior_Psi`. We sample from this distribution using the custom function `rinvwishart_base()`, defined below.
 
 ```{r generate IW samples}
 # generate k samples from an IW(Psi, nu) distribution
