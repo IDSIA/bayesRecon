@@ -21,6 +21,15 @@ knitr::opts_chunk$set(
 )
 ```
 
+```{css, echo=FALSE}
+p.caption {
+  text-align: left;
+}
+caption {
+  text-align: left;
+}
+```
+
 # Introduction
 
 This vignette showcases the method *t-Rec*, a Bayesian approach to forecast reconciliation that explicitly accounts for uncertainty in the covariance matrix of residuals. 
@@ -96,7 +105,7 @@ for (i in 1:n){
 
 We can now reconcile the forecasts with the function `reconc_t()`, which implements the t-Rec method. 
 
-This function takes as input the aggregation matrix `A`, the base forecast means `base_fc_mean`, the training data `y_train` and the model residuals `residuals` and returns the parameters of the reconciled forecasts, which are distributed as a multivariate-t. The flag `return_upper =  TRUE` forces the function to return the parameters of the upper-level reconciled forecasts. The flag `return_parameters = TRUE` returns the parameters of the posterior distribution of the covariance matrix, which we will use to compare the covariance estimates obtained with t-Rec and MinT.
+This function takes as input the aggregation matrix `A`, the base forecast means `base_fc_mean`, the training data `y_train` and the model residuals `residuals` and returns the parameters of the reconciled forecasts, which are distributed as a multivariate-t. The flag `return_upper =  TRUE` forces the function to return also the parameters of the upper-level reconciled forecasts. The flag `return_parameters = TRUE` forces the function to return also the parameters of the posterior distribution of the covariance matrix, which we will use to compare the covariance estimates obtained with t-Rec and MinT.
 
 ```{r t-reconciliation}
 t_rec_results = reconc_t(A, base_fc_mean = base_fc, 
@@ -109,23 +118,19 @@ t_rec_results = reconc_t(A, base_fc_mean = base_fc,
 For the selected data window, we save the base forecasts (Base).
 
 ```{r Base}
-#Base forecasts
-Base_reconciled_mean = base_fc
+# Base forecasts
+Base_mean = base_fc
 Base_cov_mat = crossprod(res)/nrow(res) # covariance of the residuals
 ```
-We further compute the reconciled forecasts with the standard Gaussian reconciliation (Gauss/MinT). Note the flag `return_upper = TRUE`, which forces the function to return the parameters of the upper-level reconciled forecasts.
+
+We further compute the reconciled forecasts with the standard Gaussian reconciliation (MinT). Note the flag `return_upper = TRUE`, which forces the function to return the parameters of the upper-level reconciled forecasts.
 
 ```{r Gaussian}
 # Gaussian/MinT: compute reconciliation with bayesRecon
 gauss_results = reconc_gaussian(A, base_fc, residuals = res, return_upper = TRUE)
-
-# save reconciled mean and covariance for the whole hierarchy
-MinT_reconciled_mean = c(gauss_results$upper_rec_mean, gauss_results$bottom_rec_mean)
-
-# Build the full reconciled covariance matrix
-MinT_corr_with_upper = A %*% gauss_results$bottom_rec_cov
-MinT_cov_mat = rbind(cbind(gauss_results$upper_rec_cov, MinT_corr_with_upper),
-                        cbind(t(MinT_corr_with_upper),gauss_results$bottom_rec_cov))
+# Reconciled mean for the whole hierarchy:
+MinT_reconciled_mean = c(gauss_results$upper_rec_mean, 
+                         gauss_results$bottom_rec_mean)
 ```
 
 # Comparison of results
@@ -144,6 +149,10 @@ i_upper <- 1  # change this if a different index is needed
 # Extract distribution's parameters for each method
 
 # MinT
+# Build the full reconciled covariance matrix
+MinT_corr_with_upper = A %*% gauss_results$bottom_rec_cov
+MinT_cov_mat = rbind(cbind(gauss_results$upper_rec_cov, MinT_corr_with_upper),
+                        cbind(t(MinT_corr_with_upper),gauss_results$bottom_rec_cov))
 mu_MinT <- as.numeric(MinT_reconciled_mean[i_upper])
 sd_MinT <- sqrt(MinT_cov_mat[i_upper, i_upper])
 
@@ -152,8 +161,8 @@ mu_tRec <- as.numeric(t_Rec_reconciled_mean[i_upper])
 scale_tRec <- sqrt(t_Rec_scale_par[i_upper, i_upper])
 df_tRec <- t_rec_results$bottom_rec_df
 
-#Base
-mu_Base <- as.numeric(Base_reconciled_mean[i_upper])
+# Base
+mu_Base <- as.numeric(Base_mean[i_upper])
 sd_Base <- sqrt(Base_cov_mat[i_upper, i_upper])
 
 # Create a grid of x values
@@ -166,11 +175,9 @@ dens_MinT <- dnorm(x_vals, mean = mu_MinT, sd = sd_MinT)
 dens_tRec <- dt((x_vals - mu_tRec) / scale_tRec, df = df_tRec) /scale_tRec
 dens_Base <- dnorm(x_vals, mean = mu_Base, sd = sd_Base)
 
-max_y <- max(dens_MinT, dens_tRec, dens_Base)
-
 ```
 
-```{r comparison-plot, echo=FALSE, eval=TRUE, dpi=300, out.width = "100%", fig.align='center', fig.cap="**Figure 2**: Predictive densities of the upper time series obtained with BU (yellow), MinT (purple), t-Rec (green) and Base (blue). The black triangle indicates the actual value.", fig.dim = c(8, 4), warning=FALSE}
+```{r comparison-plot, echo=FALSE, eval=TRUE, dpi=300, out.width = "100%", fig.align='center', fig.cap="**Figure 2**: Predictive densities of the upper time series obtained with MinT (purple), t-Rec (green) and Base (blue). The black triangle indicates the actual value.", fig.dim = c(8, 4), warning=FALSE}
 
 dens_df <- data.frame(
   x       = rep(x_vals, 3),
@@ -207,7 +214,8 @@ ggplot(dens_df, aes(x = x, y = Density, color = Method)) +
   theme_minimal(base_size = 12) +
   theme(
     legend.position = "top",
-    legend.title = element_blank()
+    legend.title = element_blank(),
+    plot.title       = element_text(size = 18)
   )
 ```
 
@@ -215,7 +223,7 @@ Note that both reconciliation methods improve the forecast: the mode of the dens
 
 # Comparison of the covariance matrix estimates
 
-In this section we showcase the main strength of t-Rec: it provides an estimate of the covariance which accounts for the uncertainty in the estimation. To illustrate this point, we compare the covariance matrix estimates obtained with  t-Rec and with the standard Gaussian reconciliation method (MinT).
+In this section we showcase the main strength of t-Rec: it provides an estimate of the covariance which accounts for the uncertainty in the estimation. To illustrate this point, we compare the covariance matrix estimates obtained with t-Rec and with the standard Gaussian reconciliation method (MinT).
 
 We focus on the covariance matrix between the upper-level series "Schweiz", denoted as CH, and the bottom-level time series with the largest average values "Graubünden", denoted as GR. Analogous considerations apply also for other series. The code in the vignette is parametric so that a user could manually visualize different comparisons. 
 
@@ -233,7 +241,7 @@ i = 1     # CH
 j = 19    # GR
 
 # density of the inverse gamma
-dinvgamma_base <- function(x, shape, rate) {
+dinvgamma <- function(x, shape, rate) {
   dgamma(1/x, shape = shape, rate = rate) / x^2
 }
 
@@ -242,19 +250,19 @@ mean_ch <- t_rec_results$posterior_Psi[i, i]/(t_rec_results$posterior_nu - n - 1
 x_ch <- seq(mean_ch*0.5, mean_ch*1.7, length.out = 1000)
 shape_ch <- (t_rec_results$posterior_nu - n + 1) /2
 rate_ch  <- t_rec_results$posterior_Psi[i, i] / 2
-dens_ch <- dinvgamma_base(x_ch, shape = shape_ch, rate = rate_ch)
+dens_ch <- dinvgamma(x_ch, shape = shape_ch, rate = rate_ch)
 
-# compute the density of the variance parameters for CH
+# compute the density of the variance parameters for GR
 mean_gr <- t_rec_results$posterior_Psi[j, j]/(t_rec_results$posterior_nu - n - 1)
 x_gr <- seq(mean_gr*0.5, mean_gr*1.7, length.out = 1000)
 shape_gr <- (t_rec_results$posterior_nu - n + 1) /2
 rate_gr  <- t_rec_results$posterior_Psi[j, j] / 2
-dens_gr <- dinvgamma_base(x_gr, shape = shape_gr, rate = rate_gr)
+dens_gr <- dinvgamma(x_gr, shape = shape_gr, rate = rate_gr)
 ```
 
 **Figure 3** shows the density of the posterior standard deviation of the forecasts for the upper time series (CH) and the bottom time series (GR).
 
-```{r density plot, echo=FALSE, eval=TRUE, dpi=300, out.width = "100%", fig.align='center', fig.cap="**Figure 3**: Density of the posterior standard deviation of the forecasts for the upper time series.", fig.dim = c(8, 4), warning=FALSE}
+```{r density plot, echo=FALSE, eval=TRUE, dpi=300, out.width = "100%", fig.align='center', fig.cap="**Figure 3**: Density of the posterior standard deviation of the forecasts for the time series CH and GR.", fig.dim = c(8, 4), warning=FALSE}
 
 df_dens <- data.frame(
   x = c(sqrt(x_ch), sqrt(x_gr)), 
@@ -262,7 +270,7 @@ df_dens <- data.frame(
   panel = rep(c("CH", "GR"), each = length(dens_ch))
 )
 
-# Plot the density of the variance parameters for CH
+# Plot the density of the standard deviation parameters for CH and GR
 ggplot(df_dens, aes(x = x, y = y)) +
   geom_line(linewidth = 1.5, color="darkolivegreen", alpha=0.7) +
   scale_x_continuous(labels = function(x) paste0(formatC(x / 1e3, format = "g"), "k")) +
@@ -276,15 +284,16 @@ ggplot(df_dens, aes(x = x, y = y)) +
   theme_minimal(base_size = 12) +
   theme(
     legend.position = "top",
-    legend.title = element_blank()
+    legend.title = element_blank(),
+    plot.title       = element_text(size = 18)
   )
 ```
 
-The posterior distribution for the covariance and for the correlation values is not available in closed form but it can be obtained via sampling. Since the posterior distribution is an Inverse-Wishart distribution, we can sample from this distribution using the custom function `rinvwishart_base()`, defined below.
+The posterior distribution for the covariance and for the correlation values is not available in closed form but it can be obtained via sampling. Since the posterior distribution is an Inverse-Wishart distribution, we can sample from this distribution using the custom function `rinvwishart()`, defined below.
 
 ```{r generate IW samples}
 # generate k samples from an IW(Psi, nu) distribution
-rinvwishart_base <- function(k, nu, Psi, seed=42) {
+rinvwishart <- function(k, nu, Psi, seed=42) {
   p <- nrow(Psi)
   Sigma <- solve(Psi)
   
@@ -298,107 +307,64 @@ rinvwishart_base <- function(k, nu, Psi, seed=42) {
   return(W)
 }
 
-IW_post_samples <- rinvwishart_base(k=1000, nu = t_rec_results$posterior_nu,
+IW_post_samples <- rinvwishart(k=1000, nu = t_rec_results$posterior_nu,
                             Psi = t_rec_results$posterior_Psi)
 
 ```
 
-Since base forecasts and MinT reconciliation only provide point estimates for the covariance matrix, we can obtain the
-correlation by simply transforming the estimated covariance into a correlation matrix. 
-```{r compute correlations, echo=FALSE, eval=TRUE}
 
+```{r compute correlations, echo=FALSE, eval=TRUE}
 corr_mint <- cov2cor(MinT_cov_mat)
 corr_base <- cov2cor(Base_cov_mat)
 corr_tRec <- cov2cor(t_rec_results$posterior_Psi/(t_rec_results$posterior_nu - n - 1))
 ```
 
-**Figure 4** shows the posterior densities of the standard deviation parameters for CH and GR, and the density of the posterior correlation between CH and GR. The value estimated by MinT, plotted as a vertical dashed line, is not always contained in the support of the densities estimated by t-Rec. For example, for CH, MinT estimates a much lower variance than the one estimated by t-Rec, and this value is in the tail of the density estimated by t-Rec. 
+**Figure 4** shows the posterior density of the correlation between CH and GR. The value estimated by MinT, plotted as a vertical dashed line, differs from the posterior mode estimated by t-Rec, illustrating how t-Rec captures a different view of the dependence structure. 
 
-```{r plot densities, echo=FALSE, eval=TRUE, dpi=300, out.width = "100%", fig.align='center', fig.cap="**Figure 4**: Densities of the posterior of the covariance obtained with t-Rec. The vertical line indicates the point estimate obtained with MinT.", fig.dim = c(8, 4),warning=FALSE}
+```{r plot densities, echo=FALSE, eval=TRUE, dpi=300, out.width = "100%", fig.align='center', fig.cap="**Figure 4**: Density of the posterior correlation between CH and GR obtained with t-Rec. The vertical dashed line indicates the point estimate obtained with MinT.", fig.dim = c(8, 4), warning=FALSE}
 # Compute correlation samples for all sample matrices generated above
 corr_post <- array(apply(IW_post_samples, FUN = function(M) cov2cor(M), MARGIN = c(3)),
                    dim = dim(IW_post_samples))
 
-name_i <- "CH"
-name_j <- "GR"
+df_corr <- data.frame(x = corr_post[i, j, ])
 
-label_var_i  <- sprintf("sigma[%d%d]", i, i)
-label_var_j  <- sprintf("sigma[%d%d]", j, j)
-label_cor_ij <- sprintf("rho[%d%d]", i, j)
-
-# display labels with Greek letters + column names
-display_labels <- c(
-  sprintf("sigma[plain('%s')]", name_i),
-  sprintf("rho[plain('%s')*','*plain('%s')]", name_i, name_j),
-  sprintf("sigma[plain('%s')]", name_j)
-)
-names(display_labels) <- c(label_var_i, label_cor_ij, label_var_j)
-
-df <- data.frame(
-  x     = c(sqrt(IW_post_samples[i, i, ]), corr_post[i, j, ], sqrt(IW_post_samples[j, j, ])),
-  panel = rep(c(label_var_i, label_cor_ij, label_var_j), each = dim(IW_post_samples)[3])
-)
-df$panel <- factor(df$panel, levels = c(label_var_i, label_cor_ij, label_var_j), ordered = TRUE)
-df_dens$panel <- factor(rep(c(label_var_i, label_var_j), each = length(dens_ch)), 
-                        levels = c(label_var_i, label_var_j), ordered = TRUE) 
-
-df_mint <- data.frame(
-  panel = c(label_var_i, label_cor_ij, label_var_j),
-  x     = c(sqrt(MinT_cov_mat[i, i]), corr_mint[i, j], sqrt(MinT_cov_mat[j, j]))
-)
-df_mint$panel <- factor(df_mint$panel, levels = c(label_var_i, label_cor_ij, label_var_j), ordered = TRUE)
-
-fill_labels <- c(
-  setNames(sprintf("sigma[plain('%s')]", name_i), label_var_i),
-  setNames(sprintf("rho[plain('%s')*','*plain('%s')]", name_i, name_j), label_cor_ij),
-  setNames(sprintf("sigma[plain('%s')]", name_j), label_var_j)
-)
-
-cols_fills <- c("#F8766D","#00BA38","#619CFF")
-
-ggplot(df, aes(x = x)) +
-  geom_density(aes(fill = panel), alpha = 0.4) +
-  geom_vline(data = df_mint,
-             aes(xintercept = x, color = "MinT"), linetype = "dashed") +
-  geom_line(data=df_dens, aes(x = x, y = y),color="darkolivegreen",linewidth = 1,alpha=0.7) +
-  scale_fill_manual(
-    name   = "",
-    values = setNames(cols_fills, c(label_var_i, label_cor_ij, label_var_j)),
-    labels = parse(text = fill_labels), #fill_labels,
-    guide  = guide_legend(label.hjust = 0)
-  ) +
-  scale_color_manual(name = "", values = c("MinT" = "black")) +
-  facet_wrap(~ panel, nrow = 2, scales = "free",
-             labeller = as_labeller(display_labels, default = label_parsed)) +
-  labs(x = "", y = "Density") +
+ggplot(df_corr, aes(x = x)) +
+  geom_density(fill = "#00BA38", alpha = 0.4) +
+  geom_vline(xintercept = corr_mint[i, j], linetype = "dashed", color = "black") +
+  annotate("text", x = corr_mint[i, j], y = max(density(corr_post[i, j, ])$y) * 0.95, label = "MinT", 
+           hjust = -0.2, vjust = 0, size = 4.5) +
+  labs(x = "", y = "Density",
+       title = expression(paste("Posterior correlation ", rho["CH,GR"]))) +
   theme_minimal() +
   theme(
-    legend.position        = "inside",
-    legend.position.inside = c(0.75, 0.2),
-    legend.background      = element_rect(fill = "white", color = NA),
-    legend.key.width       = unit(1.2, "cm"),
-    legend.text            = element_text(size = 8)
-  ) +
-  guides(
-    fill  = guide_legend(override.aes = list(alpha = 0.6)),
-    color = guide_legend(override.aes = list(linetype = "dashed"))
+    legend.position  = "none",
+    plot.title       = element_text(size = 18)
   )
 ```
 
-Finally, we show in **Table 1** the variance and correlation estimates for the upper-level series (CH) and the bottom-level series (GR) obtained with the Base, MinT and t-Rec methods. 
+Finally, we show in **Table 1** the standard deviation and correlation estimates for the upper-level series (CH) and the bottom-level series (GR) obtained with Base, MinT and t-Rec methods. While Base and MinT provide point estimates for the standard deviation and correlation, t-Rec provides a distribution for these parameters. In the table, we report the mean of the posterior distribution for the standard deviation and the correlation.
 
 ```{r,echo=FALSE,eval=TRUE}
 # Print table with values for Std and correlation
 knitr::kable(data.frame(
   Method = c("Base", "MinT", "t-Rec"),
-  Std_CH = sqrt(c(Base_cov_mat[i, i], MinT_cov_mat[i, i], t_rec_results$posterior_Psi[i, i]/(t_rec_results$posterior_nu - n - 1))),
-  Std_GR = sqrt(c(Base_cov_mat[j, j], MinT_cov_mat[j, j], t_rec_results$posterior_Psi[j, j]/(t_rec_results$posterior_nu - n - 1))),
-  Correlation_CH_GR = c(corr_base[i, j], corr_mint[i, j], corr_tRec[i, j])
-), digits=c(0,0,0,2), format.args = list(big.mark = ",",
-  scientific = FALSE),caption ="**Table 1**: Variance and correlation estimates for CH and GR.")
+  sigma2_CH   = sqrt(c(Base_cov_mat[i, i], MinT_cov_mat[i, i], t_rec_results$posterior_Psi[i, i]/(t_rec_results$posterior_nu - n - 1))),
+  sigma2_GR   = sqrt(c(Base_cov_mat[j, j], MinT_cov_mat[j, j], t_rec_results$posterior_Psi[j, j]/(t_rec_results$posterior_nu - n - 1))),
+  rho_CH_GR   = c(corr_base[i, j], corr_mint[i, j], corr_tRec[i, j])
+), digits = c(0, 0, 0, 2),
+   format = "html",
+   col.names = c("Method",
+                 "$\\hat{\\sigma}_{\\text{CH}}$",
+                 "$\\hat{\\sigma}_{\\text{GR}}$",
+                 "$\\hat{\\rho}_{\\text{CH,GR}}$"),
+   escape = FALSE,
+   table.attr = "style='width:auto;'",
+   format.args = list(big.mark = ",", scientific = FALSE),
+   caption = "**Table 1**: Standard deviation and correlation estimates for CH and GR.")
 ```
 
-Note that the average variance of CH and GR estimated by t-Rec is higher than both the base and the Gaussian reconciled matrix. Moreover, the correlation between CH and GR is also estimated different in t-Rec compared to MinT. 
+Note that the standard deviation estimated by t-Rec is higher than both the base and the MinT estimates. This is because the posterior Inverse-Wishart distribution depends on the prior, which is initialized using the residuals of the base (naive) forecasts. Since these residuals capture the full uncertainty of the non-reconciled forecasts, the prior inflates the posterior variance relative to the point estimate provided by MinT.
+Moreover, the correlation between CH and GR is also estimated differently by t-Rec compared to MinT.
 
 
 # References
