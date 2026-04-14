@@ -95,7 +95,7 @@ For each time series forecast, we save the base forecast mean (`base_fc`) and th
 
 ```{r Base-forecasts and residuals computation}
 # Compute base forecasts and residuals for each time series
-base_fc = rep(1, n)
+base_fc = rep(NA, n)
 res = matrix(NA, ncol = n, nrow = L)
 for (i in 1:n){
     models = forecast::ets(train[,i], model = "AZZ")
@@ -224,19 +224,19 @@ ggplot(dens_df, aes(x = x, y = Density, color = Method)) +
 ```
 
 The base forecast and the MinT reconciled forecast are normally distributed, while t-Rec has a Student's t distribution. 
-Both reconciliation methods improve the forecast: the mode of the densities is closer to the actual value. However, the t-Rec method returns a wider density, which is more likely to contain the actual value. This is because t-Rec accounts for the uncertainty in the covariance matrix of the forecast errors, which leads to a more realistic representation of the forecast uncertainty.
+Both reconciliation methods improve the forecast: the mean of the densities is closer to the actual value. However, the t-Rec method returns a wider density, which is more likely to contain the actual value. This is because t-Rec accounts for the uncertainty in the covariance matrix of the forecast errors, which leads to a more realistic representation of the forecast uncertainty.
 
 # Comparison of the covariance matrix estimates
 
 In this section we showcase the main strength of t-Rec: it provides an estimate of the covariance which accounts for the uncertainty in the estimation. To illustrate this point, we compare the covariance matrix estimates obtained with t-Rec and with the standard Gaussian reconciliation method (MinT).
 
-We focus on the covariance matrix between the upper-level series "Schweiz", denoted as CH, and the bottom-level time series with the largest average values "Graubünden", denoted as GR. Analogous considerations apply also for other series. The code in the vignette is parametric so that a user could manually visualize different comparisons. 
+We focus on the covariance matrix between the upper-level series, denoted as CH, and the bottom-level time series with the largest average values "Graubünden", denoted as GR. Analogous considerations apply also for other series. The code in the vignette is parametric so that a user could manually visualize different comparisons. 
 
 While MinT only returns a point estimate for the covariance matrix, t-Rec provides a distribution for the covariance matrix. This is obtained in a Bayesian way: starting from a prior on the covariance, we include the data and obtain a posterior distribution which is an Inverse Wishart with known parameters $\nu$ and $\Psi$. Those parameters are stored in `t_rec_results$posterior_nu` and `t_rec_results$posterior_Psi`. 
 
 Since we know analytically the distribution of the covariance, we can also compute the marginal distribution of the variances in closed-form. This is a scaled inverse Gamma distribution with the following parameters:
 $$
-\Sigma_{ii} \sim \text{Inv-Gamma}\left(\frac{\nu - n + 1}{2}, \frac{\Psi_{ii}}{2}\right)
+\Sigma_{ii} \sim \text{Inv-Gamma}\left(\frac{\nu - n + 1}{2}, \frac{\Psi_{ii}}{2}\right).
 $$
 
 Instead of visualizing the variance, we show the standard deviation which produces a more intuitive interpretation. The standard deviation is obtained by applying the square root transformation to the variance, which results in a non-standard distribution. The density of the standard deviation can be computed using the change of variable formula, which leads to the following expression:
@@ -373,7 +373,7 @@ knitr::kable(data.frame(
    caption = "**Table 1**: Standard deviation and correlation estimates for CH and GR.")
 ```
 
-Note that the standard deviation estimated by t-Rec is higher than both the base and the MinT estimates. This is because the posterior Inverse-Wishart distribution depends on the prior, which is initialized using the residuals of the base (naive) forecasts. Since these residuals capture the full uncertainty of the non-reconciled forecasts, the prior inflates the posterior variance relative to the point estimate provided by MinT.
+Note that the standard deviation estimated by t-Rec is higher than both the base and the MinT estimates. This is because the posterior Inverse-Wishart distribution depends on the prior, which is initialized using the residuals of the naive forecasts. Since these residuals capture the full uncertainty of the non-reconciled forecasts, the prior inflates the posterior variance relative to the point estimate provided by MinT.
 Moreover, the correlation between CH and GR is also estimated differently by t-Rec compared to MinT.
 
 
