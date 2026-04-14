@@ -40,15 +40,15 @@ By exploiting the flexibility of Bayesian models to incorporate parameter uncert
 ```{r load, message=FALSE, warning=FALSE}
 # load the packages
 library(bayesRecon)
-library(forecast) # for base forecasts
-library(ggplot2)  # for plot
+library(forecast) # base forecasts
+library(ggplot2)  # plots
 ```
 
 # Loading the data
 
 We consider the monthly Swiss overnight tourist stays data divided by Canton and aggregated over the whole country. This is a cross-sectional hierarchical structure, consisting of two levels: the national total and the division by canton. 
 
-The data is available in this package and can be loaded as `bayesRecon::swiss_tourism`. The raw data is publicly available on the official website of the Swiss Confederation at this [link](https://www.bfs.admin.ch/asset/en/px-x-1003020000_102).
+The data is available in this package and can be loaded as `bayesRecon::swiss_tourism`. This is a list that contains the `mts` object, the aggregation matrix and the number of upper and bottom time series. The raw data is also publicly available on the official website of the Swiss Confederation at this [link](https://www.bfs.admin.ch/asset/en/px-x-1003020000_102).
 
 The data set spans the period from January 2005 to January 2025, comprising 241 monthly observations.
 
@@ -58,6 +58,7 @@ The time series exhibit strong seasonality. See, in **Figure 1**, the top-level 
 # save all time series 
 Y = swiss_tourism$ts
 
+# plot the first (top) time series
 autoplot(Y[,1], ylab = "Overnight stays in Switzerland",linewidth=0.9)+
   scale_y_continuous(labels = function(x) paste0(formatC(x / 1e6, format = "g"), "M"))
 ```
@@ -65,8 +66,10 @@ autoplot(Y[,1], ylab = "Overnight stays in Switzerland",linewidth=0.9)+
 We load the aggregation matrix and select the length of the training set. The length of the training set can be selected within the range [26, 240] observations.
 
 ```{r Swiss tourism}
+# Save aggregation matrix
 A = swiss_tourism$agg_mat
 
+# Number of bottom and upper time series
 n_b = ncol(A)
 n_u = nrow(A)
 n = n_b + n_u
@@ -78,6 +81,7 @@ print(frequency(Y))
 L = 60    
 h = 1    
 
+# Select the training set and the actuals for the forecast horizon
 train = window(Y, end = time(Y)[L])
 actuals = window(Y, start= time(Y)[L + 1], end = time(Y)[L + h])
 ```
@@ -135,7 +139,7 @@ MinT_reconciled_mean = c(gauss_results$upper_rec_mean,
 
 # Comparison of results
 
-We now compare the predictive densities of the upper-level time series (Switzerland) obtained by the three methods above: the base forecasts (Base), Minimum Trace reconciliation (MinT), and t-Rec.
+We now compare the predictive densities for the 1-step ahead forecasts of the upper-level time series (Switzerland) obtained by the three methods above: the base forecasts (Base), Minimum Trace reconciliation (MinT), and t-Rec.
 
 ```{r compute uppers, echo=FALSE, eval=TRUE}
 t_Rec_reconciled_mean <- c(t_rec_results$upper_rec_mean,t_rec_results$bottom_rec_mean)
@@ -219,7 +223,8 @@ ggplot(dens_df, aes(x = x, y = Density, color = Method)) +
   )
 ```
 
-Note that both reconciliation methods improve the forecast: the mode of the densities is closer to the actual value. However, the t-Rec method returns a wider density, which is more likely to contain the actual value. This is because t-Rec accounts for the uncertainty in the covariance matrix of the forecast errors, which leads to a more realistic representation of the forecast uncertainty.
+The base forecast and the MinT reconciled forecast are normally distributed, while t-Rec has a Student's t distribution. 
+Both reconciliation methods improve the forecast: the mode of the densities is closer to the actual value. However, the t-Rec method returns a wider density, which is more likely to contain the actual value. This is because t-Rec accounts for the uncertainty in the covariance matrix of the forecast errors, which leads to a more realistic representation of the forecast uncertainty.
 
 # Comparison of the covariance matrix estimates
 
@@ -234,7 +239,7 @@ $$
 \Sigma_{ii} \sim \text{Inv-Gamma}\left(\frac{\nu - n + 1}{2}, \frac{\Psi_{ii}}{2}\right)
 $$
 
-We evaluate the posterior density by using the following function:
+Instead of visualizing the variance, we show the standard deviation which produces a more intuitive interpretation. The standard deviation is obtained by applying the square root transformation to the variance, which results in a non-standard distribution. The density of the standard deviation can be computed using the change of variable formula, which leads to the following expression:
 ```{r compute density}
 # Select which series to plot
 i = 1     # CH
@@ -245,28 +250,33 @@ dinvgamma <- function(x, shape, rate) {
   dgamma(1/x, shape = shape, rate = rate) / x^2
 }
 
+# density of the standard deviation (square root transform of variance)
+d_std_dev <- function(x, shape,rate){
+  dinvgamma(x^2, shape = shape, rate = rate)*2*x
+}
+
 # compute the density of the variance parameters for CH
 mean_ch <- t_rec_results$posterior_Psi[i, i]/(t_rec_results$posterior_nu - n - 1)
-x_ch <- seq(mean_ch*0.5, mean_ch*1.7, length.out = 1000)
+x_ch <- sqrt(seq(mean_ch*0.5, mean_ch*1.7, length.out = 1000))
 shape_ch <- (t_rec_results$posterior_nu - n + 1) /2
 rate_ch  <- t_rec_results$posterior_Psi[i, i] / 2
-dens_ch <- dinvgamma(x_ch, shape = shape_ch, rate = rate_ch)
+dens_ch <- d_std_dev(x_ch, shape = shape_ch, rate = rate_ch)
 
 # compute the density of the variance parameters for GR
 mean_gr <- t_rec_results$posterior_Psi[j, j]/(t_rec_results$posterior_nu - n - 1)
-x_gr <- seq(mean_gr*0.5, mean_gr*1.7, length.out = 1000)
+x_gr <- sqrt(seq(mean_gr*0.5, mean_gr*1.7, length.out = 1000))
 shape_gr <- (t_rec_results$posterior_nu - n + 1) /2
 rate_gr  <- t_rec_results$posterior_Psi[j, j] / 2
-dens_gr <- dinvgamma(x_gr, shape = shape_gr, rate = rate_gr)
+dens_gr <- d_std_dev(x_gr, shape = shape_gr, rate = rate_gr)
 ```
 
 **Figure 3** shows the density of the posterior standard deviation of the forecasts for the upper time series (CH) and the bottom time series (GR).
 
-```{r density plot, echo=FALSE, eval=TRUE, dpi=300, out.width = "100%", fig.align='center', fig.cap="**Figure 3**: Density of the posterior standard deviation of the forecasts for the time series CH and GR.", fig.dim = c(8, 4), warning=FALSE}
+```{r density plot, echo=FALSE, eval=TRUE, dpi=300, out.width = "100%", fig.align='center', fig.cap="**Figure 3**: Density of the posterior standard deviation of the forecasts.", fig.dim = c(8, 4), warning=FALSE}
 
 df_dens <- data.frame(
-  x = c(sqrt(x_ch), sqrt(x_gr)), 
-  y = c(dens_ch*2.4e5, dens_gr*7.5e4),
+  x = c(x_ch, x_gr), 
+  y = c(dens_ch, dens_gr), 
   panel = rep(c("CH", "GR"), each = length(dens_ch))
 )
 
@@ -321,7 +331,7 @@ corr_tRec <- cov2cor(t_rec_results$posterior_Psi/(t_rec_results$posterior_nu - n
 
 **Figure 4** shows the posterior density of the correlation between CH and GR. The value estimated by MinT, plotted as a vertical dashed line, differs from the posterior mode estimated by t-Rec, illustrating how t-Rec captures a different view of the dependence structure. 
 
-```{r plot densities, echo=FALSE, eval=TRUE, dpi=300, out.width = "100%", fig.align='center', fig.cap="**Figure 4**: Density of the posterior correlation between CH and GR obtained with t-Rec. The vertical dashed line indicates the point estimate obtained with MinT.", fig.dim = c(8, 4), warning=FALSE}
+```{r plot densities, echo=FALSE, eval=TRUE, dpi=300, out.width = "100%", fig.align='center', fig.cap="**Figure 4**: Density of the posterior correlation between CH and GR obtained with t-Rec.", fig.dim = c(8, 4), warning=FALSE}
 # Compute correlation samples for all sample matrices generated above
 corr_post <- array(apply(IW_post_samples, FUN = function(M) cov2cor(M), MARGIN = c(3)),
                    dim = dim(IW_post_samples))
@@ -342,7 +352,7 @@ ggplot(df_corr, aes(x = x)) +
   )
 ```
 
-Finally, we show in **Table 1** the standard deviation and correlation estimates for the upper-level series (CH) and the bottom-level series (GR) obtained with Base, MinT and t-Rec methods. While Base and MinT provide point estimates for the standard deviation and correlation, t-Rec provides a distribution for these parameters. In the table, we report the mean of the posterior distribution for the standard deviation and the correlation.
+Finally, we show in **Table 1** the standard deviation and correlation estimates for the upper-level series (CH) and the bottom-level series (GR) obtained with Base, MinT and t-Rec methods. While Base and MinT provide only point estimates for the standard deviation and correlation, t-Rec provides a distribution for these parameters. In the table, we report the mean of the posterior distribution for the standard deviation and the correlation.
 
 ```{r,echo=FALSE,eval=TRUE}
 # Print table with values for Std and correlation
@@ -365,6 +375,8 @@ knitr::kable(data.frame(
 
 Note that the standard deviation estimated by t-Rec is higher than both the base and the MinT estimates. This is because the posterior Inverse-Wishart distribution depends on the prior, which is initialized using the residuals of the base (naive) forecasts. Since these residuals capture the full uncertainty of the non-reconciled forecasts, the prior inflates the posterior variance relative to the point estimate provided by MinT.
 Moreover, the correlation between CH and GR is also estimated differently by t-Rec compared to MinT.
+
+
 
 
 # References
