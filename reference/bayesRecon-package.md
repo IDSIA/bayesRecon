@@ -24,35 +24,31 @@ To learn more about `bayesRecon`, start with the vignettes:
 ## Reconciliation functions
 
 The package implements reconciliation via conditioning for probabilistic
-forecasts of hierarchical time series. The main functions are:
+forecasts of hierarchical time series. The reconciliation functions are:
 
 - [`reconc_gaussian()`](https://idsia.github.io/bayesRecon/reference/reconc_gaussian.md):
-  reconciliation via conditioning, assumes multivariate Gaussian base
+  reconciliation via conditioning assuming multivariate Gaussian base
   forecasts; this is done analytically;
+
+- [`reconc_t()`](https://idsia.github.io/bayesRecon/reference/reconc_t.md):
+  reconciliation via conditioning assuming multivariate Gaussian base
+  forecasts with uncertain covariance matrix; the reconciled forecasts
+  are multivariate Student-t; this is done analytically;
 
 - [`reconc_BUIS()`](https://idsia.github.io/bayesRecon/reference/reconc_BUIS.md):
   reconciliation via conditioning of any probabilistic forecast via
-  importance sampling; this is the recommended option for non-Gaussian
-  base forecasts;
+  bottom-up importance sampling; an alternative method for discrete
+  forecasts is implemented in
+  [`reconc_MCMC()`](https://idsia.github.io/bayesRecon/reference/reconc_MCMC.md),
+  but we recommend using `reconc_BUIS`;
 
-- [`reconc_MCMC()`](https://idsia.github.io/bayesRecon/reference/reconc_MCMC.md):
-  reconciliation via conditioning of discrete probabilistic forecasts
-  via Markov Chain Monte Carlo;
-
-- [`reconc_MixCond()`](https://idsia.github.io/bayesRecon/reference/Mixed_reconciliation.md):
-  reconciliation via conditioning of mixed hierarchies, where the upper
-  forecasts are multivariate Gaussian and the bottom forecasts are
-  discrete distributions;
-
-- [`reconc_TDcond()`](https://idsia.github.io/bayesRecon/reference/Mixed_reconciliation.md):
-  reconciliation via top-down conditioning of mixed hierarchies, where
-  the upper forecasts are multivariate Gaussian and the bottom forecasts
-  are discrete distributions;
-
-- [`reconc_t()`](https://idsia.github.io/bayesRecon/reference/reconc_t.md):
-  reconciliation via conditioning with uncertain covariance matrix; the
-  reconciled forecasts are multivariate Student-t; this is done
-  analytically.
+- [`reconc_MixCond()`](https://idsia.github.io/bayesRecon/reference/Mixed_reconciliation.md)
+  and
+  [`reconc_TDcond()`](https://idsia.github.io/bayesRecon/reference/Mixed_reconciliation.md):
+  reconciliation of mixed hierarchies, where the upper forecasts are
+  multivariate Gaussian and the bottom forecasts are discrete
+  distributions; `reconc_MixCond` implements conditioning via importance
+  sampling, while `reconc_TDcond` implements top-down conditioning.
 
 ## Utility functions
 

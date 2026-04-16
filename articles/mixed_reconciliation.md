@@ -110,14 +110,14 @@ stop <- Sys.time()
 
 rec_fc$Gauss <- list(
   mu_b = gauss$bottom_rec_mean,
-  Sigma_b = gauss$bottom_rec_covariance,
+  Sigma_b = gauss$bottom_rec_cov,
   mu_u = A %*% gauss$bottom_rec_mean,
-  Sigma_u = A %*% gauss$bottom_rec_covariance %*% t(A)
+  Sigma_u = A %*% gauss$bottom_rec_cov %*% t(A)
 )
 
 Gauss_time <- as.double(round(difftime(stop, start, units = "secs"), 2))
 cat("Time taken by Gaussian reconciliation: ", Gauss_time, "s")
-#> Time taken by Gaussian reconciliation:  0.3 s
+#> Time taken by Gaussian reconciliation:  0.28 s
 ```
 
 ## Reconciliation with mixed-conditioning
@@ -166,7 +166,7 @@ rec_fc$Mixed_cond <- list(
 
 MixCond_time <- as.double(round(difftime(stop, start, units = "secs"), 2))
 cat("Computational time for Mix-cond reconciliation: ", MixCond_time, "s")
-#> Computational time for Mix-cond reconciliation:  9.86 s
+#> Computational time for Mix-cond reconciliation:  10.23 s
 ```
 
 As discussed in Zambon et al. (2024), Sect. 3, conditioning with mixed
@@ -210,13 +210,13 @@ rec_fc$TD_cond <- list(
 
 TDCond_time <- as.double(round(difftime(stop, start, units = "secs"), 2))
 cat("Computational time for TD-cond reconciliation: ", TDCond_time, "s")
-#> Computational time for TD-cond reconciliation:  10.87 s
+#> Computational time for TD-cond reconciliation:  11.42 s
 ```
 
 ## Comparison
 
-The computational time required for the Gaussian reconciliation is 0.3
-seconds, Mix-cond requires 9.86 seconds and TD-cond requires 10.87
+The computational time required for the Gaussian reconciliation is 0.28
+seconds, Mix-cond requires 10.23 seconds and TD-cond requires 11.42
 seconds.
 
 For each time series in the hierarchy, we compute the following scores
@@ -354,7 +354,7 @@ knitr::kable(mean_skill_scores$mase, digits = 2, caption = "Mean skill score on 
 |        | Gauss  | MixCond | TDcond |
 |:-------|:-------|:-------:|:------:|
 | upper  | -23.44 | -12.61  |  0.16  |
-| bottom | -89.51 |  -0.28  |  0.05  |
+| bottom | -89.48 |  -0.22  |  0.11  |
 
 Mean skill score on MASE.
 
@@ -370,7 +370,7 @@ knitr::kable(mean_skill_scores$mis, digits = 2, caption = "Mean skill score on M
 |        |  Gauss | MixCond | TDcond |
 |:-------|-------:|--------:|-------:|
 | upper  | -66.19 |  -73.49 |   1.64 |
-| bottom | -36.88 |    0.16 |   2.09 |
+| bottom | -36.84 |    0.21 |   2.14 |
 
 Mean skill score on MIS.
 

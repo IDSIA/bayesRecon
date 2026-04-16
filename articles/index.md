@@ -8,3 +8,6 @@
   forecasts](https://idsia.github.io/bayesRecon/articles/mixed_reconciliation.md):
 - [Properties of the reconciled distribution via
   conditioning](https://idsia.github.io/bayesRecon/articles/reconciliation_properties.md):
+- [t-Rec: Reconciliation of Gaussian forecasts by modelling the
+  uncertainty on the covariance
+  matrix](https://idsia.github.io/bayesRecon/articles/t_reconciliation.md):

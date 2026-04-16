@@ -13,8 +13,7 @@ uncertain covariance matrix with an Inverse-Wishart prior.
   Psi_post,
   nu_post,
   return_upper = FALSE,
-  return_parameters = FALSE,
-  suppress_warnings = FALSE
+  return_parameters = FALSE
 )
 ```
 
@@ -43,11 +42,6 @@ uncertain covariance matrix with an Inverse-Wishart prior.
 
   Logical, whether to return the reconciled parameters for the upper
   variables (default is FALSE).
-
-- suppress_warnings:
-
-  Logical. If TRUE, suppresses warnings about numerical issues. Default
-  is FALSE.
 
 ## Value
 

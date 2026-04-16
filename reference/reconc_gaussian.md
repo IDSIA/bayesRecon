@@ -48,14 +48,13 @@ named elements:
 
 - `bottom_rec_mean`: reconciled mean for the bottom forecasts;
 
-- `bottom_rec_covariance`: reconciled covariance for the bottom
-  forecasts;
+- `bottom_rec_cov`: reconciled covariance for the bottom forecasts;
 
 - `upper_rec_mean`: (only if `return_upper = TRUE`) reconciled mean for
   the upper forecasts;
 
-- `upper_rec_covariance`: (only if `return_upper = TRUE`) reconciled
-  covariance for the upper forecasts.
+- `upper_rec_cov`: (only if `return_upper = TRUE`) reconciled covariance
+  for the upper forecasts.
 
 ## Details
 
@@ -115,7 +114,7 @@ analytic_rec <- reconc_gaussian(A,
 )
 
 bottom_mean_rec <- analytic_rec$bottom_rec_mean
-bottom_cov_rec <- analytic_rec$bottom_rec_covariance
+bottom_cov_rec <- analytic_rec$bottom_rec_cov
 
 # To obtain reconciled samples for the entire hierarchy, sample from the reconciled 
 # bottom distribution and then aggregate using A. 
@@ -171,9 +170,9 @@ if (requireNamespace("forecast", quietly = TRUE)) {
   result <- reconc_gaussian(A, base_fc_mean = base_fc_mean, residuals = res, return_upper = TRUE)
 
   bottom_mean <- result$bottom_rec_mean
-  bottom_cov <- result$bottom_rec_covariance
+  bottom_cov <- result$bottom_rec_cov
   upper_mean <- result$upper_rec_mean
-  upper_cov <- result$upper_rec_covariance
+  upper_cov <- result$upper_rec_cov
 
   # Print reconciled means
   cat("Reconciled bottom means:", round(bottom_mean, 3), "\n")

@@ -218,15 +218,15 @@ res.mixCond <- reconc_MixCond(A, base_fc_bottom, base_fc_upper)
 
 # Note that the bottom distributions are slightly shifted to the right
 PMF_summary(res.mixCond$bottom_rec_pmf[[1]])
-#>   Min. 1st Qu. Median    Mean 3rd Qu. Max
-#> 1    0      15     18 17.7855      20  31
+#>   Min. 1st Qu. Median     Mean 3rd Qu. Max
+#> 1    0      15     18 17.76425      20  31
 PMF_summary(base_fc_bottom[[1]])
 #>   Min. 1st Qu. Median Mean 3rd Qu. Max
 #> 1    0      12     15   15      18  43
 
 PMF_summary(res.mixCond$bottom_rec_pmf[[2]])
-#>   Min. 1st Qu. Median    Mean 3rd Qu. Max
-#> 1    0      15     18 17.7386      20  31
+#>   Min. 1st Qu. Median     Mean 3rd Qu. Max
+#> 1    0      15     18 17.74365      20  31
 PMF_summary(base_fc_bottom[[2]])
 #>   Min. 1st Qu. Median Mean 3rd Qu. Max
 #> 1    0      12     15   15      18  43
@@ -234,10 +234,10 @@ PMF_summary(base_fc_bottom[[2]])
 # The upper distribution is slightly shifted to the left
 PMF_summary(res.mixCond$upper_rec_pmf[[1]])
 #>   Min. 1st Qu. Median    Mean 3rd Qu. Max
-#> 1    0      33     35 35.5241      38  54
+#> 1    0      33     36 35.5079      38  54
 PMF_get_var(res.mixCond$upper_rec_pmf[[1]])
 #>          [,1]
-#> [1,] 14.52694
+#> [1,] 14.58635
 
 
 library(bayesRecon)

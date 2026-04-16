@@ -2,6 +2,8 @@
 
 ## bayesRecon 1.0.0
 
+CRAN release: 2026-03-08
+
 - Major update to the API for the reconciliation functions that breaks
   older code. The inputs and outputs are now standardized.
 

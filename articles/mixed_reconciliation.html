@@ -36,6 +36,7 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/mixed_reconciliation.html">Reconciliation of M5 hierarchy with mixed-type forecasts</a></li>
     <li><a class="dropdown-item" href="../articles/reconciliation_properties.html">Properties of the reconciled distribution via conditioning</a></li>
+    <li><a class="dropdown-item" href="../articles/t_reconciliation.html">t-Rec: Reconciliation of Gaussian forecasts by modelling the uncertainty on the covariance matrix</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -170,14 +171,14 @@ bottom time series.</p>
 <span></span>
 <span><span class="va">rec_fc</span><span class="op">$</span><span class="va">Gauss</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  mu_b <span class="op">=</span> <span class="va">gauss</span><span class="op">$</span><span class="va">bottom_rec_mean</span>,</span>
-<span>  Sigma_b <span class="op">=</span> <span class="va">gauss</span><span class="op">$</span><span class="va">bottom_rec_covariance</span>,</span>
+<span>  Sigma_b <span class="op">=</span> <span class="va">gauss</span><span class="op">$</span><span class="va">bottom_rec_cov</span>,</span>
 <span>  mu_u <span class="op">=</span> <span class="va">A</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">gauss</span><span class="op">$</span><span class="va">bottom_rec_mean</span>,</span>
-<span>  Sigma_u <span class="op">=</span> <span class="va">A</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">gauss</span><span class="op">$</span><span class="va">bottom_rec_covariance</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="va">A</span><span class="op">)</span></span>
+<span>  Sigma_u <span class="op">=</span> <span class="va">A</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">gauss</span><span class="op">$</span><span class="va">bottom_rec_cov</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="va">A</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">Gauss_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/double.html" class="external-link">as.double</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/difftime.html" class="external-link">difftime</a></span><span class="op">(</span><span class="va">stop</span>, <span class="va">start</span>, units <span class="op">=</span> <span class="st">"secs"</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Time taken by Gaussian reconciliation: "</span>, <span class="va">Gauss_time</span>, <span class="st">"s"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Time taken by Gaussian reconciliation:  0.3 s</span></span></code></pre></div>
+<span><span class="co">#&gt; Time taken by Gaussian reconciliation:  0.28 s</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="reconciliation-with-mixed-conditioning">Reconciliation with mixed-conditioning<a class="anchor" aria-label="anchor" href="#reconciliation-with-mixed-conditioning"></a>
@@ -225,7 +226,7 @@ The function parameter <code>return_type</code> can be changed to
 <span></span>
 <span><span class="va">MixCond_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/double.html" class="external-link">as.double</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/difftime.html" class="external-link">difftime</a></span><span class="op">(</span><span class="va">stop</span>, <span class="va">start</span>, units <span class="op">=</span> <span class="st">"secs"</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Computational time for Mix-cond reconciliation: "</span>, <span class="va">MixCond_time</span>, <span class="st">"s"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Computational time for Mix-cond reconciliation:  9.86 s</span></span></code></pre></div>
+<span><span class="co">#&gt; Computational time for Mix-cond reconciliation:  10.23 s</span></span></code></pre></div>
 <p>As discussed in <span class="citation">Zambon et al. (2024)</span>,
 Sect. 3, conditioning with mixed variables performs poorly in high
 dimensions. This is because the bottom-up distribution, built by
@@ -264,13 +265,13 @@ that this warning does not impact the performances of TD-cond.</p>
 <span></span>
 <span><span class="va">TDCond_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/double.html" class="external-link">as.double</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/difftime.html" class="external-link">difftime</a></span><span class="op">(</span><span class="va">stop</span>, <span class="va">start</span>, units <span class="op">=</span> <span class="st">"secs"</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Computational time for TD-cond reconciliation: "</span>, <span class="va">TDCond_time</span>, <span class="st">"s"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Computational time for TD-cond reconciliation:  10.87 s</span></span></code></pre></div>
+<span><span class="co">#&gt; Computational time for TD-cond reconciliation:  11.42 s</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="comparison">Comparison<a class="anchor" aria-label="anchor" href="#comparison"></a>
 </h2>
 <p>The computational time required for the Gaussian reconciliation is
-0.3 seconds, Mix-cond requires 9.86 seconds and TD-cond requires 10.87
+0.28 seconds, Mix-cond requires 10.23 seconds and TD-cond requires 11.42
 seconds.</p>
 <p>For each time series in the hierarchy, we compute the following
 scores for each method:</p>
@@ -413,9 +414,9 @@ score.</p>
 </tr>
 <tr class="even">
 <td align="left">bottom</td>
-<td align="left">-89.51</td>
-<td align="center">-0.28</td>
-<td align="center">0.05</td>
+<td align="left">-89.48</td>
+<td align="center">-0.22</td>
+<td align="center">0.11</td>
 </tr>
 </tbody>
 </table>
@@ -442,9 +443,9 @@ compared to Gauss.</p>
 </tr>
 <tr class="even">
 <td align="left">bottom</td>
-<td align="right">-36.88</td>
-<td align="right">0.16</td>
-<td align="right">2.09</td>
+<td align="right">-36.84</td>
+<td align="right">0.21</td>
+<td align="right">2.14</td>
 </tr>
 </tbody>
 </table>

@@ -36,6 +36,7 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/mixed_reconciliation.html">Reconciliation of M5 hierarchy with mixed-type forecasts</a></li>
     <li><a class="dropdown-item" href="../articles/reconciliation_properties.html">Properties of the reconciled distribution via conditioning</a></li>
+    <li><a class="dropdown-item" href="../articles/t_reconciliation.html">t-Rec: Reconciliation of Gaussian forecasts by modelling the uncertainty on the covariance matrix</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -565,7 +566,7 @@ the covariance matrix of the residuals with shrinkage <span class="citation">(Sc
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">bottom_mu_reconc</span> <span class="op">&lt;-</span> <span class="va">recon.gauss</span><span class="op">$</span><span class="va">bottom_rec_mean</span></span>
-<span><span class="va">bottom_Sigma_reconc</span> <span class="op">&lt;-</span> <span class="va">recon.gauss</span><span class="op">$</span><span class="va">bottom_rec_covariance</span></span>
+<span><span class="va">bottom_Sigma_reconc</span> <span class="op">&lt;-</span> <span class="va">recon.gauss</span><span class="op">$</span><span class="va">bottom_rec_cov</span></span>
 <span></span>
 <span><span class="co"># Obtain reconciled mu and Sigma for the upper variable</span></span>
 <span><span class="va">upper_mu_reconc</span> <span class="op">&lt;-</span> <span class="va">A</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">bottom_mu_reconc</span></span>

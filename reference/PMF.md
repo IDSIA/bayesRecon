@@ -44,7 +44,8 @@ PMF_summary(pmf, Ltoll = .TOLL, Rtoll = .RTOLL)
 
 - p:
 
-  Probability level for quantile computation (between 0 and 1).
+  Probability level for quantile computation. Either a number or a
+  vector with all elements between 0 and 1.
 
 - Ltoll:
 
@@ -80,7 +81,8 @@ PMF_summary(pmf, Ltoll = .TOLL, Rtoll = .RTOLL)
   Computes the quantile of the distribution at probability level `p`.
   Returns the smallest value `x` such that the cumulative probability up
   to `x` is greater than or equal to `p`. For example, `p=0.5` gives the
-  median.
+  median. The parameter `p` can be a single number or a vector of
+  probabilities.
 
 - `PMF_summary(pmf, Ltoll, Rtoll)`:
 
