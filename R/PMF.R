@@ -141,7 +141,7 @@ PMF_from_params <- function(params, distr, Rtoll = .RTOLL) {
 #'
 #' @param pmf A PMF object (numeric vector where element j+1 is the probability of value j).
 #' @param N_samples Number of samples to draw from the PMF.
-#' @param p Probability level for quantile computation (between 0 and 1).
+#' @param p Probability level for quantile computation. Either a number or a vector with all elements between 0 and 1.
 #' @param Ltoll Lower tolerance for computing the minimum of the PMF (default: 1e-15).
 #' @param Rtoll Upper tolerance for computing the maximum of the PMF (default: 1e-9).
 #'
@@ -189,6 +189,7 @@ PMF_from_params <- function(params, distr, Rtoll = .RTOLL) {
 #'     Computes the quantile of the distribution at probability level \code{p}.
 #'     Returns the smallest value \code{x} such that the cumulative probability up to \code{x}
 #'     is greater than or equal to \code{p}. For example, \code{p=0.5} gives the median.
+#'     The parameter \code{p} can be a single number or a vector of probabilities.
 #'   }
 #'
 #'   \item{\code{PMF_summary(pmf, Ltoll, Rtoll)}}{
@@ -225,11 +226,11 @@ PMF_get_var <- function(pmf) {
 #' @rdname PMF
 #' @export
 PMF_get_quantile <- function(pmf, p) {
-  if (p <= 0 | p >= 1) {
+  if (min(p) <= 0 | max(p) >= 1) {
     stop("Input error: probability p must be between 0 and 1")
   }
   cdf <- cumsum(pmf)
-  x <- min(which(cdf >= p))
+  x <- pmin(findInterval(p, cdf) + 1, length(cdf))
   return(x - 1)
 }
 

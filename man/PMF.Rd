@@ -28,7 +28,7 @@ PMF_summary(pmf, Ltoll = .TOLL, Rtoll = .RTOLL)
 
 \item{N_samples}{Number of samples to draw from the PMF.}
 
-\item{p}{Probability level for quantile computation (between 0 and 1).}
+\item{p}{Probability level for quantile computation. Either a number or a vector with all elements between 0 and 1.}
 
 \item{Ltoll}{Lower tolerance for computing the minimum of the PMF (default: 1e-15).}
 
@@ -73,6 +73,7 @@ The variance measures the spread of the distribution and is calculated as
 Computes the quantile of the distribution at probability level \code{p}.
 Returns the smallest value \code{x} such that the cumulative probability up to \code{x}
 is greater than or equal to \code{p}. For example, \code{p=0.5} gives the median.
+The parameter \code{p} can be a single number or a vector of probabilities.
 }
 
 \item{\code{PMF_summary(pmf, Ltoll, Rtoll)}}{
