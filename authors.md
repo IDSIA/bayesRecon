@@ -20,12 +20,12 @@ Source:
 
 Azzimonti D, Zambon L, Damato S, Rubattu N, Corani G (2026).
 *bayesRecon: Probabilistic Reconciliation via Conditioning*. R package
-version 1.0.0, <https://github.com/IDSIA/bayesRecon>.
+version 1.0.1, <https://github.com/IDSIA/bayesRecon>.
 
     @Manual{,
       title = {bayesRecon: Probabilistic Reconciliation via Conditioning},
       author = {Dario Azzimonti and Lorenzo Zambon and Stefano Damato and Nicolò Rubattu and Giorgio Corani},
       year = {2026},
-      note = {R package version 1.0.0},
+      note = {R package version 1.0.1},
       url = {https://github.com/IDSIA/bayesRecon},
     }
