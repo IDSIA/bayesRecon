@@ -1,3 +1,15 @@
+# bayesRecon 1.0.1
+
+* Vignette for the function `reconc_t`.
+
+* Updated version of README
+
+* Fixed a bug in auxiliary function to `reconc_t` (`.compute_naive_cov`) that could cause major fail.
+
+* `reconc_t` now stops when Cholesky of the covariance fail, no longer returns a warning and tries another method.
+
+* Small fixes to uniform what is returned by the `reconc_*` functions. 
+
 # bayesRecon 1.0.0
 
 * Major update to the API for the reconciliation functions that breaks older code. The inputs and outputs are now standardized. 
