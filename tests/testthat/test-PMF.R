@@ -68,3 +68,18 @@ test_that("PMF_quantile", {
 
   expect_equal(q, qq)
 })
+
+test_that("PMF_quantile multivariate", {
+  n_samples <- 1e5
+  size <- 50
+  prob <- 0.5
+  p <- seq(from=0.1,to=0.9,length.out=5)
+  
+  set.seed(42)
+  x <- rnbinom(n_samples, size = size, prob = prob)
+  pmf <- PMF_from_samples(x)
+  q <- PMF_get_quantile(pmf, p)
+  qq <- qnbinom(p, size = size, prob = prob)
+  
+  expect_equal(q, qq)
+})

@@ -287,7 +287,7 @@ reconc_TDcond <- function(A, base_fc_bottom, base_fc_upper,
     U <- .MVN_sample(
       n_samples = num_samples,
       mu = rec_gauss_u$bottom_rec_mean,
-      Sigma = rec_gauss_u$bottom_rec_covariance
+      Sigma = rec_gauss_u$bottom_rec_cov
     )
     U <- round(U) # round
     mode(U) <- "integer" # convert to integer

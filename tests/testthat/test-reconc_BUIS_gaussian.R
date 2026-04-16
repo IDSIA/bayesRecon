@@ -179,15 +179,15 @@ test_that("reconc_gaussian runs without error when residuals are provided", {
 test_that("reconc_gaussian output structure is correct with residuals", {
   result <- reconc_gaussian(.A_gauss, base_fc_mean = .mu_gauss, residuals = .res_gauss)
 
-  expect_named(result, c("bottom_rec_mean", "bottom_rec_covariance"), ignore.order = TRUE)
+  expect_named(result, c("bottom_rec_mean", "bottom_rec_cov"), ignore.order = TRUE)
   expect_length(result$bottom_rec_mean, ncol(.A_gauss))
-  expect_equal(dim(result$bottom_rec_covariance), c(ncol(.A_gauss), ncol(.A_gauss)))
+  expect_equal(dim(result$bottom_rec_cov), c(ncol(.A_gauss), ncol(.A_gauss)))
 })
 
 test_that("reconc_gaussian reconciled covariance is symmetric and positive definite with residuals", {
   result <- reconc_gaussian(.A_gauss, base_fc_mean = .mu_gauss, residuals = .res_gauss)
 
-  S <- result$bottom_rec_covariance
+  S <- result$bottom_rec_cov
   expect_equal(S, t(S), tolerance = 1e-12)
   eigs <- eigen(S, symmetric = TRUE, only.values = TRUE)$values
   expect_true(all(eigs > 0))
@@ -204,8 +204,8 @@ test_that("reconc_gaussian satisfies hierarchical constraint with residuals", {
     tolerance = 1e-10
   )
   expect_equal(
-    .A_gauss %*% result$bottom_rec_covariance %*% t(.A_gauss),
-    result$upper_rec_covariance,
+    .A_gauss %*% result$bottom_rec_cov %*% t(.A_gauss),
+    result$upper_rec_cov,
     tolerance = 1e-10
   )
 })
@@ -214,7 +214,7 @@ test_that("return_upper=TRUE returns upper fields with residuals", {
   result <- reconc_gaussian(.A_gauss, base_fc_mean = .mu_gauss, residuals = .res_gauss,
     return_upper = TRUE
   )
-  expect_true(all(c("upper_rec_mean", "upper_rec_covariance") %in% names(result)))
+  expect_true(all(c("upper_rec_mean", "upper_rec_cov") %in% names(result)))
 })
 
 # Regression test: hard-coded reference values
@@ -239,9 +239,9 @@ test_that("reconc_gaussian with residuals matches hard-coded reference values", 
   # bottom_rec_mean
   expect_equal(result$bottom_rec_mean, c(4.284368, 6.268177), tolerance = 1e-5)
 
-  # bottom_rec_covariance
+  # bottom_rec_cov
   expect_equal(
-    result$bottom_rec_covariance,
+    result$bottom_rec_cov,
     matrix(c(0.5930640, -0.2222453, -0.2222453, 0.5719506), nrow = 2),
     tolerance = 1e-5
   )
@@ -249,8 +249,8 @@ test_that("reconc_gaussian with residuals matches hard-coded reference values", 
   # upper_rec_mean
   expect_equal(result$upper_rec_mean, 10.55254, tolerance = 1e-4)
 
-  # upper_rec_covariance
-  expect_equal(result$upper_rec_covariance, matrix(0.7205241), tolerance = 1e-5)
+  # upper_rec_cov
+  expect_equal(result$upper_rec_cov, matrix(0.7205241), tolerance = 1e-5)
 })
 
 ##############################################################################

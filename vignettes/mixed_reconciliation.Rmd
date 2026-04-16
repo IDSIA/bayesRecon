@@ -115,9 +115,9 @@ stop <- Sys.time()
 
 rec_fc$Gauss <- list(
   mu_b = gauss$bottom_rec_mean,
-  Sigma_b = gauss$bottom_rec_covariance,
+  Sigma_b = gauss$bottom_rec_cov,
   mu_u = A %*% gauss$bottom_rec_mean,
-  Sigma_u = A %*% gauss$bottom_rec_covariance %*% t(A)
+  Sigma_u = A %*% gauss$bottom_rec_cov %*% t(A)
 )
 
 Gauss_time <- as.double(round(difftime(stop, start, units = "secs"), 2))

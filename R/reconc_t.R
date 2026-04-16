@@ -58,8 +58,8 @@
         )
       }
       # Seasonality test for each time series
-      is_seas = as.logical(apply(stats::ts(y_train, frequency = freq), 2, 
-                                 function(col) forecast::nsdiffs(col)))
+      is_seas = as.logical(apply(y_train, 2, 
+                                 function(col) forecast::nsdiffs(stats::ts(col,frequency = freq))))
       
     } else if (criterion == "RSS") {
       # Compute RSS for both methods, for each series
@@ -453,8 +453,7 @@ reconc_t <- function(A,
 
   out <- .core_reconc_t(
     A = A, base_fc_mean = base_fc_mean, Psi_post = Psi_post, nu_post = nu_post,
-    return_upper = return_upper, suppress_warnings = FALSE
-  )
+    return_upper = return_upper)
 
   if (return_parameters) {
     if(!is.null(posterior)) {
@@ -483,7 +482,6 @@ reconc_t <- function(A,
 #'   multivariate t-distribution.
 #' @param nu_post Degrees of freedom of the posterior multivariate t-distribution.
 #' @param return_upper Logical, whether to return the reconciled parameters for the upper variables (default is FALSE).
-#' @param suppress_warnings Logical. If TRUE, suppresses warnings about numerical issues. Default is FALSE.
 #'
 #' @return A list containing:
 #' \itemize{
@@ -501,7 +499,7 @@ reconc_t <- function(A,
 #' @keywords internal
 #' @export
 .core_reconc_t <- function(A, base_fc_mean, Psi_post, nu_post, return_upper = FALSE,
-                           return_parameters = FALSE, suppress_warnings = FALSE) {
+                           return_parameters = FALSE) {
   # Indices for Upper and Bottom
   k <- nrow(A)
   m <- ncol(A)
@@ -524,15 +522,12 @@ reconc_t <- function(A,
 
   # Invert Q using Cholesky (should be p.d.)
   Q_chol <- tryCatch(chol(Q), error = function(e) NULL)
+  # If Cholesky fails, stop
   if (is.null(Q_chol)) {
-    # Fallback to standard solve if Cholesky fails (numerical issues)
-    if (!suppress_warnings) {
-      warning("Cholesky decomposition of Q failed; using standard inversion.")
-    }
-    inv_Q <- solve(Q)
-  } else {
-    inv_Q <- chol2inv(Q_chol)
+    stop("A numerical error occured during a Cholesky decomposition. 
+         This may be due to redundant aggregated series.")
   }
+  inv_Q <- chol2inv(Q_chol)
 
   # Incoherence
   delta <- (A %*% b_hat) - u_hat

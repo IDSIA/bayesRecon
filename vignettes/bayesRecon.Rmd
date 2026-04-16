@@ -455,7 +455,7 @@ recon.gauss <- bayesRecon::reconc_gaussian(A,
 )
 
 bottom_mu_reconc <- recon.gauss$bottom_rec_mean
-bottom_Sigma_reconc <- recon.gauss$bottom_rec_covariance
+bottom_Sigma_reconc <- recon.gauss$bottom_rec_cov
 
 # Obtain reconciled mu and Sigma for the upper variable
 upper_mu_reconc <- A %*% bottom_mu_reconc
