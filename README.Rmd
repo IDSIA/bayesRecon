@@ -714,7 +714,7 @@ in Proceedings of Machine Learning Research 244:4078-4095. [Available here](http
   <tbody>
     <tr>
       <td align="center" valign="top" width="14.28%">
-        <a href="https://sites.google.com/view/darioazzimonti/home">
+        <a href="https://dazzimonti.github.io/dazzimonti/">
         <img src="https://github.com/dazzimonti.png" width="100px;" alt="Dario Azzimonti" style="border-radius:50%;border:1px solid #646464;"/><br />
         <sub><b>Dario Azzimonti</b></sub></a><br />
         <sub>(Maintainer)</sub><br />
