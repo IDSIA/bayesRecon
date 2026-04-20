@@ -2,6 +2,8 @@
 
 ## bayesRecon 1.0.1
 
+CRAN release: 2026-04-16
+
 - Vignette for the function `reconc_t`.
 
 - Updated version of README
