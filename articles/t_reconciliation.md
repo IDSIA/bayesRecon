@@ -117,8 +117,7 @@ forecasts, which are distributed as a multivariate-t. The flag
 of the upper-level reconciled forecasts. The flag
 `return_parameters = TRUE` forces the function to return also the
 parameters of the posterior distribution of the covariance matrix, which
-we will use to compare the covariance estimates obtained with t-Rec and
-MinT.
+we will use to compare the covariance estimates.
 
 ``` r
 t_rec_results = reconc_t(A, base_fc_mean = base_fc, 
@@ -176,38 +175,48 @@ the forecast uncertainty.
 
 ## Comparison of the covariance matrix estimates
 
-In this section we showcase the main strength of t-Rec: it provides an
-estimate of the covariance which accounts for the uncertainty in the
-estimation. To illustrate this point, we compare the covariance matrix
-estimates obtained with t-Rec and with the standard Gaussian
-reconciliation method (MinT).
+The main strength of t-Rec is that it provides an estimate of the
+covariance which accounts for the uncertainty in the estimation. To
+illustrate this point, we compare the covariance matrix estimates,
+obtained before the reconciliation step, in t-Rec and in the standard
+Gaussian reconciliation method (MinT).
 
-We focus on the covariance matrix between the upper-level series,
-denoted as CH, and the bottom-level time series with the largest average
-values “Graubünden”, denoted as GR. Analogous considerations apply also
-for other series. The code in the vignette is parametric so that a user
-could manually visualize different comparisons.
+In the first case (t-Rec), the covariance matrix is estimated in a
+Bayesian way: starting from a prior on the covariance, we obtain a
+posterior distribution which is an Inverse Wishart with known parameters
+$\nu$ and $\Psi$. Those parameters are stored in
+`t_rec_results$posterior_nu` and `t_rec_results$posterior_Psi`. Note
+that those are not the parameters of the reconciled forecasts, but the
+parameters of the posterior distribution of the covariance matrix of the
+forecast errors.
 
-While MinT only returns a point estimate for the covariance matrix,
-t-Rec provides a distribution for the covariance matrix. This is
-obtained in a Bayesian way: starting from a prior on the covariance, we
-include the data and obtain a posterior distribution which is an Inverse
-Wishart with known parameters $\nu$ and $\Psi$. Those parameters are
-stored in `t_rec_results$posterior_nu` and
-`t_rec_results$posterior_Psi`.
-
-Since we know analytically the distribution of the covariance, we can
-also compute the marginal distribution of the variances in closed-form.
-This is a scaled inverse Gamma distribution with the following
-parameters:
+Since the posterior is an Inverse Wishart, we can further compute the
+marginal distribution of the variances in closed-form by using a scaled
+inverse Gamma distribution with the following parameters:
 $$\Sigma_{ii} \sim \text{Inv-Gamma}\left( \frac{\nu - n + 1}{2},\frac{\Psi_{ii}}{2} \right).$$
 
-Instead of visualizing the variance, we show the standard deviation
-which produces a more intuitive interpretation. The standard deviation
-is obtained by applying the square root transformation to the variance,
-which results in a non-standard distribution. The density of the
-standard deviation can be computed using the change of variable formula,
-which leads to the following expression:
+In the second case (MinT), instead, the covariance matrix is estimated
+with a point estimate by applying the Schäfer Strimmer shrinkage
+estimator to the covariance of the residuals. This method does not
+explicitly account for the uncertainty in the estimation.
+
+As an example, we focus on the covariance matrix between the upper-level
+series, denoted as CH, and the bottom-level time series with the largest
+average values, “Graubünden”, denoted as GR. Analogous considerations
+apply also for other series. The code in the vignette is parametric so
+that a user could manually visualize other comparisons.
+
+``` r
+# we compute the full shriked covariance matrix with the Schäfer Strimmer shrinkage estimator
+# This matrix is also computed internally by the function `reconc_gaussian()`.
+shrink_mat<- bayesRecon::schaferStrimmer_cov(res)$shrink_cov
+```
+
+We show here the standard deviation instead of the variance because it
+produces a more intuitive interpretation. The standard deviation is
+obtained by applying the square root transformation to the distribution
+of the variance (defined above), computed with the change of variable
+formula shown below:
 
 ``` r
 # Select which series to plot
@@ -244,10 +253,11 @@ the forecasts for the upper time series (CH) and the bottom time series
 (GR).
 
 ![\*\*Figure 3\*\*: Density of the posterior standard deviation of the
-forecasts.](t_reconciliation_files/figure-html/density%20plot-1.png)
+forecasts' residuals, computed within
+t-Rec.](t_reconciliation_files/figure-html/density%20plot-1.png)
 
 **Figure 3**: Density of the posterior standard deviation of the
-forecasts.
+forecasts’ residuals, computed within t-Rec.
 
 The posterior distribution for the covariance and for the correlation
 values is not available in closed form but it can be obtained via
@@ -276,9 +286,10 @@ IW_post_samples <- rinvwishart(k=1000, nu = t_rec_results$posterior_nu,
 ```
 
 **Figure 4** shows the posterior density of the correlation between CH
-and GR. The value estimated by MinT, plotted as a vertical dashed line,
-differs from the posterior mode estimated by t-Rec, illustrating how
-t-Rec captures a different view of the dependence structure.
+and GR. The value estimated with the shrinked covariance, plotted as a
+vertical dashed line, differs from the posterior mode estimated by
+t-Rec, illustrating how t-Rec captures a different view of the
+dependence structure.
 
 ![\*\*Figure 4\*\*: Density of the posterior correlation between CH and
 GR obtained with
@@ -289,27 +300,26 @@ obtained with t-Rec.
 
 Finally, we show in **Table 1** the standard deviation and correlation
 estimates for the upper-level series (CH) and the bottom-level series
-(GR) obtained with Base, MinT and t-Rec methods. While Base and MinT
-provide only point estimates for the standard deviation and correlation,
-t-Rec provides a distribution for these parameters. In the table, we
-report the mean of the posterior distribution for the standard deviation
-and the correlation.
+(GR) obtained with the shrinkage method (used in MinT) and t-Rec. t-Rec
+provides a distribution for these parameters, however MinT provides only
+point estimates for the standard deviation and correlation. For this
+reason, in the table, we report the mean of the posterior distribution
+for the standard deviation and the correlation.
 
-| Method | ${\widehat{\sigma}}_{\text{CH}}$ | ${\widehat{\sigma}}_{\text{GR}}$ | ${\widehat{\rho}}_{\text{CH,GR}}$ |
-|:-------|---------------------------------:|---------------------------------:|----------------------------------:|
-| Base   |                           96,618 |                           34,747 |                              0.79 |
-| MinT   |                           84,580 |                           34,433 |                              0.79 |
-| t-Rec  |                          121,587 |                           39,589 |                              0.73 |
+| Method        | ${\widehat{\sigma}}_{\text{CH}}$ | ${\widehat{\sigma}}_{\text{GR}}$ | ${\widehat{\rho}}_{\text{CH,GR}}$ |
+|:--------------|---------------------------------:|---------------------------------:|----------------------------------:|
+| MinT (Shrink) |                           96,618 |                           34,747 |                              0.62 |
+| t-Rec         |                          121,587 |                           39,589 |                              0.73 |
 
 **Table 1**: Standard deviation and correlation estimates for CH and GR.
 
-Note that the standard deviation estimated by t-Rec is higher than both
-the base and the MinT estimates. This is because the posterior
-Inverse-Wishart distribution depends on the prior, which is initialized
-using the residuals of the naive forecasts. Since these residuals
-capture the full uncertainty of the non-reconciled forecasts, the prior
-inflates the posterior variance relative to the point estimate provided
-by MinT. Moreover, the correlation between CH and GR is also estimated
+Note that the standard deviation estimated by t-Rec is higher than the
+MinT estimates. This is because the posterior Inverse-Wishart
+distribution depends on the prior, which is initialized using the
+residuals of the naive forecasts. Since these residuals capture the full
+uncertainty of the non-reconciled forecasts, the prior inflates the
+posterior variance relative to the point estimate provided by MinT.
+Moreover, the correlation between CH and GR is also estimated
 differently by t-Rec compared to MinT.
 
 ## References
