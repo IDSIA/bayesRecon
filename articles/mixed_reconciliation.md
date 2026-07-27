@@ -1,6 +1,7 @@
 # Reconciliation of M5 hierarchy with mixed-type forecasts
 
 ``` r
+
 library(bayesRecon)
 ```
 
@@ -12,18 +13,17 @@ reconciliation of mixed-type hierarchical time series* (Zambon et al.
 Artificial Intelligence).
 
 In particular, we replicate the reconciliation of the one-step ahead
-(h=1) forecasts of one store of the M5 competition (Makridakis,
-Spiliotis, and Assimakopoulos 2022). Sect. 5 of the paper presents the
-results for 10 stores, each reconciled 14 times using rolling one-step
-ahead forecasts.
+(h=1) forecasts of one store of the M5 competition (Makridakis et al.
+2022). Sect. 5 of the paper presents the results for 10 stores, each
+reconciled 14 times using rolling one-step ahead forecasts.
 
 ## Data and base forecasts
 
-The M5 competition (Makridakis, Spiliotis, and Assimakopoulos 2022) is
-about daily time series of sales data referring to 10 different stores.
-Each store has the same hierarchy: 3049 bottom time series (single
-items) and 11 upper time series, obtained by aggregating the items by
-department, product category, and store; see the figure below.
+The M5 competition (Makridakis et al. 2022) is about daily time series
+of sales data referring to 10 different stores. Each store has the same
+hierarchy: 3049 bottom time series (single items) and 11 upper time
+series, obtained by aggregating the items by department, product
+category, and store; see the figure below.
 
 ![\*\*Figure 1\*\*: graph of the M5 hierarchy.](img/M5store_hier.png)
 
@@ -36,6 +36,7 @@ ADAM (Svetunkov and Boylan 2023), implemented in the R package smooth
 (Svetunkov 2023).
 
 ``` r
+
 # Hierarchy composed by 3060 time series: 3049 bottom and 11 upper
 n_b <- 3049
 n_u <- 11
@@ -67,6 +68,7 @@ estimate their covariance matrix from the in-sample residuals. We assume
 also the bottom base forecasts to be independent Gaussians.
 
 ``` r
+
 # Parameters of the upper base forecast distributions
 mu_u <- unlist(lapply(base_fc_upper, "[[", "mu")) # upper means
 # Compute the (shrinked) covariance matrix of the residuals
@@ -103,6 +105,7 @@ The function returns the reconciled mean and covariance for the bottom
 time series.
 
 ``` r
+
 # Gaussian reconciliation
 start <- Sys.time()
 gauss <- reconc_gaussian(A, base_fc_mean, base_fc_cov)
@@ -117,7 +120,7 @@ rec_fc$Gauss <- list(
 
 Gauss_time <- as.double(round(difftime(stop, start, units = "secs"), 2))
 cat("Time taken by Gaussian reconciliation: ", Gauss_time, "s")
-#> Time taken by Gaussian reconciliation:  0.3 s
+#> Time taken by Gaussian reconciliation:  0.28 s
 ```
 
 ## Reconciliation with mixed-conditioning
@@ -143,6 +146,7 @@ parameter `return_type` can be changed to `samples` or `all` to obtain
 the IS samples.
 
 ``` r
+
 seed <- 1
 N_samples_IS <- 5e4
 
@@ -166,7 +170,7 @@ rec_fc$Mixed_cond <- list(
 
 MixCond_time <- as.double(round(difftime(stop, start, units = "secs"), 2))
 cat("Computational time for Mix-cond reconciliation: ", MixCond_time, "s")
-#> Computational time for Mix-cond reconciliation:  10.36 s
+#> Computational time for Mix-cond reconciliation:  9.5 s
 ```
 
 As discussed in Zambon et al. (2024), Sect. 3, conditioning with mixed
@@ -187,6 +191,7 @@ it takes the same arguments as
 and returns reconciled forecasts in the same format.
 
 ``` r
+
 N_samples_TD <- 1e4
 
 # TDcond reconciliation
@@ -203,6 +208,7 @@ the joint bottom-up and the upper base forecasts. We will see that this
 warning does not impact the performances of TD-cond.
 
 ``` r
+
 rec_fc$TD_cond <- list(
   bottom = td$bottom_rec_pmf,
   upper  = td$upper_rec_pmf
@@ -210,13 +216,13 @@ rec_fc$TD_cond <- list(
 
 TDCond_time <- as.double(round(difftime(stop, start, units = "secs"), 2))
 cat("Computational time for TD-cond reconciliation: ", TDCond_time, "s")
-#> Computational time for TD-cond reconciliation:  11.53 s
+#> Computational time for TD-cond reconciliation:  10.61 s
 ```
 
 ## Comparison
 
-The computational time required for the Gaussian reconciliation is 0.3
-seconds, Mix-cond requires 10.36 seconds and TD-cond requires 11.53
+The computational time required for the Gaussian reconciliation is 0.28
+seconds, Mix-cond requires 9.5 seconds and TD-cond requires 10.61
 seconds.
 
 For each time series in the hierarchy, we compute the following scores
@@ -229,6 +235,7 @@ for each method:
 - RPS: Ranked Probability Score
 
 ``` r
+
 # Parameters for computing the scores
 alpha <- 0.1 # MIS uses 90% coverage intervals
 jitt <- 1e-9 # jitter for numerical stability
@@ -260,6 +267,7 @@ The implementation of these functions is available in the source code of
 the vignette but not shown here.
 
 ``` r
+
 # Compute scores for the base forecasts
 # Upper
 mu_u <- unlist(lapply(base_fc_upper, "[[", "mu"))
@@ -300,12 +308,17 @@ We report the improvement over the base forecasts using the skill score
 values and averaging them across experiments. For instance, the skill
 score of Gauss on RPS is:
 
-$$\text{Skill}_{\%}\,\left( {\text{RPS,}\mspace{6mu}}Gauss \right) = 100 \cdot \frac{\text{RPS}(base) - \text{RPS}(Gauss)}{\left( \text{RPS}(base) + \text{RPS}(Gauss) \right)/2}$$
+``` math
+ \text{Skill}_{\%}\,(\text{RPS, }Gauss) = 100 \cdot
+\frac{\text{RPS}(base) - \text{RPS}(Gauss)}
+{(\text{RPS}(base) + \text{RPS}(Gauss))/2}
+```
 
 This formula is implemented in the function `skill.score`, available in
 the source code of the vignette but not shown here.
 
 ``` r
+
 scores <- list(
   mase = mase,
   mis = mis,
@@ -336,6 +349,7 @@ for (s in scores_) {
 We report in the tables below the mean values for each skill score.
 
 ``` r
+
 mean_skill_scores <- list()
 
 for (s in scores_) {
@@ -348,6 +362,7 @@ for (s in scores_) {
 ```
 
 ``` r
+
 knitr::kable(mean_skill_scores$mase, digits = 2, caption = "Mean skill score on MASE.", align = "lccc")
 ```
 
@@ -356,7 +371,7 @@ knitr::kable(mean_skill_scores$mase, digits = 2, caption = "Mean skill score on 
 | upper  | -23.44 | -12.61  |  0.16  |
 | bottom | -89.48 |  -0.22  |  0.11  |
 
-Mean skill score on MASE.
+Mean skill score on MASE. {.table}
 
 The mean MASE skill score is positive only for the TD-cond
 reconciliation. Both Mix-cond and Gauss achieve scores lower than the
@@ -364,6 +379,7 @@ base forecasts, even if Mix-cond degrades less the base forecasts
 compared to Gauss.
 
 ``` r
+
 knitr::kable(mean_skill_scores$mis, digits = 2, caption = "Mean skill score on MIS.")
 ```
 
@@ -372,7 +388,7 @@ knitr::kable(mean_skill_scores$mis, digits = 2, caption = "Mean skill score on M
 | upper  | -66.19 |  -73.49 |   1.64 |
 | bottom | -36.84 |    0.21 |   2.14 |
 
-Mean skill score on MIS.
+Mean skill score on MIS. {.table}
 
 The mean MIS score of TD-cond is slightly above that of the base
 forecasts. Mix-cond achieves slightly higher scores than the base
@@ -380,6 +396,7 @@ forecasts only on the bottom variables. Gauss strongly degrades the base
 forecasts according to this metric.
 
 ``` r
+
 knitr::kable(mean_skill_scores$rps, digits = 2, caption = "Mean skill score on RPS.")
 ```
 
@@ -388,7 +405,7 @@ knitr::kable(mean_skill_scores$rps, digits = 2, caption = "Mean skill score on R
 | upper  | -30.69 |  -24.99 |   -1.3 |
 | bottom | -55.62 |    2.02 |    3.9 |
 
-Mean skill score on RPS.
+Mean skill score on RPS. {.table}
 
 The mean RPS skill score for TD-cond is positive for both upper and
 bottom time series. Mix-cond slightly improves the base forecasts on the
@@ -401,6 +418,7 @@ Finally, we show the boxplots of the skill scores for each method
 divided in upper and bottom levels.
 
 ``` r
+
 custom_colors <- c(
   "#a8a8e4",
   "#a9c7e4",
@@ -433,6 +451,7 @@ provides a slight improvement over the upper base forecasts (boxplot
 over the zero line).
 
 ``` r
+
 # Boxplots of MIS skill scores
 par(mfrow = c(2, 1))
 boxplot(skill_scores$mis$upper,
@@ -459,6 +478,7 @@ zero. On the upper variables instead only TD-cond does not degrade the
 MIS score of the base forecasts.
 
 ``` r
+
 # Boxplots of RPS skill scores
 par(mfrow = c(2, 1))
 boxplot(skill_scores$rps$upper,
@@ -495,7 +515,7 @@ Corani, Giorgio, Dario Azzimonti, João P. S. C. Augusto, and Marco
 Zaffalon. 2021. “Probabilistic Reconciliation of Hierarchical Forecast
 via Bayes’ Rule.” In *Machine Learning and Knowledge Discovery in
 Databases*, edited by Frank Hutter, Kristian Kersting, Jefrey Lijffijt,
-and Isabel Valera, 211–26. Springer International Publishing.
+and Isabel Valera. Springer International Publishing.
 <https://doi.org/10.1007/978-3-030-67664-3_13>.
 
 Makridakis, Spyros, Evangelos Spiliotis, and Vassilios Assimakopoulos.
@@ -514,5 +534,5 @@ Zambon, Lorenzo, Dario Azzimonti, Nicolò Rubattu, and Giorgio Corani.
 2024. “Probabilistic Reconciliation of Mixed-Type Hierarchical Time
 Series.” In *Proceedings of the Fortieth Conference on Uncertainty in
 Artificial Intelligence*, edited by Negar Kiyavash and Joris M. Mooij,
-244:4078–95. Proceedings of Machine Learning Research. PMLR.
+vol. 244. Proceedings of Machine Learning Research. PMLR.
 <https://proceedings.mlr.press/v244/zambon24a.html>.

@@ -42,6 +42,7 @@ Biology 4: Article32.
 ## Examples
 
 ``` r
+
 # Generate some multivariate normal samples
 # Parameters
 nSamples <- 200

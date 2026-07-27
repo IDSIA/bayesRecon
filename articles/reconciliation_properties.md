@@ -3,15 +3,16 @@
 ## Introduction
 
 This vignette reproduces the results of the paper *Properties of the
-reconciled distributions for Gaussian and count forecasts* (Zambon et
-al. 2024), accepted for publication in the International Journal of
-Forecasting. We replicate here the main experiment of the paper (see
-sec. 3, Zambon et al. (2024)) where we reconcile base forecasts
-constituted by negative binomial distributions.
+reconciled distributions for Gaussian and count forecasts* (Zambon,
+Agosto, et al. 2024), accepted for publication in the International
+Journal of Forecasting. We replicate here the main experiment of the
+paper (see sec. 3, Zambon, Agosto, et al. (2024)) where we reconcile
+base forecasts constituted by negative binomial distributions.
 
 We use the R package `BayesRecon`.
 
 ``` r
+
 library(bayesRecon)
 ```
 
@@ -42,6 +43,7 @@ model by (Agosto 2022); the predictive distributions are negative
 binomial.
 
 ``` r
+
 # Hierarchy composed by 6 time series: 5 bottom and 1 upper
 n_b <- 5
 n_u <- 1
@@ -66,7 +68,7 @@ N <- nrow(actuals) # number of days (3508)
 
 We reconcile the base forecasts via conditioning, using importance
 sampling. We use the `reconc_BUIS` function, which implements the BUIS
-algorithm (Zambon, Azzimonti, and Corani 2024); since there is only one
+algorithm (Zambon, Azzimonti, et al. 2024); since there is only one
 upper time series in the hierarchy, the BUIS algorithm is equivalent to
 importance sampling. We perform 3508 reconciliations, one for each day,
 drawing each time 10,000 samples from the reconciled distribution. We
@@ -77,6 +79,7 @@ For each day, we save the empirical mean, median, and quantiles of the
 reconciled distribution.
 
 ``` r
+
 # We need to save the mean and median of the reconciled distribution
 # in order to compute the squared error and the absolute error:
 rec_means <- matrix(NA, ncol = n, nrow = N)
@@ -118,13 +121,14 @@ cat(
   "Computational time for ", N, " reconciliations: ",
   round(difftime(stop, start, units = "secs"), 2), "s"
 )
-#> Computational time for  3508  reconciliations:  62.14 s
+#> Computational time for  3508  reconciliations:  61.6 s
 ```
 
 We compute the median and the quantiles of the negative binomial base
 forecasts.
 
 ``` r
+
 base_means <- base_fc$mu
 base_medians <- matrix(NA, ncol = n, nrow = N)
 base_L <- matrix(NA, ncol = n, nrow = N)
@@ -151,6 +155,7 @@ the squared error, and the interval score for the base and reconciled
 forecasts.
 
 ``` r
+
 # Compute the squared errors
 SE_base <- (base_means - actuals)^2
 SE_rec <- (rec_means - actuals)^2
@@ -179,6 +184,7 @@ the reconciled forecasts over the base forecasts. The skill score is
 symmetric and bounded between -2 and 2.
 
 ``` r
+
 SS_AE <- (AE_base - AE_rec) / (AE_base + AE_rec) * 2
 SS_SE <- (SE_base - SE_rec) / (SE_base + SE_rec) * 2
 SS_IS <- (IS_base - IS_rec) / (IS_base + IS_rec) * 2
@@ -219,6 +225,7 @@ can be lower than both (*concordant-shift* effect). We show them for two
 different days.
 
 ``` r
+
 # Now we draw a larger number of samples:
 N_samples <- 1e5
 
@@ -252,6 +259,7 @@ knitr::kable(matrix(means, nrow = 1), col.names = col_names)
 |           10.67 |                  9.1 |                  8.29 |
 
 ``` r
+
 
 ### Example of combination effect
 j <- 1700
@@ -288,6 +296,7 @@ the Gaussian reconciliation, for which the reconciled variance is always
 smaller than the base variance.
 
 ``` r
+
 j <- 2308
 base_fc_j <- c()
 for (i in 1:n) {
@@ -321,8 +330,8 @@ knitr::kable(round(bottom_var, 2))
 
 ## References
 
-Agosto, Arianna. 2022. “Multivariate Score-Driven Models for Count Time
-Series to Assess Financial Contagion.”
+Agosto, Arianna. 2022. *Multivariate Score-Driven Models for Count Time
+Series to Assess Financial Contagion*.
 <https://doi.org/10.2139/ssrn.4119895>.
 
 Zambon, Lorenzo, Arianna Agosto, Paolo Giudici, and Giorgio Corani.

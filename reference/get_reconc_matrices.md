@@ -34,6 +34,7 @@ A list containing the named elements:
 ## Examples
 
 ``` r
+
 library(bayesRecon)
 
 # Create monthly hierarchy

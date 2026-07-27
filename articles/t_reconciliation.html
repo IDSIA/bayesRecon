@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>t-Rec: Reconciliation of Gaussian forecasts by modelling the uncertainty on the covariance matrix • bayesRecon</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="t-Rec: Reconciliation of Gaussian forecasts by modelling the uncertainty on the covariance matrix">
 </head>
@@ -242,7 +242,7 @@ Bayesian way: starting from a prior on the covariance, we obtain a
 posterior distribution which is an Inverse Wishart with known parameters
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ν</mi><annotation encoding="application/x-tex">\nu</annotation></semantics></math>
 and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Ψ</mi><annotation encoding="application/x-tex">\Psi</annotation></semantics></math>.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">Ψ</mi><annotation encoding="application/x-tex">\Psi</annotation></semantics></math>.
 Those parameters are stored in <code>t_rec_results$posterior_nu</code>
 and <code>t_rec_results$posterior_Psi</code>. Note that those are not
 the parameters of the reconciled forecasts, but the parameters of the
@@ -251,7 +251,7 @@ errors.</p>
 <p>Since the posterior is an Inverse Wishart, we can further compute the
 marginal distribution of the variances in closed-form by using a scaled
 inverse Gamma distribution with the following parameters:
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Σ</mi><mrow><mi>i</mi><mi>i</mi></mrow></msub><mo>∼</mo><mtext mathvariant="normal">Inv-Gamma</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mrow><mi>ν</mi><mo>−</mo><mi>n</mi><mo>+</mo><mn>1</mn></mrow><mn>2</mn></mfrac><mo>,</mo><mfrac><msub><mi>Ψ</mi><mrow><mi>i</mi><mi>i</mi></mrow></msub><mn>2</mn></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">Σ</mi><mrow><mi>i</mi><mi>i</mi></mrow></msub><mo>∼</mo><mtext mathvariant="normal">Inv-Gamma</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mrow><mi>ν</mi><mo>−</mo><mi>n</mi><mo>+</mo><mn>1</mn></mrow><mn>2</mn></mfrac><mo>,</mo><mfrac><msub><mi mathvariant="normal">Ψ</mi><mrow><mi>i</mi><mi>i</mi></mrow></msub><mn>2</mn></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
 \Sigma_{ii} \sim \text{Inv-Gamma}\left(\frac{\nu - n + 1}{2}, \frac{\Psi_{ii}}{2}\right).
 </annotation></semantics></math></p>
 <p>In the second case (MinT), instead, the covariance matrix is
@@ -414,11 +414,11 @@ differently by t-Rec compared to MinT.</p>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
-<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="refs" class="references csl-bib-body hanging-indent">
 <div id="ref-carrara2025" class="csl-entry">
 Carrara, Chiara, Dario Azzimonti, Giorgio Corani, and Lorenzo Zambon.
-2025. <span>“Modeling the Uncertainty on the Covariance Matrix for
-Probabilistic Forecast Reconciliation.”</span> <a href="https://arxiv.org/abs/2506.19554" class="external-link">https://arxiv.org/abs/2506.19554</a>.
+2025. <em>Modeling the Uncertainty on the Covariance Matrix for
+Probabilistic Forecast Reconciliation</em>. <a href="https://arxiv.org/abs/2506.19554" class="external-link">https://arxiv.org/abs/2506.19554</a>.
 </div>
 <div id="ref-zambon2024properties" class="csl-entry">
 Zambon, Lorenzo, Arianna Agosto, Paolo Giudici, and Giorgio Corani.
@@ -439,7 +439,7 @@ Count Forecasts.”</span> <em>International Journal of Forecasting</em>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

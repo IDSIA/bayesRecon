@@ -1,12 +1,12 @@
-pandoc: 3.1.11
-pkgdown: 2.2.0
+pandoc: 3.8.3
+pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
   bayesRecon: bayesRecon.html
   mixed_reconciliation: mixed_reconciliation.html
   reconciliation_properties: reconciliation_properties.html
   t_reconciliation: t_reconciliation.html
-last_built: 2026-04-28T13:30Z
+last_built: 2026-07-27T08:33Z
 urls:
   reference: https://idsia.github.io/bayesRecon/reference
   article: https://idsia.github.io/bayesRecon/articles

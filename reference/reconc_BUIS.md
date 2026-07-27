@@ -147,6 +147,7 @@ Statistics and Computing 34 (1), 21.
 ## Examples
 
 ``` r
+
 library(bayesRecon)
 
 # Create a minimal hierarchy with 2 bottom and 1 upper variable

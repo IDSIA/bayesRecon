@@ -153,6 +153,7 @@ reconciliation. arXiv preprint arXiv:2506.19554.
 ## Examples
 
 ``` r
+
 # \donttest{
 library(bayesRecon)
 

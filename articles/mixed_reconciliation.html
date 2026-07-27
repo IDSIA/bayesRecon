@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Reconciliation of M5 hierarchy with mixed-type forecasts • bayesRecon</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Reconciliation of M5 hierarchy with mixed-type forecasts">
 </head>
@@ -79,19 +79,19 @@ Azzimonti, Lorenzo Zambon, Nicolò Rubattu, Giorgio Corani</h4>
 reconciliation of mixed-type hierarchical time series</em> <span class="citation">(Zambon et al. 2024)</span>, published at UAI 2024 (the
 40th Conference on Uncertainty in Artificial Intelligence).</p>
 <p>In particular, we replicate the reconciliation of the one-step ahead
-(h=1) forecasts of one store of the M5 competition <span class="citation">(Makridakis, Spiliotis, and Assimakopoulos
-2022)</span>. Sect. 5 of the paper presents the results for 10 stores,
-each reconciled 14 times using rolling one-step ahead forecasts.</p>
+(h=1) forecasts of one store of the M5 competition <span class="citation">(Makridakis et al. 2022)</span>. Sect. 5 of the paper
+presents the results for 10 stores, each reconciled 14 times using
+rolling one-step ahead forecasts.</p>
 </div>
 <div class="section level2">
 <h2 id="data-and-base-forecasts">Data and base forecasts<a class="anchor" aria-label="anchor" href="#data-and-base-forecasts"></a>
 </h2>
-<p>The M5 competition <span class="citation">(Makridakis, Spiliotis, and
-Assimakopoulos 2022)</span> is about daily time series of sales data
-referring to 10 different stores. Each store has the same hierarchy:
-3049 bottom time series (single items) and 11 upper time series,
-obtained by aggregating the items by department, product category, and
-store; see the figure below.</p>
+<p>The M5 competition <span class="citation">(Makridakis et al.
+2022)</span> is about daily time series of sales data referring to 10
+different stores. Each store has the same hierarchy: 3049 bottom time
+series (single items) and 11 upper time series, obtained by aggregating
+the items by department, product category, and store; see the figure
+below.</p>
 <div class="figure">
 <img src="img/M5store_hier.png" class="r-plt" alt="**Figure 1**: graph of the M5 hierarchy." width="100%"><p class="caption">
 <strong>Figure 1</strong>: graph of the M5 hierarchy.
@@ -178,7 +178,7 @@ bottom time series.</p>
 <span></span>
 <span><span class="va">Gauss_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/double.html" class="external-link">as.double</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/difftime.html" class="external-link">difftime</a></span><span class="op">(</span><span class="va">stop</span>, <span class="va">start</span>, units <span class="op">=</span> <span class="st">"secs"</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Time taken by Gaussian reconciliation: "</span>, <span class="va">Gauss_time</span>, <span class="st">"s"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Time taken by Gaussian reconciliation:  0.3 s</span></span></code></pre></div>
+<span><span class="co">#&gt; Time taken by Gaussian reconciliation:  0.28 s</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="reconciliation-with-mixed-conditioning">Reconciliation with mixed-conditioning<a class="anchor" aria-label="anchor" href="#reconciliation-with-mixed-conditioning"></a>
@@ -226,7 +226,7 @@ The function parameter <code>return_type</code> can be changed to
 <span></span>
 <span><span class="va">MixCond_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/double.html" class="external-link">as.double</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/difftime.html" class="external-link">difftime</a></span><span class="op">(</span><span class="va">stop</span>, <span class="va">start</span>, units <span class="op">=</span> <span class="st">"secs"</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Computational time for Mix-cond reconciliation: "</span>, <span class="va">MixCond_time</span>, <span class="st">"s"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Computational time for Mix-cond reconciliation:  10.36 s</span></span></code></pre></div>
+<span><span class="co">#&gt; Computational time for Mix-cond reconciliation:  9.5 s</span></span></code></pre></div>
 <p>As discussed in <span class="citation">Zambon et al. (2024)</span>,
 Sect. 3, conditioning with mixed variables performs poorly in high
 dimensions. This is because the bottom-up distribution, built by
@@ -265,13 +265,13 @@ that this warning does not impact the performances of TD-cond.</p>
 <span></span>
 <span><span class="va">TDCond_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/double.html" class="external-link">as.double</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/difftime.html" class="external-link">difftime</a></span><span class="op">(</span><span class="va">stop</span>, <span class="va">start</span>, units <span class="op">=</span> <span class="st">"secs"</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Computational time for TD-cond reconciliation: "</span>, <span class="va">TDCond_time</span>, <span class="st">"s"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Computational time for TD-cond reconciliation:  11.53 s</span></span></code></pre></div>
+<span><span class="co">#&gt; Computational time for TD-cond reconciliation:  10.61 s</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="comparison">Comparison<a class="anchor" aria-label="anchor" href="#comparison"></a>
 </h2>
 <p>The computational time required for the Gaussian reconciliation is
-0.3 seconds, Mix-cond requires 10.36 seconds and TD-cond requires 11.53
+0.28 seconds, Mix-cond requires 9.5 seconds and TD-cond requires 10.61
 seconds.</p>
 <p>For each time series in the hierarchy, we compute the following
 scores for each method:</p>
@@ -352,7 +352,7 @@ of the vignette but not shown here.</p>
 <p>We report the improvement over the base forecasts using the skill
 score values and averaging them across experiments. For instance, the
 skill score of Gauss on RPS is:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mtext mathvariant="normal">Skill</mtext><mi>%</mi></msub><mspace width="0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><mrow><mtext mathvariant="normal">RPS, </mtext><mspace width="0.333em"></mspace></mrow><mi>G</mi><mi>a</mi><mi>u</mi><mi>s</mi><mi>s</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>100</mn><mo>⋅</mo><mfrac><mrow><mtext mathvariant="normal">RPS</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>b</mi><mi>a</mi><mi>s</mi><mi>e</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mtext mathvariant="normal">RPS</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>G</mi><mi>a</mi><mi>u</mi><mi>s</mi><mi>s</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mrow><mo stretchy="true" form="prefix">(</mo><mtext mathvariant="normal">RPS</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>b</mi><mi>a</mi><mi>s</mi><mi>e</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mtext mathvariant="normal">RPS</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>G</mi><mi>a</mi><mi>u</mi><mi>s</mi><mi>s</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mi>/</mi><mn>2</mn></mrow></mfrac></mrow><annotation encoding="application/x-tex"> \text{Skill}_{\%}\,(\text{RPS, }Gauss) = 100 \cdot
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mtext mathvariant="normal">Skill</mtext><mi>%</mi></msub><mspace width="0.167em"></mspace><mo stretchy="false" form="prefix">(</mo><mrow><mtext mathvariant="normal">RPS, </mtext><mspace width="0.333em"></mspace></mrow><mi>G</mi><mi>a</mi><mi>u</mi><mi>s</mi><mi>s</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>100</mn><mo>⋅</mo><mfrac><mrow><mtext mathvariant="normal">RPS</mtext><mo stretchy="false" form="prefix">(</mo><mi>b</mi><mi>a</mi><mi>s</mi><mi>e</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><mtext mathvariant="normal">RPS</mtext><mo stretchy="false" form="prefix">(</mo><mi>G</mi><mi>a</mi><mi>u</mi><mi>s</mi><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow><mrow><mo stretchy="false" form="prefix">(</mo><mtext mathvariant="normal">RPS</mtext><mo stretchy="false" form="prefix">(</mo><mi>b</mi><mi>a</mi><mi>s</mi><mi>e</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mtext mathvariant="normal">RPS</mtext><mo stretchy="false" form="prefix">(</mo><mi>G</mi><mi>a</mi><mi>u</mi><mi>s</mi><mi>s</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mn>2</mn></mrow></mfrac></mrow><annotation encoding="application/x-tex"> \text{Skill}_{\%}\,(\text{RPS, }Gauss) = 100 \cdot
 \frac{\text{RPS}(base) - \text{RPS}(Gauss)}
 {(\text{RPS}(base) + \text{RPS}(Gauss))/2}</annotation></semantics></math></p>
 <p>This formula is implemented in the function <code>skill.score</code>,
@@ -573,14 +573,14 @@ al. 2024)</span> can be reproduced by using the code available <a href="https://
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
-<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="refs" class="references csl-bib-body hanging-indent">
 <div id="ref-corani2021probabilistic" class="csl-entry">
 Corani, Giorgio, Dario Azzimonti, João P. S. C. Augusto, and Marco
 Zaffalon. 2021. <span>“Probabilistic Reconciliation of Hierarchical
 Forecast via Bayes’ Rule.”</span> In <em>Machine Learning and Knowledge
 Discovery in Databases</em>, edited by Frank Hutter, Kristian Kersting,
-Jefrey Lijffijt, and Isabel Valera, 211–26. Springer International
-Publishing. <a href="https://doi.org/10.1007/978-3-030-67664-3_13" class="external-link">https://doi.org/10.1007/978-3-030-67664-3_13</a>.
+Jefrey Lijffijt, and Isabel Valera. Springer International Publishing.
+<a href="https://doi.org/10.1007/978-3-030-67664-3_13" class="external-link">https://doi.org/10.1007/978-3-030-67664-3_13</a>.
 </div>
 <div id="ref-MAKRIDAKIS20221325" class="csl-entry">
 Makridakis, Spyros, Evangelos Spiliotis, and Vassilios Assimakopoulos.
@@ -602,8 +602,8 @@ Zambon, Lorenzo, Dario Azzimonti, Nicolò Rubattu, and Giorgio Corani.
 2024. <span>“Probabilistic Reconciliation of Mixed-Type Hierarchical
 Time Series.”</span> In <em>Proceedings of the Fortieth Conference on
 Uncertainty in Artificial Intelligence</em>, edited by Negar Kiyavash
-and Joris M. Mooij, 244:4078–95. Proceedings of Machine Learning
-Research. PMLR. <a href="https://proceedings.mlr.press/v244/zambon24a.html" class="external-link">https://proceedings.mlr.press/v244/zambon24a.html</a>.
+and Joris M. Mooij, vol. 244. Proceedings of Machine Learning Research.
+PMLR. <a href="https://proceedings.mlr.press/v244/zambon24a.html" class="external-link">https://proceedings.mlr.press/v244/zambon24a.html</a>.
 </div>
 </div>
 </div>
@@ -618,7 +618,7 @@ Research. PMLR. <a href="https://proceedings.mlr.press/v244/zambon24a.html" clas
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

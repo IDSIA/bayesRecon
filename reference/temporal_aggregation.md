@@ -36,6 +36,7 @@ taking all the factors of the time series frequency.
 ## Examples
 
 ``` r
+
 # Create a monthly count time series with 100 observations
 y <- ts(data = stats::rpois(100, lambda = 2), frequency = 12)
 

@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Probabilistic Reconciliation via Conditioning with `bayesRecon` • bayesRecon</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Probabilistic Reconciliation via Conditioning with `bayesRecon`">
 </head>
@@ -106,10 +106,9 @@ be installed and loaded with the usual commands:</p>
 <h2 id="temporal-hierarchy-over-a-count-time-series">Temporal hierarchy over a count time series<a class="anchor" aria-label="anchor" href="#temporal-hierarchy-over-a-count-time-series"></a>
 </h2>
 <p>We select a monthly time series of counts from the <em>carparts</em>
-dataset, available from the expsmooth package <span class="citation">(R.
-J. Hyndman 2015)</span>. The data set contains time series of sales of
-cars part from Jan. 1998 to Mar. 2002. For this example we select time
-series #2655, which we make available as
+dataset, available from the expsmooth package <span class="citation">(Hyndman 2015)</span>. The data set contains time
+series of sales of cars part from Jan. 1998 to Mar. 2002. For this
+example we select time series #2655, which we make available as
 <code><a href="../reference/carparts_example.html">bayesRecon::carparts_example</a></code>.</p>
 <p>This time series has a skewed distribution of values.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
@@ -283,7 +282,7 @@ time series. For computing CRPS, we use the package <a href="https://cran.r-proj
 </h2>
 <p>In this second example, we select a smooth monthly time series
 (N1485) from the M3 forecasting competition <span class="citation">(Makridakis and Hibon 2000)</span>. The data set is
-available in the Mcomp package <span class="citation">(R. Hyndman
+available in the Mcomp package <span class="citation">(Hyndman
 2018)</span> and we make available this time series as
 <code><a href="../reference/M3_example.html">bayesRecon::M3_example</a></code>.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
@@ -303,9 +302,9 @@ Biannual, and Annual.</p>
 <span><span class="va">levels</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Annual"</span>, <span class="st">"Biannual"</span>, <span class="st">"4-Monthly"</span>, <span class="st">"Quarterly"</span>, <span class="st">"2-Monthly"</span>, <span class="st">"Monthly"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">train.agg</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">levels</span></span></code></pre></div>
 <p>We generate the base forecasts using <code>ets</code> from the <a href="https://cran.r-project.org/package=forecast" class="external-link">forecast</a> package
-<span class="citation">(R. J. Hyndman and Khandakar 2008)</span>. At
-every level we predict 18 months ahead. All the predictive distributions
-are Gaussian.</p>
+<span class="citation">(Hyndman and Khandakar 2008)</span>. At every
+level we predict 18 months ahead. All the predictive distributions are
+Gaussian.</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("forecast", dependencies = TRUE)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://pkg.robjhyndman.com/forecast/" class="external-link">forecast</a></span><span class="op">)</span></span>
@@ -455,9 +454,8 @@ show the 95% prediction intervals.
 </h2>
 <p>In this example, we consider the hierarchical time series
 <em>infantgts</em>, which is available from the <code>hts</code> package
-<span class="citation">(R. Hyndman et al. 2021)</span> We make it
-available also in our package as
-<code><a href="../reference/infantMortality.html">bayesRecon::infantMortality</a></code>.</p>
+<span class="citation">(Hyndman et al. 2021)</span> We make it available
+also in our package as <code><a href="../reference/infantMortality.html">bayesRecon::infantMortality</a></code>.</p>
 <p>It contains counts of infant mortality (deaths) in Australia,
 disaggregated by state and sex (male and female).</p>
 <!-- State codes refer to: New South Wales (NSW), Victoria (VIC), Queensland (QLD), South Australia (SA), Western Australia (WA), Northern Territory (NT), Australian Capital Territory (ACT), and Tasmania (TAS). -->
@@ -589,14 +587,14 @@ the covariance matrix of the residuals with shrinkage <span class="citation">(Sc
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
-<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="refs" class="references csl-bib-body hanging-indent">
 <div id="ref-corani2021probabilistic" class="csl-entry">
 Corani, Giorgio, Dario Azzimonti, João P. S. C. Augusto, and Marco
 Zaffalon. 2021. <span>“Probabilistic Reconciliation of Hierarchical
 Forecast via Bayes’ Rule.”</span> In <em>Machine Learning and Knowledge
 Discovery in Databases</em>, edited by Frank Hutter, Kristian Kersting,
-Jefrey Lijffijt, and Isabel Valera, 211–26. Springer International
-Publishing. <a href="https://doi.org/10.1007/978-3-030-67664-3_13" class="external-link">https://doi.org/10.1007/978-3-030-67664-3_13</a>.
+Jefrey Lijffijt, and Isabel Valera. Springer International Publishing.
+<a href="https://doi.org/10.1007/978-3-030-67664-3_13" class="external-link">https://doi.org/10.1007/978-3-030-67664-3_13</a>.
 </div>
 <div id="ref-corani2023probabilistic" class="csl-entry">
 Corani, Giorgio, Dario Azzimonti, and Nicolò Rubattu. 2024.
@@ -656,7 +654,7 @@ Computing</em> 34 (1): 21. <a href="https://doi.org/10.1007/s11222-023-10343-y" 
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

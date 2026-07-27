@@ -197,6 +197,7 @@ Intelligence, PMLR 244:4078-4095.
 ## Examples
 
 ``` r
+
 library(bayesRecon)
 
 # Consider a simple hierarchy with two bottom and one upper

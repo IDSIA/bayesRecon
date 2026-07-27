@@ -14,6 +14,7 @@ follows a multivariate t. See Carrara et al. (2025) for a detailed
 explanation.
 
 ``` r
+
 # load the packages
 library(bayesRecon)
 library(forecast) # base forecasts
@@ -41,6 +42,7 @@ The time series exhibit strong seasonality. See, in **Figure 1**, the
 top-level (aggregate) time series.
 
 ``` r
+
 # save all time series 
 Y = swiss_tourism$ts
 
@@ -59,6 +61,7 @@ set. The length of the training set can be selected within the range
 \[26, 240\] observations.
 
 ``` r
+
 # Save aggregation matrix
 A = swiss_tourism$agg_mat
 
@@ -92,6 +95,7 @@ For each time series forecast, we save the base forecast mean
 used to estimate the covariance matrix of the forecast errors.
 
 ``` r
+
 # Compute base forecasts and residuals for each time series
 base_fc = rep(NA, n)
 res = matrix(NA, ncol = n, nrow = L)
@@ -120,6 +124,7 @@ parameters of the posterior distribution of the covariance matrix, which
 we will use to compare the covariance estimates.
 
 ``` r
+
 t_rec_results = reconc_t(A, base_fc_mean = base_fc, 
                          y_train = train, 
                          residuals = res,
@@ -130,6 +135,7 @@ t_rec_results = reconc_t(A, base_fc_mean = base_fc,
 For the selected data window, we save the base forecasts (Base).
 
 ``` r
+
 # Base forecasts
 Base_mean = base_fc
 Base_cov_mat = crossprod(res)/nrow(res) # covariance of the residuals
@@ -141,6 +147,7 @@ the function to return the parameters of the upper-level reconciled
 forecasts.
 
 ``` r
+
 # Gaussian/MinT: compute reconciliation with bayesRecon
 gauss_results = reconc_gaussian(A, base_fc, residuals = res, return_upper = TRUE)
 # Reconciled mean for the whole hierarchy:
@@ -184,7 +191,7 @@ Gaussian reconciliation method (MinT).
 In the first case (t-Rec), the covariance matrix is estimated in a
 Bayesian way: starting from a prior on the covariance, we obtain a
 posterior distribution which is an Inverse Wishart with known parameters
-$\nu$ and $\Psi$. Those parameters are stored in
+$`\nu`$ and $`\Psi`$. Those parameters are stored in
 `t_rec_results$posterior_nu` and `t_rec_results$posterior_Psi`. Note
 that those are not the parameters of the reconciled forecasts, but the
 parameters of the posterior distribution of the covariance matrix of the
@@ -193,7 +200,9 @@ forecast errors.
 Since the posterior is an Inverse Wishart, we can further compute the
 marginal distribution of the variances in closed-form by using a scaled
 inverse Gamma distribution with the following parameters:
-$$\Sigma_{ii} \sim \text{Inv-Gamma}\left( \frac{\nu - n + 1}{2},\frac{\Psi_{ii}}{2} \right).$$
+``` math
+\Sigma_{ii} \sim \text{Inv-Gamma}\left(\frac{\nu - n + 1}{2}, \frac{\Psi_{ii}}{2}\right).
+```
 
 In the second case (MinT), instead, the covariance matrix is estimated
 with a point estimate by applying the Schäfer Strimmer shrinkage
@@ -207,6 +216,7 @@ apply also for other series. The code in the vignette is parametric so
 that a user could manually visualize other comparisons.
 
 ``` r
+
 # we compute the full shriked covariance matrix with the Schäfer Strimmer shrinkage estimator
 # This matrix is also computed internally by the function `reconc_gaussian()`.
 shrink_mat<- bayesRecon::schaferStrimmer_cov(res)$shrink_cov
@@ -219,6 +229,7 @@ of the variance (defined above), computed with the change of variable
 formula shown below:
 
 ``` r
+
 # Select which series to plot
 i = 1     # CH
 j = 19    # GR
@@ -266,6 +277,7 @@ distribution, we can sample from this distribution using the custom
 function `rinvwishart()`, defined below.
 
 ``` r
+
 # generate k samples from an IW(Psi, nu) distribution
 rinvwishart <- function(k, nu, Psi, seed=42) {
   p <- nrow(Psi)
@@ -306,12 +318,13 @@ point estimates for the standard deviation and correlation. For this
 reason, in the table, we report the mean of the posterior distribution
 for the standard deviation and the correlation.
 
-| Method        | ${\widehat{\sigma}}_{\text{CH}}$ | ${\widehat{\sigma}}_{\text{GR}}$ | ${\widehat{\rho}}_{\text{CH,GR}}$ |
-|:--------------|---------------------------------:|---------------------------------:|----------------------------------:|
-| MinT (Shrink) |                           96,618 |                           34,747 |                              0.62 |
-| t-Rec         |                          121,587 |                           39,589 |                              0.73 |
+| Method | $`\hat{\sigma}_{\text{CH}}`$ | $`\hat{\sigma}_{\text{GR}}`$ | $`\hat{\rho}_{\text{CH,GR}}`$ |
+|:---|---:|---:|---:|
+| MinT (Shrink) | 96,618 | 34,747 | 0.62 |
+| t-Rec | 121,587 | 39,589 | 0.73 |
 
 **Table 1**: Standard deviation and correlation estimates for CH and GR.
+{.table style="width:auto;"}
 
 Note that the standard deviation estimated by t-Rec is higher than the
 MinT estimates. This is because the posterior Inverse-Wishart
@@ -325,8 +338,8 @@ differently by t-Rec compared to MinT.
 ## References
 
 Carrara, Chiara, Dario Azzimonti, Giorgio Corani, and Lorenzo Zambon.
-2025. “Modeling the Uncertainty on the Covariance Matrix for
-Probabilistic Forecast Reconciliation.”
+2025. *Modeling the Uncertainty on the Covariance Matrix for
+Probabilistic Forecast Reconciliation*.
 <https://arxiv.org/abs/2506.19554>.
 
 Zambon, Lorenzo, Arianna Agosto, Paolo Giudici, and Giorgio Corani.

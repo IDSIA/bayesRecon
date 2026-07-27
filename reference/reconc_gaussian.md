@@ -89,6 +89,7 @@ International Journal of Forecasting (in press).
 ## Examples
 
 ``` r
+
 library(bayesRecon)
 
 #' # ---- Example 1: base forecasts are given ----

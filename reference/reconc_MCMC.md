@@ -114,6 +114,7 @@ Forecasting 40 (2), 457-469.
 ## Examples
 
 ``` r
+
 library(bayesRecon)
 
 # Create a minimal hierarchy with 2 bottom and 1 upper variable
