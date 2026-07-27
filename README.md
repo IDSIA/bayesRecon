@@ -21,11 +21,12 @@ reconciliation of hierarchical time series forecasts.
 
 The reconciliation functions are:
 
-- `reconc_gaussian`: reconciliation via conditioning of multivariate
-  Gaussian base forecasts; this is done analytically;
-- `reconc_t`: reconciliation via conditioning of Gaussian forecasts with
-  uncertain covariance matrix; the reconciled forecasts are multivariate
-  Student-t; this is done analytically;
+- `reconc_gaussian`: reconciliation via conditioning assuming
+  multivariate Gaussian base forecasts; this is done analytically;
+- `reconc_t`: reconciliation via conditioning assuming multivariate
+  Gaussian base forecasts with uncertain covariance matrix; the
+  reconciled forecasts are multivariate Student-t; this is done
+  analytically;
 - `reconc_BUIS`: reconciliation via conditioning of any probabilistic
   forecast via bottom-up importance sampling; an alternative method for
   discrete forecasts is implemented in `reconc_MCMC`, but we recommend
@@ -86,7 +87,7 @@ In each example, we
 
 ### Example 1: Gaussian forecast distributions
 
-<img src="./man/figures/hier_small_README.png" width="50%" style="display: block; margin: auto;" />
+<img src="./man/figures/hier_small_README.png" alt="" width="50%" style="display: block; margin: auto;" />
 
 <br />
 
@@ -193,7 +194,7 @@ Finally, we compare the reconciled forecast distributions for the top
 series T obtained with the two methods by plotting their marginal
 densities.
 
-<img src="man/figures/README-unnamed-chunk-7-1.png" width="75%" style="display: block; margin: auto;" />
+<img src="man/figures/README-unnamed-chunk-7-1.png" alt="" width="75%" style="display: block; margin: auto;" />
 
 ### Example 2: discrete forecast distributions
 
@@ -280,7 +281,7 @@ print(apply(samples_buis, 1, quantile, probs = c(0.80, 0.95)))
 Finally, we compare the base and reconciled forecasts for the top series
 T by plotting the base and reconciled forecast distributions.
 
-<img src="man/figures/README-unnamed-chunk-11-1.png" width="75%" style="display: block; margin: auto;" />
+<img src="man/figures/README-unnamed-chunk-11-1.png" alt="" width="75%" style="display: block; margin: auto;" />
 
 Similar results can be obtained with `reconc_MCMC`, which is a
 bare-bones implementation of the Metropolis-Hastings algorithm. However,
@@ -307,7 +308,7 @@ details).
 Let us consider a hierarchy with 3 upper series and 52 bottom series
 arranged in 2 groups of 26:
 
-<img src="./man/figures/hier_large_README.png" width="50%" style="display: block; margin: auto;" />
+<img src="./man/figures/hier_large_README.png" alt="" width="50%" style="display: block; margin: auto;" />
 
 <br />
 
@@ -343,7 +344,7 @@ We show a comparison of upper and bottom time series. Even though the
 bottom series are made of low counts, the upper series can be considered
 as real-valued due to the smoothing effect of aggregation.
 
-<img src="man/figures/README-unnamed-chunk-14-1.png" width="75%" style="display: block; margin: auto;" />
+<img src="man/figures/README-unnamed-chunk-14-1.png" alt="" width="75%" style="display: block; margin: auto;" />
 
 We compute the one-step-ahead base forecasts for each upper series with
 an additive ETS model, implemented in the
@@ -448,7 +449,7 @@ et al. 2024](https://proceedings.mlr.press/v244/zambon24a.html) for a
 detailed comparison of the two methods for reconciling mixed hierarchies
 of different sizes.
 
-<img src="man/figures/README-unnamed-chunk-19-1.png" width="75%" style="display: block; margin: auto;" />
+<img src="man/figures/README-unnamed-chunk-19-1.png" alt="" width="75%" style="display: block; margin: auto;" />
 
 ## References
 
@@ -497,7 +498,7 @@ Intelligence, in Proceedings of Machine Learning Research 244:4078-4095.
 
 <td align="center" valign="top" width="14.28%">
 
-<a href="https://sites.google.com/view/darioazzimonti/home">
+<a href="https://dazzimonti.github.io/">
 <img src="https://github.com/dazzimonti.png" width="100px;" alt="Dario Azzimonti" style="border-radius:50%;border:1px solid #646464;"/><br />
 <sub><b>Dario Azzimonti</b></sub></a><br />
 <sub>(Maintainer)</sub><br />
