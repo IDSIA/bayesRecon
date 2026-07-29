@@ -127,6 +127,9 @@ Useful links:
 
 Authors:
 
+- Dario Azzimonti <dario.azzimonti@gmail.com>
+  ([ORCID](https://orcid.org/0000-0001-5080-3061))
+
 - Lorenzo Zambon <lorenzo.zambon@idsia.ch>
   ([ORCID](https://orcid.org/0000-0002-8939-993X))
 

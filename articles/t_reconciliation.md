@@ -120,8 +120,8 @@ forecasts, which are distributed as a multivariate-t. The flag
 `return_upper = TRUE` forces the function to return also the parameters
 of the upper-level reconciled forecasts. The flag
 `return_parameters = TRUE` forces the function to return also the
-parameters of the posterior distribution of the covariance matrix, which
-we will use to compare the covariance estimates.
+parameters of the posterior distribution of the covariance matrix; the
+will be used to compare the covariance estimates.
 
 ``` r
 
@@ -184,41 +184,49 @@ the forecast uncertainty.
 
 The main strength of t-Rec is that it provides an estimate of the
 covariance which accounts for the uncertainty in the estimation. To
-illustrate this point, we compare the covariance matrix estimates,
+illustrate this point, we compare the covariance matrix estimates
 obtained before the reconciliation step, in t-Rec and in the standard
 Gaussian reconciliation method (MinT).
 
-In the first case (t-Rec), the covariance matrix is estimated in a
-Bayesian way: starting from a prior on the covariance, we obtain a
-posterior distribution which is an Inverse Wishart with known parameters
-$`\nu`$ and $`\Psi`$. Those parameters are stored in
-`t_rec_results$posterior_nu` and `t_rec_results$posterior_Psi`. Note
-that those are not the parameters of the reconciled forecasts, but the
-parameters of the posterior distribution of the covariance matrix of the
-forecast errors.
+In t-Rec, the covariance matrix of the base forecasts is estimated in a
+Bayesian way: we put an Inverse Wishart prior on the covariance, we
+assume that the residuals of the base forecasts are Gaussian distributed
+and we obtain a posterior distribution which is still Inverse Wishart
+with known parameters $`\nu`$ and $`\Psi`$. The output of the function
+[`bayesRecon::reconc_t`](https://idsia.github.io/bayesRecon/reference/reconc_t.md)
+stores those parameters in `t_rec_results$posterior_nu` and
+`t_rec_results$posterior_Psi`. Note that those are not the parameters of
+the reconciled forecasts, but the parameters of the posterior
+distribution of the covariance matrix of the forecast errors. In this
+section, we denote this estimate as ‘*IW posterior*’ to distinguish it
+from the reconciled covariance.
 
 Since the posterior is an Inverse Wishart, we can further compute the
 marginal distribution of the variances in closed-form by using a scaled
 inverse Gamma distribution with the following parameters:
 ``` math
-\Sigma_{ii} \sim \text{Inv-Gamma}\left(\frac{\nu - n + 1}{2}, \frac{\Psi_{ii}}{2}\right).
+\Sigma_{ii} \sim \text{Inv-Gamma}\left(\frac{\nu - n + 1}{2}, \frac{\Psi_{ii}}{2}\right),
 ```
+where $`\nu`$ and $`\Psi`$ denote the posterior Inverse Wishart
+parameters.
 
 In the second case (MinT), instead, the covariance matrix is estimated
 with a point estimate by applying the Schäfer Strimmer shrinkage
 estimator to the covariance of the residuals. This method does not
-explicitly account for the uncertainty in the estimation.
+explicitly account for the uncertainty in the estimation. Here, we
+denote by ‘*Schäfer Strimmer*’ this covariance estimate.
 
-As an example, we focus on the covariance matrix between the upper-level
-series, denoted as CH, and the bottom-level time series with the largest
-average values, “Graubünden”, denoted as GR. Analogous considerations
-apply also for other series. The code in the vignette is parametric so
-that a user could manually visualize other comparisons.
+Consider the Swiss tourism forecasts computed above, we focus on the
+covariance matrix between the upper-level series, denoted as CH, and the
+bottom-level time series with the largest average values, “Graubünden”,
+denoted as GR. Analogous considerations apply also for other series. The
+code in the vignette is parametric so that a user could manually
+visualize other comparisons.
 
 ``` r
 
-# we compute the full shriked covariance matrix with the Schäfer Strimmer shrinkage estimator
-# This matrix is also computed internally by the function `reconc_gaussian()`.
+# Full shrinked covariance matrix with the Schäfer Strimmer shrinkage estimator
+# The same matrix is computed internally by `reconc_gaussian()` before reconciliation
 shrink_mat<- bayesRecon::schaferStrimmer_cov(res)$shrink_cov
 ```
 
@@ -226,7 +234,7 @@ We show here the standard deviation instead of the variance because it
 produces a more intuitive interpretation. The standard deviation is
 obtained by applying the square root transformation to the distribution
 of the variance (defined above), computed with the change of variable
-formula shown below:
+formula shown in the function below:
 
 ``` r
 
@@ -264,11 +272,11 @@ the forecasts for the upper time series (CH) and the bottom time series
 (GR).
 
 ![\*\*Figure 3\*\*: Density of the posterior standard deviation of the
-forecasts' residuals, computed within
-t-Rec.](t_reconciliation_files/figure-html/density%20plot-1.png)
+forecasts' residuals, estimated with \*IW
+posterior\*.](t_reconciliation_files/figure-html/density%20plot-1.png)
 
 **Figure 3**: Density of the posterior standard deviation of the
-forecasts’ residuals, computed within t-Rec.
+forecasts’ residuals, estimated with *IW posterior*.
 
 The posterior distribution for the covariance and for the correlation
 values is not available in closed form but it can be obtained via
@@ -298,42 +306,43 @@ IW_post_samples <- rinvwishart(k=1000, nu = t_rec_results$posterior_nu,
 ```
 
 **Figure 4** shows the posterior density of the correlation between CH
-and GR. The value estimated with the shrinked covariance, plotted as a
-vertical dashed line, differs from the posterior mode estimated by
-t-Rec, illustrating how t-Rec captures a different view of the
+and GR. The value estimated with *Schäfer Strimmer*, plotted as a
+vertical dashed line, differs from the posterior mode estimated by *IW
+posterior*, illustrating how it captures a different view of the
 dependence structure.
 
 ![\*\*Figure 4\*\*: Density of the posterior correlation between CH and
-GR obtained with
-t-Rec.](t_reconciliation_files/figure-html/plot%20densities-1.png)
+GR obtained with \*IW
+posterior\*.](t_reconciliation_files/figure-html/plot%20densities-1.png)
 
 **Figure 4**: Density of the posterior correlation between CH and GR
-obtained with t-Rec.
+obtained with *IW posterior*.
 
 Finally, we show in **Table 1** the standard deviation and correlation
 estimates for the upper-level series (CH) and the bottom-level series
-(GR) obtained with the shrinkage method (used in MinT) and t-Rec. t-Rec
-provides a distribution for these parameters, however MinT provides only
-point estimates for the standard deviation and correlation. For this
-reason, in the table, we report the mean of the posterior distribution
-for the standard deviation and the correlation.
+(GR) obtained with the *Schäfer Strimmer* (used in MinT) and *IW
+posterior* (used in t-Rec). *IW posterior* provides a distribution for
+these parameters, however *Schäfer Strimmer* provides only point
+estimates for the standard deviation and correlation. For this reason,
+in the table, we report the mean of the posterior distribution for the
+standard deviation and the correlation.
 
 | Method | $`\hat{\sigma}_{\text{CH}}`$ | $`\hat{\sigma}_{\text{GR}}`$ | $`\hat{\rho}_{\text{CH,GR}}`$ |
 |:---|---:|---:|---:|
-| MinT (Shrink) | 96,618 | 34,747 | 0.62 |
-| t-Rec | 121,587 | 39,589 | 0.73 |
+| Schäfer Strimmer | 96,618 | 34,747 | 0.62 |
+| IW posterior | 121,587 | 39,589 | 0.73 |
 
 **Table 1**: Standard deviation and correlation estimates for CH and GR.
 {.table style="width:auto;"}
 
-Note that the standard deviation estimated by t-Rec is higher than the
-MinT estimates. This is because the posterior Inverse-Wishart
-distribution depends on the prior, which is initialized using the
-residuals of the naive forecasts. Since these residuals capture the full
-uncertainty of the non-reconciled forecasts, the prior inflates the
-posterior variance relative to the point estimate provided by MinT.
-Moreover, the correlation between CH and GR is also estimated
-differently by t-Rec compared to MinT.
+Note that the standard deviation estimated by *IW posterior* is higher
+than the *Schäfer Strimmer* estimates. This is because the posterior
+Inverse-Wishart distribution depends on the prior, which is initialized
+using the residuals of the naive forecasts. Since these residuals
+capture the full uncertainty of the non-reconciled forecasts, the prior
+inflates the posterior variance relative to the point estimate provided
+by *Schäfer Strimmer*. Moreover, the correlation between CH and GR is
+also estimated differently.
 
 ## References
 
