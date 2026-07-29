@@ -94,6 +94,7 @@ Useful links:
 
 Authors:
 \itemize{
+  \item Dario Azzimonti \email{dario.azzimonti@gmail.com} (\href{https://orcid.org/0000-0001-5080-3061}{ORCID})
   \item Lorenzo Zambon \email{lorenzo.zambon@idsia.ch} (\href{https://orcid.org/0000-0002-8939-993X}{ORCID})
   \item Stefano Damato \email{stefano.damato@idsia.ch} (\href{https://orcid.org/0009-0001-0225-3736}{ORCID})
   \item Nicolò Rubattu \email{nicolo.rubattu@idsia.ch} (\href{https://orcid.org/0000-0002-2703-1005}{ORCID})
