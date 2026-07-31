@@ -32,9 +32,9 @@ caption {
 
 # Introduction
 
-This vignette showcases the method *t-Rec*, a Bayesian approach to forecast reconciliation that explicitly accounts for uncertainty in the covariance matrix of residuals. 
+This vignette showcases the method *t-Rec*, a Bayesian approach to forecast reconciliation that explicitly accounts for uncertainty in the covariance matrix of the residuals.
 
-By exploiting the flexibility of Bayesian models to incorporate parameter uncertainty, t-Rec assumes an Inverse-Wishart prior on the covariance matrix. This choice allows the reconciliation to be derived in closed form, resulting in a reconciled predictive distribution that follows a multivariate t. See @carrara2025 for a detailed explanation.
+t-Rec exploits the flexibility of Bayesian models to incorporate parameter uncertainty: it assumes an Inverse-Wishart prior on the covariance matrix. This choice allows the reconciliation to be derived in closed form, resulting in a reconciled predictive distribution that follows a multivariate Student's t. See @carrara2025 for a detailed explanation.
 
 
 ```{r load, message=FALSE, warning=FALSE}
@@ -46,15 +46,15 @@ library(ggplot2)  # plots
 
 # Loading the data
 
-We consider the monthly Swiss overnight tourist stays data divided by Canton and aggregated over the whole country. This is a cross-sectional hierarchical structure, consisting of two levels: the national total and the division by canton. 
+We consider the monthly Swiss overnight tourist stays data divided by canton and aggregated over the whole country. This is a cross-sectional hierarchical structure, consisting of two levels: the national total and the division by canton, for a total of 27 time series (1 upper and 26 bottom).
 
-The data is available in this package and can be loaded as `bayesRecon::swiss_tourism`. This is a list that contains the `mts` object, the aggregation matrix and the number of upper and bottom time series. The raw data is also publicly available on the official website of the Swiss Confederation at this [link](https://www.bfs.admin.ch/asset/en/px-x-1003020000_102).
+The dataset is available in this package and can be loaded as `bayesRecon::swiss_tourism`. This is a list that contains the `mts` object with the time series (`ts`), the aggregation matrix (`agg_mat`) and the number of upper (`n_upper`) and bottom (`n_bottom`) time series. The raw data is also publicly available on the official website of the Swiss Confederation at this [link](https://www.bfs.admin.ch/asset/en/px-x-1003020000_102).
 
-The data set spans the period from January 2005 to January 2025, comprising 241 monthly observations.
+The dataset spans the period from January 2005 to January 2025, comprising 241 monthly observations.
 
-The time series exhibit strong seasonality. See, in **Figure 1**, the top-level (aggregate) time series.
+The time series exhibit strong seasonality. **Figure 1** shows the top-level (aggregate) time series.
 
-```{r swiss-tourism-plot, dpi=300, out.width = "100%", fig.align='center', fig.cap="**Figure 1**: Swiss tourism - monthly Swiss overnight stays.", fig.dim = c(8, 4)}
+```{r swiss-tourism-plot, dpi=300, out.width = "100%", fig.align='center', fig.cap="**Figure 1**: Swiss tourism: monthly overnight stays in Switzerland.", fig.dim = c(8, 4)}
 # save all time series 
 Y = swiss_tourism$ts
 
@@ -63,7 +63,7 @@ autoplot(Y[,1], ylab = "Overnight stays in Switzerland",linewidth=0.9)+
   scale_y_continuous(labels = function(x) paste0(formatC(x / 1e6, format = "g"), "M"))
 ```
 
-We load the aggregation matrix and select the length of the training set. The length of the training set can be selected within the range [26, 240] observations.
+We load the aggregation matrix and select the length of the training set. The length of the training set can be selected within the range [14, 240] observations: at least 14 observations are needed to initialise the prior from the residuals of the naive forecasts of these monthly series, and at most 240 so that one observation is left for the forecast horizon.
 
 ```{r Swiss tourism}
 # Save aggregation matrix
@@ -78,8 +78,8 @@ n = n_b + n_u
 print(frequency(Y))
 
 # Select the length of the training set and the forecast horizon
-L = 60    
-h = 1    
+L = 60
+h = 1    # the code below assumes h = 1
 
 # Select the training set and the actuals for the forecast horizon
 train = window(Y, end = time(Y)[L])
@@ -90,18 +90,18 @@ actuals = window(Y, start= time(Y)[L + 1], end = time(Y)[L + h])
 
 The base forecasts are generated using the `ets()` function from the `forecast` package, which fits individual exponential smoothing models to each time series.
 
-For each time series forecast, we save the base forecast mean (`base_fc`) and the residuals from the fitted model (`res`), which are used to estimate the covariance matrix of the forecast errors.
+For each time series, we save the base forecast mean (`base_fc`) and the residuals from the fitted model (`res`), which are used to estimate the covariance matrix of the forecast errors.
 
 
 ```{r Base-forecasts and residuals computation}
 # Compute base forecasts and residuals for each time series
 base_fc = rep(NA, n)
 res = matrix(NA, ncol = n, nrow = L)
-for (i in 1:n){
-    models = forecast::ets(train[,i], model = "AZZ")
-    f = forecast(models, h = h)
-    base_fc[i] = f$mean
-    res[, i] = models$residuals
+for (k in 1:n){
+    fit = forecast::ets(train[,k], model = "AZZ")
+    f = forecast(fit, h = h)
+    base_fc[k] = f$mean
+    res[, k] = fit$residuals
 }
 ```
 
@@ -109,7 +109,7 @@ for (i in 1:n){
 
 We can now reconcile the forecasts with the function `reconc_t()`, which implements the t-Rec method. 
 
-This function takes as input the aggregation matrix `A`, the base forecast means `base_fc_mean`, the training data `y_train` and the model residuals `residuals` and returns the parameters of the reconciled forecasts, which are distributed as a multivariate-t. The flag `return_upper =  TRUE` forces the function to return also the parameters of the upper-level reconciled forecasts. The flag `return_parameters = TRUE` forces the function to return also the parameters of the posterior distribution of the covariance matrix; the will be used to compare the covariance estimates.
+This function takes as input the aggregation matrix `A`, the base forecast means `base_fc_mean`, the training data `y_train` and the model residuals `residuals` and returns the parameters of the reconciled forecasts, which are distributed as a multivariate Student's t. The flag `return_upper = TRUE` makes the function return also the parameters of the upper-level reconciled forecasts, while the flag `return_parameters = TRUE` makes it return also the parameters of the posterior distribution of the covariance matrix; they will be used to compare the covariance estimates.
 
 ```{r t-reconciliation}
 t_rec_results = reconc_t(A, base_fc_mean = base_fc, 
@@ -119,7 +119,7 @@ t_rec_results = reconc_t(A, base_fc_mean = base_fc,
                          return_upper = TRUE)
 ```
 
-For the selected data window, we save the base forecasts (Base).
+For the selected data window, we save the base forecasts (Base) together with the covariance matrix of their residuals.
 
 ```{r Base}
 # Base forecasts
@@ -127,7 +127,7 @@ Base_mean = base_fc
 Base_cov_mat = crossprod(res)/nrow(res) # covariance of the residuals
 ```
 
-We further compute the reconciled forecasts with the standard Gaussian reconciliation (MinT). Note the flag `return_upper = TRUE`, which forces the function to return the parameters of the upper-level reconciled forecasts.
+We further compute the reconciled forecasts with the standard Gaussian reconciliation (MinT, @wickramasuriya2019optimal). Note the flag `return_upper = TRUE`, which makes the function return also the parameters of the upper-level reconciled forecasts.
 
 ```{r Gaussian}
 # Gaussian/MinT: compute reconciliation with bayesRecon
@@ -163,7 +163,7 @@ sd_MinT <- sqrt(MinT_cov_mat[i_upper, i_upper])
 # t-Rec
 mu_tRec <- as.numeric(t_Rec_reconciled_mean[i_upper])
 scale_tRec <- sqrt(t_Rec_scale_par[i_upper, i_upper])
-df_tRec <- t_rec_results$bottom_rec_df
+df_tRec <- t_rec_results$upper_rec_df
 
 # Base
 mu_Base <- as.numeric(Base_mean[i_upper])
@@ -211,45 +211,45 @@ ggplot(dens_df, aes(x = x, y = Density, color = Method)) +
   scale_x_continuous(labels = function(x) paste0(formatC(x / 1e3, format = "g"), "k")) +
   guides(fill = "none") +
   labs(
-    title = "Predictive densities of upper time series",
+    title = "", #"Predictive densities of upper time series",
     x = "",
     y = ""
   ) +
   theme_minimal(base_size = 12) +
   theme(
-    legend.position = "top",
+    legend.position = "bottom",
     legend.title = element_blank(),
     plot.title       = element_text(size = 18)
   )
 ```
 
-The base forecast and the MinT reconciled forecast are normally distributed, while t-Rec has a Student's t distribution. 
-Both reconciliation methods improve the forecast: the mean of the densities is closer to the actual value. However, the t-Rec method returns a wider density, which is more likely to contain the actual value. This is because t-Rec accounts for the uncertainty in the covariance matrix of the forecast errors, which leads to a more realistic representation of the forecast uncertainty.
+The base forecast and the MinT reconciled forecast are normally distributed, while the t-Rec reconciled forecast follows a Student's t distribution.
+Both reconciliation methods improve the forecast: their means are closer to the actual value. However, the t-Rec method returns a wider density, which is more likely to contain the actual value. This is because t-Rec accounts for the uncertainty in the covariance matrix of the forecast errors, which leads to a more realistic representation of the forecast uncertainty.
 
 # Comparison of the covariance matrix estimates
 
-The main strength of t-Rec is that it provides an estimate of the covariance which accounts for the uncertainty in the estimation. To illustrate this point, we compare the covariance matrix estimates obtained before the reconciliation step, in t-Rec and in the standard Gaussian reconciliation method (MinT).
+The main strength of t-Rec is that it provides an estimate of the covariance which quantifies its own uncertainty. To illustrate this point, we compare the estimates of the covariance matrix of the base forecast errors used by t-Rec and by the standard Gaussian reconciliation method (MinT), both computed before the reconciliation step.
 
-In t-Rec, the covariance matrix of the base forecasts is estimated in a Bayesian way: we put an Inverse Wishart prior on the covariance, we assume that the residuals of the base forecasts are Gaussian distributed and we obtain a posterior distribution which is still Inverse Wishart with known parameters $\nu$ and $\Psi$.  The output of the function `bayesRecon::reconc_t` stores those parameters in `t_rec_results$posterior_nu` and `t_rec_results$posterior_Psi`. Note that those are not the parameters of the reconciled forecasts, but the parameters of the posterior distribution of the covariance matrix of the forecast errors. In this section, we denote this estimate as '*IW posterior*' to distinguish it from the reconciled covariance.  
+In t-Rec, the covariance matrix of the base forecast errors is estimated in a Bayesian way: we put an Inverse-Wishart prior on the covariance, we assume that the residuals of the base forecasts are Gaussian distributed and we obtain a posterior distribution which is again Inverse-Wishart with known parameters $\nu$ and $\Psi$. The output of the function `reconc_t()` stores those parameters in `t_rec_results$posterior_nu` and `t_rec_results$posterior_Psi`. Note that those are not the parameters of the reconciled forecasts, but the parameters of the posterior distribution of the covariance matrix of the forecast errors. In this section, we denote this estimate as '*IW posterior*' to distinguish it from the reconciled covariance.
 
-Since the posterior is an Inverse Wishart, we can further compute the marginal distribution of the variances in closed-form by using a scaled inverse Gamma distribution with the following parameters:
+Since the posterior is an Inverse-Wishart, we can write the marginal distribution of the variances in closed-form as an inverse Gamma distribution with the following parameters:
 $$
 \Sigma_{ii} \sim \text{Inv-Gamma}\left(\frac{\nu - n + 1}{2}, \frac{\Psi_{ii}}{2}\right),
 $$
-where $\nu$ and $\Psi$ denote the posterior Inverse Wishart parameters. 
+where $\nu$ and $\Psi$ denote the posterior Inverse-Wishart parameters and $n$ is the total number of series in the hierarchy.
 
-In the second case (MinT), instead, the covariance matrix is estimated with a point estimate by applying the Schäfer Strimmer shrinkage estimator to the covariance of the residuals. This method does not explicitly account for the uncertainty in the estimation. Here, we denote by '*Schäfer Strimmer*' this covariance estimate. 
+In the second case (MinT), instead, a point estimate of the covariance matrix is obtained by applying the Schäfer Strimmer shrinkage estimator [@schafer2005shrinkage] to the covariance of the residuals; this method is denoted here as '*Schäfer Strimmer*'.
 
-Consider the Swiss tourism forecasts computed above, we focus on the covariance matrix between the upper-level series, denoted as CH, and the bottom-level time series with the largest average values, "Graubünden", denoted as GR. Analogous considerations apply also for other series. The code in the vignette is parametric so that a user could manually visualize other comparisons. 
+For the Swiss tourism forecasts computed above, we focus on the covariance between the upper-level series, denoted as CH, and the bottom-level time series with the largest average number of overnight stays, "Graubünden", denoted as GR. Analogous considerations apply to the other series: the code below is parametrised by the indices `i` and `j`, so that other pairs of series can be inspected by changing them.
 
-```{r compute shrinked matrix}
-# Full shrinked covariance matrix with the Schäfer Strimmer shrinkage estimator
+```{r compute shrunk matrix}
+# Full shrinkage covariance matrix with the Schäfer Strimmer shrinkage estimator
 # The same matrix is computed internally by `reconc_gaussian()` before reconciliation
-shrink_mat<- bayesRecon::schaferStrimmer_cov(res)$shrink_cov
+shrink_mat <- bayesRecon::schaferStrimmer_cov(res)$shrink_cov
 ```
 
 
-We show here the standard deviation instead of the variance because it produces a more intuitive interpretation. The standard deviation is obtained by applying the square root transformation to the distribution of the variance (defined above), computed with the change of variable formula shown in the function below:
+We show here the standard deviation instead of the variance because it is easier to interpret. The density of the standard deviation is obtained from the density of the variance (defined above) through the change-of-variable formula, implemented in the function below:
 ```{r compute density}
 # Select which series to plot
 i = 1     # CH
@@ -265,14 +265,15 @@ d_std_dev <- function(x, shape,rate){
   dinvgamma(x^2, shape = shape, rate = rate)*2*x
 }
 
-# compute the density of the variance parameters for CH
+# compute the density of the standard deviation for CH;
+# mean_ch is the posterior mean of the variance, used only to centre the grid
 mean_ch <- t_rec_results$posterior_Psi[i, i]/(t_rec_results$posterior_nu - n - 1)
 x_ch <- sqrt(seq(mean_ch*0.5, mean_ch*1.7, length.out = 1000))
 shape_ch <- (t_rec_results$posterior_nu - n + 1) /2
 rate_ch  <- t_rec_results$posterior_Psi[i, i] / 2
 dens_ch <- d_std_dev(x_ch, shape = shape_ch, rate = rate_ch)
 
-# compute the density of the variance parameters for GR
+# compute the density of the standard deviation for GR
 mean_gr <- t_rec_results$posterior_Psi[j, j]/(t_rec_results$posterior_nu - n - 1)
 x_gr <- sqrt(seq(mean_gr*0.5, mean_gr*1.7, length.out = 1000))
 shape_gr <- (t_rec_results$posterior_nu - n + 1) /2
@@ -280,23 +281,36 @@ rate_gr  <- t_rec_results$posterior_Psi[j, j] / 2
 dens_gr <- d_std_dev(x_gr, shape = shape_gr, rate = rate_gr)
 ```
 
-**Figure 3** shows the density of the posterior standard deviation of the forecasts for the upper time series (CH) and the bottom time series (GR).
+**Figure 3** shows the density of the posterior standard deviation of the forecasts for the upper time series (CH) and the bottom time series (GR). In each panel, the vertical dashed line marks the corresponding point estimate obtained with *Schäfer Strimmer*.
 
-```{r density plot, echo=FALSE, eval=TRUE, dpi=300, out.width = "100%", fig.align='center', fig.cap="**Figure 3**: Density of the posterior standard deviation of the forecasts' residuals, estimated with *IW posterior*.", fig.dim = c(8, 4), warning=FALSE}
+```{r density plot, echo=FALSE, eval=TRUE, dpi=300, out.width = "100%", fig.align='center', fig.cap="**Figure 3**: Density of the posterior standard deviation of the forecasts' residuals, estimated with *IW posterior*. The dashed line is the *Schäfer Strimmer* estimate.", fig.dim = c(8, 4), warning=FALSE}
 
 df_dens <- data.frame(
-  x = c(x_ch, x_gr), 
-  y = c(dens_ch, dens_gr), 
+  x = c(x_ch, x_gr),
+  y = c(dens_ch, dens_gr),
   panel = rep(c("CH", "GR"), each = length(dens_ch))
+)
+
+# Schäfer Strimmer point estimates of the standard deviations
+df_shrink <- data.frame(
+  panel = c("CH", "GR"),
+  x     = sqrt(c(shrink_mat[i, i], shrink_mat[j, j])),
+  y     = c(max(dens_ch), max(dens_gr)) * 1.03
 )
 
 # Plot the density of the standard deviation parameters for CH and GR
 ggplot(df_dens, aes(x = x, y = y)) +
-  geom_line(linewidth = 1.5, color="darkolivegreen", alpha=0.7) +
+  geom_area(fill = "#6B8E23", alpha = 0.4) +
+  geom_line(color = "black") +
+  geom_vline(data = df_shrink, aes(xintercept = x), linetype = "dashed", color = "black") +
+  geom_text(data = df_shrink, aes(x = x, y = y, label = "Schäfer Strimmer"),
+            hjust = -0.05, vjust = 0, size = 4) +
+  # leave room above the curve for the label
+  geom_blank(data = df_shrink, aes(x = x, y = y * 1.12)) +
   scale_x_continuous(labels = function(x) paste0(formatC(x / 1e3, format = "g"), "k")) +
   guides(fill = "none") +
   labs(
-    title = "Posterior standard deviation of the forecasts' residuals",
+    title = "", #"Posterior standard deviation of the forecasts' residuals",
     x = "",
     y = ""
   ) +
@@ -305,11 +319,12 @@ ggplot(df_dens, aes(x = x, y = y)) +
   theme(
     legend.position = "top",
     legend.title = element_blank(),
+    strip.text       = element_text(size = 16),
     plot.title       = element_text(size = 18)
   )
 ```
 
-The posterior distribution for the covariance and for the correlation values is not available in closed form but it can be obtained via sampling. Since the posterior distribution is an Inverse-Wishart distribution, we can sample from this distribution using the custom function `rinvwishart()`, defined below.
+The posterior distribution for the covariance and for the correlation values is not available in closed form, but it can be obtained via sampling. Since the posterior distribution is an Inverse-Wishart distribution, we can sample from it with the custom function `rinvwishart()`, defined below, which fixes the seed for reproducibility.
 
 ```{r generate IW samples}
 # generate k samples from an IW(Psi, nu) distribution
@@ -327,8 +342,8 @@ rinvwishart <- function(k, nu, Psi, seed=42) {
   return(W)
 }
 
-IW_post_samples <- rinvwishart(k=1000, nu = t_rec_results$posterior_nu,
-                            Psi = t_rec_results$posterior_Psi)
+IW_post_samples <- rinvwishart(k = 1000, nu = t_rec_results$posterior_nu,
+                               Psi = t_rec_results$posterior_Psi)
 
 ```
 
@@ -336,13 +351,12 @@ IW_post_samples <- rinvwishart(k=1000, nu = t_rec_results$posterior_nu,
 ```{r compute correlations, echo=FALSE, eval=TRUE}
 
 corr_shrink <- cov2cor(shrink_mat)
-corr_base  <- cov2cor(Base_cov_mat)
 corr_tRec  <- cov2cor(t_rec_results$posterior_Psi/(t_rec_results$posterior_nu - n - 1))
 ```
 
-**Figure 4** shows the posterior density of the correlation between CH and GR. The value estimated with *Schäfer Strimmer*, plotted as a vertical dashed line, differs from the posterior mode estimated by *IW posterior*, illustrating how it captures a different view of the dependence structure. 
+**Figure 4** shows the posterior density of the correlation between CH and GR. The value estimated with *Schäfer Strimmer*, plotted as a vertical dashed line, lies in the lower tail of the *IW posterior* and differs from its mode, showing that the two estimates give a different picture of the dependence structure.
 
-```{r plot densities, echo=FALSE, eval=TRUE, dpi=300, out.width = "100%", fig.align='center', fig.cap="**Figure 4**: Density of the posterior correlation between CH and GR obtained with *IW posterior*.", fig.dim = c(8, 4), warning=FALSE}
+```{r plot densities, echo=FALSE, eval=TRUE, dpi=300, out.width = "100%", fig.align='center', fig.cap="**Figure 4**: Density of the posterior correlation between CH and GR obtained with *IW posterior*. The dashed line is the *Schäfer Strimmer* estimate.", fig.dim = c(8, 4), warning=FALSE}
 # Compute correlation samples for all sample matrices generated above
 corr_post <- array(apply(IW_post_samples, FUN = function(M) cov2cor(M), MARGIN = c(3)),
                    dim = dim(IW_post_samples))
@@ -350,12 +364,13 @@ corr_post <- array(apply(IW_post_samples, FUN = function(M) cov2cor(M), MARGIN =
 df_corr <- data.frame(x = corr_post[i, j, ])
 
 ggplot(df_corr, aes(x = x)) +
-  geom_density(fill = "#00BA38", alpha = 0.4) +
+  geom_density(fill = "#6B8E23", alpha = 0.4) +
   geom_vline(xintercept = corr_shrink[i, j], linetype = "dashed", color = "black") +
   annotate("text", x = corr_shrink[i, j], y = max(density(corr_post[i, j, ])$y) * 0.95, label = "Schäfer Strimmer", 
            hjust = -0.05, vjust = 0, size = 4.5) +
   labs(x = "", y = "Density",
-       title = expression(paste("Posterior correlation ", rho["CH,GR"]))) +
+       title = "" #expression(paste("Posterior correlation ", rho["CH,GR"]))
+       ) +
   theme_minimal() +
   theme(
     legend.position  = "none",
@@ -363,37 +378,7 @@ ggplot(df_corr, aes(x = x)) +
   )
 ```
 
-Finally, we show in **Table 1** the standard deviation and correlation estimates for the upper-level series (CH) and the bottom-level series (GR) obtained with the *Schäfer Strimmer* (used in MinT) and *IW posterior* (used in t-Rec). *IW posterior* provides a distribution for these parameters, however *Schäfer Strimmer* provides only point estimates for the standard deviation and correlation. For this reason, in the table, we report the mean of the posterior distribution for the standard deviation and the correlation.
-
-```{r,echo=FALSE,eval=TRUE}
-# Print table with values for Std and correlation
-knitr::kable(data.frame(
-  Method = c(#"Base", 
-             "Schäfer Strimmer", "IW posterior"),
-  sigma2_CH   = sqrt(c(
-    #Base_cov_mat[i, i], 
-    shrink_mat[i, i], t_rec_results$posterior_Psi[i, i]/(t_rec_results$posterior_nu - n - 1))),
-  sigma2_GR   = sqrt(c(
-    #Base_cov_mat[j, j], 
-    shrink_mat[j, j], t_rec_results$posterior_Psi[j, j]/(t_rec_results$posterior_nu - n - 1))),
-  rho_CH_GR   = c(#corr_base[i, j], 
-                  corr_shrink[i, j], corr_tRec[i, j])
-), digits = c(0,0, 0, 2),
-   format = "html",
-   col.names = c("Method",
-                 "\\(\\hat{\\sigma}_{\\text{CH}}\\)",
-                 "\\(\\hat{\\sigma}_{\\text{GR}}\\)",
-                 "\\(\\hat{\\rho}_{\\text{CH,GR}}\\)"),
-   escape = FALSE,
-   table.attr = "style='width:auto;'",
-   format.args = list(big.mark = ",", scientific = FALSE),
-   caption = "<strong>Table 1</strong>: Standard deviation and correlation estimates for CH and GR.")
-```
-
-Note that the standard deviation estimated by *IW posterior* is higher than the *Schäfer Strimmer* estimates. This is because the posterior Inverse-Wishart distribution depends on the prior, which is initialized using the residuals of the naive forecasts. Since these residuals capture the full uncertainty of the non-reconciled forecasts, the prior inflates the posterior variance relative to the point estimate provided by *Schäfer Strimmer*.
-Moreover, the correlation between CH and GR is also estimated differently. 
-
-
+The two estimates therefore differ in both values and interpretation. *IW posterior* returns a density while *Schäfer Strimmer* is a point estimate. Moreover, the standard deviations estimated by *IW posterior* (both mean and mode) are larger than the *Schäfer Strimmer* point estimates (**Figure 3**). The correlation between CH and GR is also estimated differently: `r round(corr_shrink[i, j], 2)` with *Schäfer Strimmer* against a posterior mean of `r round(corr_tRec[i, j], 2)` with *IW posterior* (**Figure 4**). Accounting for this additional uncertainty is what makes the t-Rec predictive distribution wider than the MinT one in **Figure 2**.
 
 
 # References
