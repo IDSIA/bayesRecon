@@ -1,8 +1,14 @@
+# bayesRecon 1.0.2
+
+* Updated vignette 't_reconciliation.Rmd'.
+
+* Fixed broken links.
+
 # bayesRecon 1.0.1
 
 * Vignette for the function `reconc_t`.
 
-* Updated version of README
+* Updated version of README.
 
 * Fixed a bug in auxiliary function to `reconc_t` (`.compute_naive_cov`) that could cause major fail.
 
