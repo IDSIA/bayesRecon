@@ -1,12 +1,18 @@
 # Changelog
 
+## bayesRecon 1.0.2
+
+- Updated vignette ‘t_reconciliation.Rmd’.
+
+- Fixed broken links.
+
 ## bayesRecon 1.0.1
 
 CRAN release: 2026-04-16
 
 - Vignette for the function `reconc_t`.
 
-- Updated version of README
+- Updated version of README.
 
 - Fixed a bug in auxiliary function to `reconc_t` (`.compute_naive_cov`)
   that could cause major fail.

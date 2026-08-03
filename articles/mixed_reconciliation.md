@@ -120,7 +120,7 @@ rec_fc$Gauss <- list(
 
 Gauss_time <- as.double(round(difftime(stop, start, units = "secs"), 2))
 cat("Time taken by Gaussian reconciliation: ", Gauss_time, "s")
-#> Time taken by Gaussian reconciliation:  0.3 s
+#> Time taken by Gaussian reconciliation:  0.29 s
 ```
 
 ## Reconciliation with mixed-conditioning
@@ -170,7 +170,7 @@ rec_fc$Mixed_cond <- list(
 
 MixCond_time <- as.double(round(difftime(stop, start, units = "secs"), 2))
 cat("Computational time for Mix-cond reconciliation: ", MixCond_time, "s")
-#> Computational time for Mix-cond reconciliation:  9.59 s
+#> Computational time for Mix-cond reconciliation:  9.74 s
 ```
 
 As discussed in Zambon et al. (2024), Sect. 3, conditioning with mixed
@@ -216,13 +216,13 @@ rec_fc$TD_cond <- list(
 
 TDCond_time <- as.double(round(difftime(stop, start, units = "secs"), 2))
 cat("Computational time for TD-cond reconciliation: ", TDCond_time, "s")
-#> Computational time for TD-cond reconciliation:  10.76 s
+#> Computational time for TD-cond reconciliation:  10.62 s
 ```
 
 ## Comparison
 
-The computational time required for the Gaussian reconciliation is 0.3
-seconds, Mix-cond requires 9.59 seconds and TD-cond requires 10.76
+The computational time required for the Gaussian reconciliation is 0.29
+seconds, Mix-cond requires 9.74 seconds and TD-cond requires 10.62
 seconds.
 
 For each time series in the hierarchy, we compute the following scores
