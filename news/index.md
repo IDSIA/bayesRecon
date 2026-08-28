@@ -2,6 +2,8 @@
 
 ## bayesRecon 1.0.2
 
+CRAN release: 2026-08-03
+
 - Updated vignette ‘t_reconciliation.Rmd’.
 
 - Fixed broken links.
