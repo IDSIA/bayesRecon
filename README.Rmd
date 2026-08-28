@@ -706,6 +706,11 @@ Zambon, L., Azzimonti, D., Rubattu, N., Corani, G. (2024).
 Proceedings of the Fortieth Conference on Uncertainty in Artificial Intelligence,
 in Proceedings of Machine Learning Research 244:4078-4095. [Available here](https://proceedings.mlr.press/v244/zambon24a.html).
 
+
+## Acknowledgements
+
+Work on this package was supported by the Swiss National Science Foundation (SNSF) under grant number 200021_212164 (["Probabilistic Forecasting: Global Models, Gaussian Processes and Hierarchies"](https://data.snf.ch/grants/grant/212164)).
+
 ## Contributors
 
 <!-- prettier-ignore-start -->
